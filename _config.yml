@@ -1,10 +1,9 @@
-title: llvm notes in detail
+title: weliveindetail dev blog
 email: stefan.graenitz@gmail.com
 description: >
   Developer blog on compilers, debuggers, optimization- and instrumentation 
-  tools from the world of LLVM.
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
+  tools from the world of LLVM
+baseurl: "/blog"
 twitter_username: weliveindetail
 github_username:  weliveindetail
 linkedin_username: stefan-gränitz-254298113
@@ -14,6 +13,7 @@ markdown: kramdown
 theme: minima
 pulgins:
   - jekyll-feed
+  - jekyll-email-protect
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
