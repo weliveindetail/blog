@@ -14,9 +14,9 @@
             </li>
             {% if site.email %}
             <li>
-              <a href="mailto:%73%74%65%66%61%6E.%67%72%61%65%6E%69%74%7A@%67%6D%61%69%6C.%63%6F%6D">E-Mail</a> |
-              <a href="https://cryptup.org/pub/%73%74%65%66%61%6E.%67%72%61%65%6E%69%74%7A@%67%6D%61%69%6C.%63%6F%6D">PGP</a> | 
-              <a href="https://about.me/stefan.graenitz">About.me</a>
+              <a href="click:the.address.will.be.decrypted.by.javascript" onclick='openMailer(this);'>E-Mail</a> |
+              <a href="click:the.address.will.be.decrypted.by.javascript" onclick='openCryptUp(this);' target=_blank>PGP</a> | 
+              <a href="https://about.me/stefan.graenitz" target=_blank>About.me</a>
             </li>
             {% endif %}
         </ul>
@@ -57,17 +57,17 @@
 
 </footer>
 
-<script language="JavaScript">
-$(function() {
-  return $("h2, h3, h4, h5, h6").each(function(i, el) {
-    var $el, icon, id;
-    $el = $(el);
-    id = $el.attr('id');
-    icon = '<i class="fa fa-link"></i>';
-    if (id) {
-      return $el.append($("<a />").addClass("header-link").attr("href", "#" + id).html(icon));
-    }
+<script language="JavaScript" type="text/javascript">
+  $(function() {
+    return $("h2, h3, h4, h5, h6").each(function(i, el) {
+      var $el, icon, id;
+      $el = $(el);
+      id = $el.attr('id');
+      icon = '<i class="fa fa-link"></i>';
+      if (id) {
+        return $el.append($("<a />").addClass("header-link").attr("href", "#" + id).html(icon));
+      }
+    });
   });
-});
 </script>
 
