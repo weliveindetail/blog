@@ -182,6 +182,26 @@ pre {
 
 
 
+/**
+ * Header hover anchor links
+ */
+.header-link {
+  display: none;
+  padding: 0.1em 10px;
+  font-size: 0.8em;
+}
+
+h2:hover .header-link,
+h3:hover .header-link,
+h4:hover .header-link,
+h5:hover .header-link,
+h6:hover .header-link {
+  display: inline;
+  color: #2a7ae2;
+  text-decoration: underline;
+}
+
+
 
 /**
  * Wrapper
