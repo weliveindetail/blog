@@ -179,8 +179,6 @@ To explore the code and debug JitFromScratch open the generated `C:\Develop\JitF
 </div>
 
 
-This way you can build every revision in the [history of the jit-basics branch](https://github.com/weliveindetail/JitFromScratch/commits/jit-basics) to understand basic runtime code generation and compilation.
-
 
 <script language="JavaScript">
 $("#linux-mint-18").click(function() { $("#linux-mint-18-content").toggle(); });
