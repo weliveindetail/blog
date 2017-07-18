@@ -10,4 +10,4 @@ With the advent of [LLVM](https://stackoverflow.com/questions/2354725/what-exact
 
 My name is Stefan Gränitz and I use this blog to share my experiences. In my spare time I am hacking on compilers and tools. As a freelance developer I help companies to develop, maintain and port LLVM-based technology of different flavors here in Berlin and remote.
 
-If you are interested please join our [LLVM Social Berlin](https://www.meetup.com/de-DE/LLVM-Social-Berlin/) or write me a mail.
+If you are interested please join our [LLVM Social Berlin](https://www.meetup.com/de-DE/LLVM-Social-Berlin/) or [write me a mail](mailto:%73%74%65%66%61%6E.%67%72%61%65%6E%69%74%7A@%67%6D%61%69%6C.%63%6F%6D).
