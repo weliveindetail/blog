@@ -14,7 +14,7 @@ Doxygen ([LLVM](http://llvm.org/doxygen/), [Clang](http://clang.llvm.org/doxygen
 * Clang *is the* reference implementation for LLVM-based compilers
 * facing the pace of change in LLVM and Clang, any written low-level documentation would quickly be outdated anyway
 
-So eventually you will find yourself crawling through tons of Clang sources to actually find out how Clang does it. Let's say you want to know how Clang mangles C++ function names. If you are on OSX you will probably set a breakpoint in [`CXXNameMangler::mangle()`](https://github.com/llvm-mirror/clang/blob/master/lib/AST/ItaniumMangle.cpp#L641). Then you will build Clang in debug mode and watch it compiling an example C++ file like this:
+So eventually you will find yourself crawling through tons of Clang sources to actually find out how Clang does it (if you don't know how to build Clang side-by-side with LLVM then [read it here]({{ site.baseurl }}{% post_url 2017-07-17-notes-setup %}#use-enable_projects)). Let's say you want to know how Clang mangles C++ function names. If you are on OSX you will probably set a breakpoint in [`CXXNameMangler::mangle()`](https://github.com/llvm-mirror/clang/blob/master/lib/AST/ItaniumMangle.cpp#L641). Then you will build Clang in debug mode and watch it compiling an example C++ file like this:
 
 {% highlight c++ %}
 extern int returnValue(int a, char **b);
