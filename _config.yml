@@ -1,7 +1,7 @@
 title: weliveindetail dev blog
 email: stefan.graenitz@gmail.com
 description: >
-  Developer blog on compilers, debuggers, optimization- and instrumentation 
+  Details on compilers, debuggers, optimization- and instrumentation 
   tools from the world of LLVM
 baseurl: "/blog"
 twitter_username: weliveindetail
