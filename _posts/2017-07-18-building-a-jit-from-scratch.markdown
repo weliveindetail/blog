@@ -55,7 +55,7 @@ clang-3.8 clang++-3.8
 /Develop/llvm40/llvm40-debug $ cmake --build .
 </pre>
 
-You can find more details on building LLVM from source [in the previous post]({% post_url 2017-07-17-notes-setup %}). The build process will take time, but you can already prepare the next steps. Checkout the sources for the JitFromScratch project and get ready for generating build files. Once the LLVM build is done, you can run the `cmake` commands:
+You can find more details on building LLVM from source [in the previous post]({{ site.baseurl }}{% post_url 2017-07-17-notes-setup %}). The build process will take time, but you can already prepare the next steps. Checkout the sources for the JitFromScratch project and get ready for generating build files. Once the LLVM build is done, you can run the `cmake` commands:
 <pre>
 ~/Develop $ mkdir JitFromScratch
 ~/Develop $ cd JitFromScratch
@@ -107,7 +107,7 @@ mac:llvm40-build user$ <b>cmake -G Xcode -DCMAKE_OSX_SYSROOT=macosx10.12 -DLLVM_
 mac:llvm40-build user$ cmake --build .
 </pre>
 
-You can find more details on building LLVM from source [in the previous post]({% post_url 2017-07-17-notes-setup %}). The build process will again take time, but you can already prepare the next steps. Checkout the sources for the JitFromScratch project and get ready for generating build files. Once the LLVM build is done, you can run the `cmake` commands:
+You can find more details on building LLVM from source [in the previous post]({{ site.baseurl }}{% post_url 2017-07-17-notes-setup %}). The build process will again take time, but you can already prepare the next steps. Checkout the sources for the JitFromScratch project and get ready for generating build files. Once the LLVM build is done, you can run the `cmake` commands:
 <pre>
 mac:Develop user$ mkdir JitFromScratch
 mac:Develop user$ cd JitFromScratch
@@ -155,7 +155,7 @@ C:\Develop\llvm40\llvm40-build><b>cmake -G "Visual Studio 15 2017 Win64" -DLLVM_
 C:\Develop\llvm40\llvm40-build>cmake --build .
 </pre>
 
-You can find more details on building LLVM from source [in the previous post]({% post_url 2017-07-17-notes-setup %}). The build process will take time, but you can already prepare the next steps. Checkout the sources for the JitFromScratch project and get ready for generating build files. Once the LLVM build is done, you can run the `cmake` commands:
+You can find more details on building LLVM from source [in the previous post]({{ site.baseurl }}{% post_url 2017-07-17-notes-setup %}). The build process will take time, but you can already prepare the next steps. Checkout the sources for the JitFromScratch project and get ready for generating build files. Once the LLVM build is done, you can run the `cmake` commands:
 <pre>
 C:\Develop>mkdir JitFromScratch
 C:\Develop>cd JitFromScratch
