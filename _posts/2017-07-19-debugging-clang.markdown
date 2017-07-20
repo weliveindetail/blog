@@ -11,10 +11,10 @@ Doxygen ([LLVM](http://llvm.org/doxygen/), [Clang](http://clang.llvm.org/doxygen
 ## See how Clang does it
 
 ...is probably the top one answer for questions in the mailing lists or stackoverflow. In fact it's not only a pragmatic solution, but IMHO also quite an effective one because:
-* Clang *is the* reference implementation for LLVM-based compilers
-* facing the pace of change in LLVM and Clang, any written low-level documentation would quickly be outdated anyway
+* **Clang is the reference implementation** for LLVM-based compilers
+* facing the pace of change in the code base of LLVM and Clang, any written low-level documentation will quickly be outdated anyway
 
-So eventually you will find yourself crawling through tons of Clang sources to actually find out how Clang does it (if you don't know how to build Clang side-by-side with LLVM then [read it here]({{ site.baseurl }}{% post_url 2017-07-17-notes-setup %}#use-enable_projects)). Let's say you want to know how Clang mangles C++ function names. If you are on OSX you will probably set a breakpoint in [`CXXNameMangler::mangle()`](https://github.com/llvm-mirror/clang/blob/master/lib/AST/ItaniumMangle.cpp#L641). Then you will build Clang in debug mode and watch it compiling an example C++ file like this:
+So eventually you will find yourself crawling through tons of Clang sources to actually find out how Clang does it (if you don't know how to build Clang side-by-side with LLVM then [read it here]({{ site.baseurl }}{% post_url 2017-07-17-notes-setup %}#use-enable_projects)). Let's say you want to know how Clang mangles C++ function names. If you are on OSX you will probably set a breakpoint in [`CXXNameMangler::mangle()`](https://github.com/llvm-mirror/clang/blob/master/lib/AST/ItaniumMangle.cpp#L641). Then you will build Clang in debug mode and watch it compiling a C++ file like this:
 
 {% highlight c++ %}
 extern int returnValue(int a, char **b);
@@ -28,11 +28,11 @@ If you did that the first time, you may be surprised that your breakpoint never 
 
 ## Driver vs. Frontend
 
-In Clang driver (clang/clang-cl) and frontend (cc1) are separate entities. The driver mainly manages compile jobs and transforms command line arguments from GCC- or MSVC-compatible ones to an independent internal representation. Then for each job it forks itself with the new set of arguments that invoke the frontend directly. AFAIK the reasons for this behavior are mostly historical. However, there are a few benefits with it:
-* memory deallocated in the forked clang can be skipped as it will be cleaned up with the process
-* if the forked clang crashes the parent clang process can generate a preprocessed source to serve as a test case
+In Clang driver (clang/clang-cl) and frontend (cc1) are separate entities. The driver mainly manages scheduling for compile jobs and transforms command line arguments from GCC- or MSVC-compatible ones to an independent internal representation. Then for each job it forks itself with the new set of arguments that invoke the frontend directly. AFAIK the reasons for this behavior are mostly historical. However, there are a few benefits with it:
+* in each fork memory deallocation can be skipped as the system cleans it up with the process
+* if the forked clang crashes, the parent process can generate a preprocessed source to serve as a test case
 
-This issue was discussed in more detail on the [cfe-dev] mailing list some time ago: [http://lists.llvm.org/pipermail/cfe-dev/2014-January/034870.html](http://lists.llvm.org/pipermail/cfe-dev/2014-January/034870.html).
+The issue was discussed in more detail on the [cfe-dev] mailing list some time ago:<br> [http://lists.llvm.org/pipermail/cfe-dev/2014-January/034870.html](http://lists.llvm.org/pipermail/cfe-dev/2014-January/034870.html).
 
 ## So how can we debug the Clang frontend?
 
@@ -54,4 +54,4 @@ $ nm ~/example.o
 0000000000000000 T _main
 </pre>
 
-If you do this in your IDE your breakpoint will now hit, you can see how name mangling is invoked and debug through the process. Happy hacking!
+If you do this in your IDE your breakpoint will now hit. You can see how name mangling is invoked and you can debug through the process. Happy hacking!
