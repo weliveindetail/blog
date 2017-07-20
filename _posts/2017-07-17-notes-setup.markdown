@@ -1,8 +1,10 @@
 ---
 layout: post
+author: Stefan Gränitz
 title:  "Notes on setting up projects with LLVM"
 date:   2017-07-17 22:13:01 +0200
 categories: post
+comments: true
 --- 
 A few notes on building LLVM and how to build against it. There's different ways to do this and there's pros and cons with all of them. This is what I got used to.
 

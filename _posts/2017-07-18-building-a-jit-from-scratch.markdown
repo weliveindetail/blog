@@ -1,8 +1,10 @@
 ---
 layout: post
+author: Stefan Gränitz
 title:  "Building a JIT from scratch"
 date:   2017-07-18 12:13:01 +0200
 categories: post
+comments: true
 --- 
 Implementing a cross-platform native JIT has never been easier than today with LLVM. My GitHub project [JitFromScratch](https://github.com/weliveindetail/JitFromScratch) shows how to use the LLVM ORC libraries to compile the code for a simple function at runtime: 
 

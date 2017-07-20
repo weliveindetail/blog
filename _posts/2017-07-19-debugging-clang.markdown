@@ -1,8 +1,10 @@
 ---
 layout: post
+author: Stefan Gränitz
 title:  "Debugging Clang"
 date:   2017-07-19 18:30:01 +0200
 categories: post
+comments: true
 --- 
 The high-level documentation for [LLVM](http://llvm.org/docs/) and [Clang](https://clang.llvm.org/docs/) is pretty good and gives a lot of useful resources. However, when it comes to bare metal and you want to know how to use any specific API, things can get increasingly difficult.
 
