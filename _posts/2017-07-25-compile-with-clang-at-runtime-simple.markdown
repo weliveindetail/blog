@@ -1,8 +1,10 @@
 ---
 layout: post
+author: Stefan Gränitz
 title:  "The simplest way to compile C++ with Clang at runtime"
 date:   2017-07-25 15:08:01 +0200
 categories: post
+comments: true
 --- 
 JIT compilation is often about custom code generation or simple DSLs. But what if we have actual source code for a general programming language and want to compile it at runtime? We need a frontend that compiles it to LLVM IR first before we feed it into the JIT. Clang is a proper frontend for C++, but what's the simplest way to use it in this context?
 
