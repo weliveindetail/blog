@@ -3,6 +3,7 @@ email: stefan.graenitz@gmail.com
 description: >
   Details on compilers, debuggers, optimization- and instrumentation 
   tools from the world of LLVM
+url: https://weliveindetail.github.io
 baseurl: "/blog"
 twitter_username: weliveindetail
 github_username:  weliveindetail
