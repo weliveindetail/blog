@@ -4,7 +4,7 @@ author: Stefan Gränitz
 title:  "LLVM 5.0 Release ORC API Changes"
 date:   2017-08-23 15:08:01 +0200
 categories: post
-comments: false
+comments: true
 --- 
 This week's 5.0 release of the LLVM libraries is a good opportunity to see what changed on the ORC JIT API. This is a summary of the most important things I came across when porting the [JitFromScratch](https://github.com/weliveindetail/JitFromScratch) examples.
 
