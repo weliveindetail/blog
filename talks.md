@@ -7,7 +7,7 @@ permalink: /talks/
   <li>
     <span class="post-meta">ADC,   London   —   November   2016</span>
     <h2>
-      <a class="post-link" href="https://www.youtube.com/watch?v=x2GnSXlSpwk">
+      <a class="post-link" href="https://github.com/weliveindetail/talks/raw/master/adc16/stefan-graenitz-projucer-cpp-live-builds.pdf">
       Behind   the   Scenes   of   the Projucer   Live-Build   Engine</a>
     </h2>
   </li>
