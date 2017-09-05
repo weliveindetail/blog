@@ -5,10 +5,19 @@ permalink: /talks/
 ---
 <ul class="post-list">
   <li>
+    <span class="post-meta">
+      <b style="color: #f22;">UPCOMING: C++   User   Group   Berlin   —   September  19th,  2017</b>
+    </span>
+    <h2>
+      <a class="post-link" href="https://www.meetup.com/de-DE/berlincplusplus/events/243082324/">
+      Expectify - Rich Polymorphic Error Handling with llvm::Expected&lt;T&gt;</a>
+    </h2>
+  </li>
+  <li>
     <span class="post-meta">ADC,   London   —   November   2016</span>
     <h2>
       <a class="post-link" href="https://github.com/weliveindetail/talks/raw/master/adc16/stefan-graenitz-projucer-cpp-live-builds.pdf">
-      Behind   the   Scenes   of   the Projucer   Live-Build   Engine</a>
+      Behind   the   Scenes   of   the Projucer  C++  Live-Build   Engine</a>
     </h2>
   </li>
   <li>
