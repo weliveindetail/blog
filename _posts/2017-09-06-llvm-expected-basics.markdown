@@ -150,3 +150,6 @@ invalid glob pattern: [a*.txt
 </pre>
 
 There's a lot more details to share about this way of error handling. I hope you are curious for Part 2?
+
+<a href="/blog/post/2017/09/07/llvm-expected-differentiation.html" style="float: right;">Differentiation &gt;</a>
+<br>
