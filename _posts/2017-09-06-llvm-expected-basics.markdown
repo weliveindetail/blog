@@ -7,7 +7,8 @@ categories: post
 comments: true
 --- 
 
-There are good reasons for and against the use of C++ Exceptions. The lack of good alternatives, however, is often considered a strong argument FOR them. Exception-free codebases just too easily retrogress to archaic error code passing. If your project doesn't go well with Exceptions, it can be a terrible trade-off. What follows is a solution recently introduced to the LLVM libraries.
+There are good reasons for and against the use of C++ Exceptions. The lack of good alternatives, however, is often considered a strong argument FOR them. Exception-free codebases just too easily retrogress to archaic error code passing. If your project doesn't go well with Exceptions, it can be a terrible trade-off. What follows is a solution recently introduced to the LLVM libraries. In order to make it usable for third parties, I provide a stripped-down version: 
+[https://github.com/weliveindetail/llvm-expected](https://github.com/weliveindetail/llvm-expected).
 
 #### Short Example
 
@@ -77,12 +78,12 @@ So what do we gain with `llvm::Expected<T>`? A little readablility? A move inste
 Let's imagine our `simpleExample` function becomes prominent and other people want to use it too. So we decide to move it to a library. Can we dump to `stderr` straight away in our library? Well, we could provide an extra argument to pass an arbitrary stream to dump the error message, but maybe the user of the library has an entirely different approach for error handling (thinking about Clang diagnostics for example). Quite likely we'd end up with something like this for error codes:
 
 {% highlight cpp %}
-std::error_code simpleExample(bool &result, std::string &errorFileName) {
+std::error_code simpleExample(bool &result, std::string *&errorFileName) {
   GlobPattern pattern;
   std::string fileName = "[a*.txt";
 
   if (std::error_code ec = GlobPattern::create(fileName, pattern)) {
-    errorFileName = std::move(fileName);
+    errorFileName = new std::string(fileName);
     return ec;
   }
 
@@ -92,11 +93,12 @@ std::error_code simpleExample(bool &result, std::string &errorFileName) {
 
 int main() {
   bool res;
-  std::string errorFileName;
+  std::string *errorFileName = nullptr; // heap alloc in error case
 
   if (std::error_code ec = simpleExample(res, errorFileName)) {
     std::cerr << "[simpleExample Error] " << getErrorDescription(ec) << " ";
-    std::cerr << errorFileName << "\n";
+    std::cerr << *errorFileName << "\n";
+    delete errorFileName;
     return 0;
   }
 
@@ -105,7 +107,7 @@ int main() {
 }
 {% endhighlight %}
 
-We moved the error handling to `main`. We have to change the `simpleExample` function to return the error code and add out parameters for the actual result and the potential error details. Variables for out parameters have to be created and initialized apriori, which adds unnecessary overhead as we actually never need both. All together it's a significant change to our code and function signatures. Readability suffers, unit tests need to be changed and we need to look very precisely not to introduce new edge cases.
+Moving the error handling to `main`, we have to change the signature of `simpleExample` to return the error code and add out parameters for both, the actual result and the potential error details. Variables for out parameters have to be created and initialized apriori, which adds unnecessary overhead (actually we never need both). The above code tries to be "clever" here and takes a reference to a pointer to `errorFileName`. With that it saves a few cycles in the non-error case. The price for that micro-optimization is a new dependency between the two functions: they share an asymmetric new-delete, which might be considered a code smell. All in all it's a significant change to our code and function signatures. Readability suffers, unit tests need to be changed and we need to look very precisely not to introduce new edge cases.
 
 **The underlying problem here is the limitation of error codes: They communicate enumerable errors very well, but cannot carry extra information.** In many real-world cases people just won't make the effort to return error details or they even ignore the error entirely. There is no mechanism in error codes to make sure errors are actually handled. Hence it's hard to estimate the robustness of codebases that rely on error codes.
 
@@ -133,7 +135,11 @@ int main() {
 }
 {% endhighlight %}
 
-We simply moved the error handler one level up. The only change on the function signature is the return type, from `bool` to `llvm::Expected<bool>`. In `simpleExample` we just forward errors and otherwise call the `match()` member function through an indirection. No unnecessary overhead, no code bloat and especially no risk to drop errors: if we didn't check `pattern` for errors in line 4 it would abort with an error message telling us about it (always, not only in error cases):
+We simply moved the error handler one level up. The only change on the function signature is the return type, from `bool` to `llvm::Expected<bool>`. In `simpleExample` we just forward errors and otherwise call the `match()` member function through an indirection. Summarizing the benefits:
+
+* **No unnecessary overhead**: this code out-performs even the optimized error codes version
+* **No code bloat**: we only added 2 lines of code, while the error code example requires 8 extra lines
+* **No risk to drop errors**: if we didn't check `pattern` for errors in line 4, it would abort with an error message to tell us about it (always, not only in error cases):
 
 <pre>
 Expected&lt;T&gt; must be checked before access or destruction.
