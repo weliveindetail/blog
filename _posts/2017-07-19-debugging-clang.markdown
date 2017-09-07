@@ -10,7 +10,7 @@ The high-level documentation for [LLVM](http://llvm.org/docs/) and [Clang](https
 
 Doxygen ([LLVM](http://llvm.org/doxygen/), [Clang](http://clang.llvm.org/doxygen/)) helps a lot to figure what is available through an API and which entry points exists, but it naturally lacks information on how to compose things to achieve your goal.
 
-## See how Clang does it
+### See how Clang does it
 
 ...is probably the top one answer for questions in the mailing lists or stackoverflow. In fact it's not only a pragmatic solution, but IMHO also quite an effective one because:
 * **Clang is the reference implementation** for LLVM-based compilers
@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 
 If you did that the first time, you may be surprised that your breakpoint never hits. Before you start searching for mistakes: You didn't do anything wrong but **just encountered a common pitfall**.
 
-## Driver vs. Frontend
+### Driver vs. Frontend
 
 In Clang driver (clang/clang-cl) and frontend (cc1) are separate entities. The driver mainly manages scheduling for compile jobs and transforms command line arguments from GCC- or MSVC-compatible ones to an independent internal representation. Then for each job it forks itself with the new set of arguments that invoke the frontend directly. AFAIK the reasons for this behavior are mostly historical. However, there are a few benefits with it:
 * in each fork memory deallocation can be skipped as the system cleans it up with the process
@@ -36,7 +36,7 @@ In Clang driver (clang/clang-cl) and frontend (cc1) are separate entities. The d
 
 The issue was discussed in more detail on the [cfe-dev] mailing list some time ago:<br> [http://lists.llvm.org/pipermail/cfe-dev/2014-January/034870.html](http://lists.llvm.org/pipermail/cfe-dev/2014-January/034870.html).
 
-## So how can we debug the Clang frontend?
+### So how can we debug the Clang frontend?
 
 First we can manually process the flags that the Clang driver would use to invoke the frontend. Prepend your command line with `-###` to run only the driver and print transformed arguments:
 <pre>

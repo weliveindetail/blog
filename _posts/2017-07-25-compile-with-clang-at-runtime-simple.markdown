@@ -15,11 +15,11 @@ It's a direct consequence from the [last post]({{ site.baseurl }}{% post_url 201
 3. Stream back the bitcode file into a LLVM module
 4. Feed the module into the JIT
 
-## Add link libraries, include paths and definitions
+### Add link libraries, include paths and definitions
 
 This is obviously necessary in order to integrate Clang into our project. Please find a sample [CMakeLists.txt with the required additions here](https://github.com/weliveindetail/JitFromScratch/blob/jit-from-source/cpp-clang/CMakeLists.txt). If you're on Linux consider using the LLD linker to speed up your builds! The sample has an [option to use LLD](https://github.com/weliveindetail/JitFromScratch/blob/jit-from-source/cpp-clang/CMakeLists.txt#L55) that works with Clang.
 
-## Invoke cc1 tool
+### Invoke cc1 tool
 
 The simplest way is a hack: The entry point to `cc1` is not the `main` function but `cc1_main` and it's implemented in a [separate translation unit](https://github.com/llvm-mirror/clang/blob/master/tools/driver/cc1_main.cpp). This means that we can simply include the cpp without a symbol conflict at link-time, as we do have our own `main` but no `cc1_main`.
 
@@ -39,7 +39,7 @@ std::unique_ptr<llvm::Module> M = readModuleFromBitcodeFile("bitcode.bc");
 jit->submitModule(std::move(M));
 {% endhighlight %}
 
-## Actual cc1 arguments
+### Actual cc1 arguments
 
 We can figure out which arguments to pass to cc1 to do the job, by invoking `clang` and prepending the command line with `-###` to run only the driver and print transformed arguments. For example:
 
@@ -49,7 +49,7 @@ $ clang -### -g -c -emit-llvm -o /tmp/bitcode.bc /tmp/source.cpp
  "/usr/local/bin/clang" "-cc1" "-triple" "x86_64-apple-macosx10.12.0" "-Wdeprecated-objc-isa-usage" "-Werror=deprecated-objc-isa-usage" "-emit-llvm-bc" "-emit-llvm-uselists" "-disable-free" "-main-file-name" "/tmp/source.cpp" "-mrelocation-model" "pic" "-pic-level" "2" "-mthread-model" "posix" "-mdisable-fp-elim" "-masm-verbose" "-munwind-tables" "-target-cpu" "penryn" "-target-linker-version" "274.1" "-dwarf-column-info" "-debug-info-kind=standalone" "-dwarf-version=4" "-debugger-tuning=lldb" "-coverage-notes-file" "/tmp/bitcode.gcno" "-resource-dir" "/Users/user/Develop/llvm40/llvm40-clang/lib/clang/4.0.1" "-stdlib=libc++" "-fdeprecated-macro" "-fdebug-compilation-dir" "/Users/user/Develop/JitFromScratch" "-ferror-limit" "19" "-fmessage-length" "181" "-stack-protector" "1" "-fblocks" "-fobjc-runtime=macosx-10.12.0" "-fencode-extended-block-signature" "-fcxx-exceptions" "-fexceptions" "-fmax-type-align=16" "-fdiagnostics-show-option" "-fcolor-diagnostics" "-o" "/tmp/bitcode.bc" "-x" "c++" "/tmp/source.cpp"
 </pre>
 
-## Set -resource-dir
+### Set -resource-dir
 
 Clang comes with a resource directory that contains vendor-specific include files like standard headers and intrinsics definitions. As the contents is also specific for each version of Clang, it needs to be shipped with the executable. In a developer environment, however, it can easily be inferred from the LLVM/Clang build while configuring CMake:
 

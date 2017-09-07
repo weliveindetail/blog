@@ -11,7 +11,7 @@ series: expected
 There are good reasons for and against the use of C++ Exceptions. The lack of good alternatives, however, is often considered a strong argument FOR them. Exception-free codebases just too easily retrogress to archaic error code passing. If your project doesn't go well with exceptions, it can be a terrible trade-off. This is the second post in a series that presents a solution recently introduced to the LLVM libraries. In order to make it usable for third parties, I provide a stripped-down version:
 [https://github.com/weliveindetail/llvm-expected](https://github.com/weliveindetail/llvm-expected).
 
-#### Alexandrescu's proposed Expected&lt;T&gt;
+### Alexandrescu's proposed Expected&lt;T&gt;
 
 [This well-known proposal](https://onedrive.live.com/?cid=F1B8FF18A2AEC5C5&id=F1B8FF18A2AEC5C5%211158&parId=root&o=OneUp), for which you can [find an implementation here](https://github.com/martinmoene/spike-expected/tree/master/alexandrescu), is probably the closest relative to `llvm::Expected<T>` with the major difference that it holds errors of type `std::exception_ptr`. This is great if you need interoperability with exceptions. For the exception-free codebase, however, it may pull in unnecessary trouble as exceptions are implementation-dependent in many regards — citing the [C++11 Standard](http://en.cppreference.com/w/cpp/error/exception_ptr):
 
@@ -21,7 +21,7 @@ typedef /*unspecified*/ exception_ptr;
 
 Additionally Alexandrescu added a version that supports `Expected<void>`. This is not supported by `llvm::Expected<T>`, instead one would return a `llvm::Error` in this case, which can either be an error instance or `llvm::ErrorSuccess`.
 
-#### Other implementations
+### Other implementations
 
 Other version like [expected-lite](https://github.com/martinmoene/expected-lite), [Boost.Outcome](https://ned14.github.io/outcome/) and [std::experimental::expected](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0323r2.pdf) go one step further. They propose the error type to be a template parameter: `expected<T,E>`. When it comes to the generality-requirements of the standard library this makes total sense, but it also adds complexity and limits the common ground helper routines can be built on. For illustration let's have a look at the following [example from the documentation](https://llvm.org/docs/ProgrammersManual.html#recoverable-errors):
 

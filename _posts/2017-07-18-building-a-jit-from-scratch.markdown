@@ -26,7 +26,7 @@ You can find out how to do this by following the [history of the jit-basics bran
 
 
 
-## Linux Mint 18
+### Linux Mint 18
 
 {::options parse_block_html="true" /}
 <div id="linux-mint-18-content" style="display: none;">
@@ -83,7 +83,7 @@ To explore the code and debug JitFromScratch I'd recommend the cross-platform [Q
 
 
 
-## Mac OS X 10.12
+### Mac OS X 10.12
 
 {::options parse_block_html="true" /}
 <div id="mac-os-x-1012-content" style="display: none;">
@@ -134,7 +134,7 @@ To explore the code and debug JitFromScratch open the generated `~/Develop/JitFr
 
 
 
-## Windows 10
+### Windows 10
 
 {::options parse_block_html="true" /}
 <div id="windows-10-content" style="display: none;">
@@ -188,7 +188,7 @@ $("#mac-os-x-1012").click(function() { $("#mac-os-x-1012-content").toggle(); });
 $("#windows-10"   ).click(function() { $("#windows-10-content"   ).toggle(); });
 
 $(function() {
-  return $("h2").each(function(i, el) {
+  return $("h3").each(function(i, el) {
     var $el = $(el);
     if ($el.attr('id')) {
       return $el.prepend('<i class="fa fa-chevron-down" style="font-size: 0.8em; color: #333; padding: 5px;"></i>');

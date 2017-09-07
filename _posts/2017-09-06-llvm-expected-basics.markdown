@@ -12,7 +12,7 @@ part: first
 There are good reasons for and against the use of C++ Exceptions. The lack of good alternatives, however, is often considered a strong argument FOR them. Exception-free codebases just too easily retrogress to archaic error code passing. If your project doesn't go well with Exceptions, it can be a terrible trade-off. This is the first in a series of posts about a solution recently introduced to the LLVM libraries. In order to make it usable for third parties, I provide a stripped-down version: 
 [https://github.com/weliveindetail/llvm-expected](https://github.com/weliveindetail/llvm-expected).
 
-#### Short Example
+### Short Example
 
 The first example uses the `llvm::GlobPattern` class for a search query with wildcards, but the given pattern causes an internal error. This code uses `llvm::Expected<T>`, catches the error and dumps it to `stderr`:
 
@@ -73,7 +73,7 @@ As `GlobPattern::create` now returns the error code, we obtain the resulting `pa
 
 
 
-#### Motivation
+### Motivation
 
 So what do we gain with `llvm::Expected<T>`? A little readablility? A move instead of a const-ref or copy? Save one stack allocation plus initialization? No that's just the sugar. What we really gain is flexibility! We'll see that in the following example.
 
