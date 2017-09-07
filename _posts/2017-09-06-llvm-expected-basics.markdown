@@ -5,9 +5,11 @@ title:  "Rich Polymorphic Error Handling with llvm::Expected<T> — Part 1"
 date:   2017-09-06 18:33:01 +0200
 categories: post
 comments: true
+series: expected
+part: first
 --- 
 
-There are good reasons for and against the use of C++ Exceptions. The lack of good alternatives, however, is often considered a strong argument FOR them. Exception-free codebases just too easily retrogress to archaic error code passing. If your project doesn't go well with Exceptions, it can be a terrible trade-off. What follows is a solution recently introduced to the LLVM libraries. In order to make it usable for third parties, I provide a stripped-down version: 
+There are good reasons for and against the use of C++ Exceptions. The lack of good alternatives, however, is often considered a strong argument FOR them. Exception-free codebases just too easily retrogress to archaic error code passing. If your project doesn't go well with Exceptions, it can be a terrible trade-off. This is the first in a series of posts about a solution recently introduced to the LLVM libraries. In order to make it usable for third parties, I provide a stripped-down version: 
 [https://github.com/weliveindetail/llvm-expected](https://github.com/weliveindetail/llvm-expected).
 
 #### Short Example
@@ -148,4 +150,3 @@ invalid glob pattern: [a*.txt
 </pre>
 
 There's a lot more details to share about this way of error handling. I hope you are curious for Part 2?
-Coming soon!

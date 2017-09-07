@@ -3,19 +3,44 @@ layout: default
 ---
 
 <div class="home">
-  
+
   {{ content }}
 
   <ul class="post-list">
     {% for post in site.posts %}
-      <li>
-        {% assign date_format = site.minima.date_format | default: "%b %-d, %Y" %}
-        <span class="post-meta">{{ post.date | date: date_format }}</span>
+      {% if post.series == "expected" %}
+        {% if post.part == "first" %}
+          <li>
+            {% assign date_format = site.minima.date_format | default: "%b %-d, %Y" %}
+            <span class="post-meta">
+              {{ "2017-09-06" | date: date_format }} —
+              {{ "2017-09-07" | date: date_format }}
+            </span>
 
-        <h2>
-          <a class="post-link" href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
-        </h2>
-      </li>
+            <h2 style="margin-bottom: 0px;">
+              <a class="post-link" href="{{ post.url | relative_url }}">
+                Series: Rich Polymorphic Error Handling with llvm::Expected&lt;T&gt;
+              </a>
+            </h2>
+
+            <a class="episode-link" href="/blog/post/2017/09/06/llvm-expected-basics.html">Motivation</a> •
+            <span style="color: #828282;">Differentiation</span> •
+            <span style="color: #828282;">Helper Routines</span> •
+            <span style="color: #828282;">Benchmarks</span> •
+            <span style="color: #828282;">Testing</span>
+          </li>
+        {% endif %}
+      {% else %}
+        <li>
+          {% assign date_format = site.minima.date_format | default: "%b %-d, %Y" %}
+          <span class="post-meta">{{ post.date | date: date_format }}</span>
+
+          <h2>
+            <a class="post-link" href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
+          </h2>
+
+        </li>
+      {% endif %}
     {% endfor %}
   </ul>
 
