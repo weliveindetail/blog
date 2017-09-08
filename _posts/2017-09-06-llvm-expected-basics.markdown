@@ -36,7 +36,7 @@ int main() {
 }
 {% endhighlight %}
 
-Usually `pattern` held a `llvm::GlobPattern` object, so `takeError()` would return `llvm::Error::success()` which evaluated to `false`. In our case, however, it's not in success state but holds an actual error. So `takeError()` returns the object derived from `llvm::Error` and `llvm::logAllUnhandledErrors()` will give us an okish error message:
+Usually `pattern` held a `llvm::GlobPattern` object, so `takeError()` would return `llvm::Error::success()` which evaluated to `false`. In our case, however, it's in failture state and holds an actual error. So `takeError()` returns an `llvm::Error` object and `llvm::logAllUnhandledErrors()` will give us an okish error message:
 
 <pre>
 [Glob Error] invalid glob pattern: [a*.txt
@@ -141,7 +141,59 @@ We simply moved the error handler one level up. The only change on the function 
 
 * **No unnecessary overhead**: this code out-performs even the optimized error codes version
 * **No code bloat**: we only added 2 lines of code, while the error code example requires 8 extra lines
-* **No risk to drop errors**: if we didn't check `pattern` for errors in line 4, it would abort with an error message to tell us about it (always, not only in error cases):
+* **No risk to drop errors**: destroying or accessing an unchecked instance will terminate the program in debug mode
+
+### llvm::ErrorInfo&lt;T&gt;
+
+This is the base class for all errors that can be handed around via `llvm::Expected<T>`. Custom errors can be defined like this:
+
+{% highlight cpp %}
+class BadFileFormat : public ErrorInfo<BadFileFormat> {
+public:
+  static char ID;
+  std::string Path;
+
+  BadFileFormat(StringRef Path) : Path(Path.str()) {}
+
+  void log(raw_ostream &OS) const override {
+    OS << Path << " is malformed";
+  }
+
+  std::error_code convertToErrorCode() const override {
+    return make_error_code(object_error::parse_failed);
+  }
+};
+
+char BadFileFormat::ID; // This should be declared in the C++ file.
+{% endhighlight %}
+
+### llvm::Error
+
+This class wraps arbitrary `llvm::ErrorInfo`s and implements two conceptual requirements on top to achieve consistent semantics for errors:
+
+* Errors must not be duplicated
+* Errors must not be forgotten
+
+Similarly to `std::unique_ptr`, `llvm::Error` cannot be copied but only moved. Additionally, in debug mode, it makes sure instances are checked for failtures before values are accessed or the instance is destroyed. If this is not the case the program will terminate with a respective error message.
+
+{% highlight cpp %}
+Error fallibleVoidFunction();
+
+Error correct() {
+  if (auto err = fallibleVoidFunction())
+    return err;
+  // Success! We can proceed.
+}
+
+Error wrong() {
+  fallibleVoidFunction(); // Abort: error was dropped without checking for failtures
+  auto err = fallibleVoidFunction(); // Same here
+}
+{% endhighlight %}
+
+### llvm::Expected&lt;T&gt;
+
+This class does the trick and stores either an instance of type `T` or an `llvm::Error`. It makes sure that it will not be duplicated or forgotten in the same way as `llvm::Error`. If we hadn't checked `pattern` for errors in line 4 of the example in the Motivation section, we would get the following message (always, not only in error cases):
 
 <pre>
 Expected&lt;T&gt; must be checked before access or destruction.
