@@ -13,34 +13,37 @@ There are good reasons for and against the use of C++ Exceptions. The lack of go
 
 ### Alexandrescu's proposed Expected&lt;T&gt;
 
-[This well-known proposal](https://onedrive.live.com/?cid=F1B8FF18A2AEC5C5&id=F1B8FF18A2AEC5C5%211158&parId=root&o=OneUp), for which you can [find an implementation here](https://github.com/martinmoene/spike-expected/tree/master/alexandrescu), is probably the closest relative to `llvm::Expected<T>` with the major difference that it holds errors of type `std::exception_ptr`. This is great if you need interoperability with exceptions. For the exception-free codebase, however, it may pull in unnecessary trouble as exceptions are implementation-dependent in many regards — citing the [C++11 Standard](http://en.cppreference.com/w/cpp/error/exception_ptr):
+[This well-known proposal](https://onedrive.live.com/?cid=F1B8FF18A2AEC5C5&id=F1B8FF18A2AEC5C5%211158&parId=root&o=OneUp), for which you can [find an implementation here](https://github.com/martinmoene/spike-expected/tree/master/alexandrescu), is probably the closest relative to `llvm::Expected<T>` with the major difference that it stores errors of type `std::exception_ptr`. This is great if you need interoperability with exceptions. For the exception-free codebase, however, it's suboptimal. It won't compile with `-fno-exceptions` as it uses `throw` internally. It may also pull in unnecessary trouble as exceptions are implementation-dependent in many regards — citing the [C++11 Standard](http://en.cppreference.com/w/cpp/error/exception_ptr):
 
 {% highlight cpp %}
 typedef /*unspecified*/ exception_ptr;
 {% endhighlight %}
 
-Additionally Alexandrescu added a version that supports `Expected<void>`. This is not supported by `llvm::Expected<T>`, instead one would return a `llvm::Error` in this case, which can either be an error instance or `llvm::ErrorSuccess`.
+Instead of exceptions `llvm::Expected<T>` interoperates very well with error codes. Additionally Alexandrescu added a version that supports `Expected<void>`. This is not supported by `llvm::Expected<T>`, instead one would return a `llvm::Error` in this case, which can either be an error instance or `llvm::ErrorSuccess`.
 
 ### Other implementations
 
-Other version like [expected-lite](https://github.com/martinmoene/expected-lite), [Boost.Outcome](https://ned14.github.io/outcome/) and [std::experimental::expected](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0323r2.pdf) go one step further. They propose the error type to be a template parameter: `expected<T,E>`. When it comes to the generality-requirements of the standard library this makes total sense, but it also adds complexity and limits the common ground helper routines can be built on. For illustration let's have a look at the following [example from the documentation](https://llvm.org/docs/ProgrammersManual.html#recoverable-errors):
+Other version like [expected-lite](https://github.com/martinmoene/expected-lite), [Boost.Outcome](https://ned14.github.io/outcome/) and [std::experimental::expected](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0323r2.pdf) all go one step further. They propose the error type to be a template parameter `expected<T,E>`. Especially the idea to represent multiple possible errors as "variadic" `expected<Y, E1, ..., En>` via the type system causes me headache. Do I really want to adjust all my upstream function signatures, just because there's a new feature somewhere downstream that introduces a new source of errors? I think this goes in a wrong direction just as static exception specifications did. Error types is not something I want to check statically with the type system.
+
+Another reason not to use freely templated error types is that it limits the common ground helper routines can be built on. For illustration let's have a look at the following [example from the LLVM documentation](https://llvm.org/docs/ProgrammersManual.html#recoverable-errors):
 
 {% highlight cpp %}
 auto result = processFormattedFile(...);
 
-handleAllErrors(
+llvm::handleAllErrors(
   result.takeError(),
-  [](const BadFileFormat &BFF) {
+  [](const llvm::BadFileFormat &BFF) {
     report("Unable to process " + BFF.Path + ": bad format");
   },
-  [](const FileNotFound &FNF) {
+  [](const llvm::FileNotFound &FNF) {
     report("File not found " + FNF.Path);
   });
 {% endhighlight %}
 
 The `handleAllErrors` function takes an error as its first argument, followed by a variadic list of “handlers”, each of which must be a callable type (a function, lambda, or class with a call operator) with one argument. The `handleAllErrors` function will visit each handler in the sequence and check its argument type against the dynamic type of the error, running the first handler that matches. This is the same decision process that is used to decide which catch clause to run for a C++ exception.
 
-This is possible so easily and without runtime type information, because there is a common base class for all errors. Although we want to have explicit code paths for errors, they should not dominate our code and destroy readability of what actually matters. That's why a good toolset around our error handling primitives is important. Part 3 of this series will investigate the tools that make life easier when working with `llvm::Expected<T>`.
+Although we want to have explicit code paths for errors, they should not dominate our code and destroy readability of what actually matters. That's why a good toolset around our error handling primitives is important. 
+The tooling around `llvm::Expected<T>` can be used easily and they work without runtime type information, exactly because there is a common base class for all errors. It keeps things simple. Part 3 of this series will investigate these tools in more detail.
 
 <a style="float: left;" href="/blog/post/2017/09/06/llvm-expected-basics.html">&lt; Motivation</a>
 <br>
