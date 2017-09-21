@@ -5,12 +5,10 @@ permalink: /talks/
 ---
 <ul class="post-list">
   <li>
-    <span class="post-meta">
-      <b style="color: #f22;">UPCOMING: C++ User Group Berlin — September 19th, 2017</b>
-    </span>
+    <span class="post-meta">C++ User Group Berlin — September 2017</span>
     <h2>
-      <a class="post-link" href="https://www.meetup.com/de-DE/berlincplusplus/events/243082324/">
-      Expectify - Rich Polymorphic Error Handling with llvm::Expected&lt;T&gt;</a>
+      <a class="post-link" href="https://github.com/weliveindetail/talks/raw/master/Expectify.pdf">
+      Rich Polymorphic Error Handling with llvm::Expected&lt;T&gt;</a>
     </h2>
   </li>
   <li>
