@@ -33,7 +33,7 @@ Substantiating this focal detail, rather then generalizing it, allows the librar
 A common base class for error types makes it easy to provide special-case implementations:
 
 * `llvm::ErrorList` is handy in situations where one error leads to another or separate operations fail independently
-* `llvm::StringError` represents general-purpose errors that can fit all information into a string and don't need type-specific handling
+* `llvm::StringError` represents general-purpose errors that can fit all information into a string and have no distinct recovery strategy
 * `llvm::ECError` stores a simple `std::error_code` and does its part for interoperability
 
 
@@ -107,4 +107,5 @@ It's always great to use a library and get handy features that work out of the b
 Providing the same kind of tooling with Boost Outcome may not be impossible, but it's not straightforward either. I assume it goes through template hell at least once :) For an error handling approach I consider this a downside. I'd rather go for the simplest possible solution, which let's me write compact code that is intuitively understandable for me and everyone who reads my code. This is where robustness originates.
 
 <a style="float: left;" href="/blog/post/2017/09/06/llvm-expected-basics.html">&lt; Motivation</a>
+<a style="float: right;" href="/blog/post/2017/09/07/llvm-expected-helpers.html">All Helpers &gt;</a>
 <br>
