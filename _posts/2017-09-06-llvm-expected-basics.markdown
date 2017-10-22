@@ -11,7 +11,7 @@ part: first
 
 There are good reasons for and against the use of C++ Exceptions. The lack of good alternatives, however, is often considered a strong argument _for_ them. Exception-free codebases just too easily retrogress to archaic error code passing. If your project doesn't go well with Exceptions, it can be a terrible trade-off.
 
-This is the first in a series of posts about a solution recently introduced to the LLVM libraries. In order to make it usable for third parties, I provide a stripped-down version: 
+This post is the first in a series presenting the rich error handling implementation introduced to the LLVM libraries recently. In order to make it usable for third parties, I provide a stripped-down version: 
 [https://github.com/weliveindetail/llvm-expected](https://github.com/weliveindetail/llvm-expected).
 
 ### Example llvm::Expected&lt;T&gt;
