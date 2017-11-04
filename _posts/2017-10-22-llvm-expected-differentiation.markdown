@@ -6,9 +6,9 @@ date:   2017-10-22 17:43:01 +0200
 categories: post
 comments: true
 series: expected
---- 
+---
 
-There are good reasons for and against the use of C++ Exceptions. The lack of good alternatives, however, is often considered a strong argument _for_ them. Exception-free codebases just too easily retrogress to archaic error code passing. If your project doesn't go well with Exceptions, it can be a terrible trade-off.
+There are good reasons for and against the use of C++ Exceptions. The lack of good alternatives, however, is often considered a strong argument _for_ them. Exception-free codebases just too easily retrogress to archaic error code passing. If your project doesn't go well with exceptions, it can be a terrible trade-off.
 
 This post is the second in a series presenting the rich error handling implementation introduced to the LLVM libraries recently. In order to make it usable for third parties, I provide a stripped-down version:
 [https://github.com/weliveindetail/llvm-expected](https://github.com/weliveindetail/llvm-expected).
@@ -23,14 +23,14 @@ This post is the second in a series presenting the rich error handling implement
 
 Using error types in function signatures may not seem like a big deal, but considering the real size of codebases as well as the impact on API versioning, it could make you skeptic. For me this looks like a renewal of exception specifications, just without the really stupid parts.
 
-Sure you could somehow manage to write your own type-erasing wrapper for Boost Outcome but it comes with a need for tooling. And once you finished reading this poat, I think you don't want to write that on your own anymore.
+Sure you could somehow manage to write your own type-erasing wrapper for Boost Outcome but it comes with a need for tooling. And once you finished reading this post, I think you don't want to write that on your own anymore.
 
 Anyway, before rolling out Boost Outcome throughout your codebase, I would recommend reading [The Trouble with Checked Exceptions](http://www.artima.com/intv/handcuffsP.html).
 
 
 ### Less Generalization, More Common Ground
 
-LLVM's rich error handling imlementation defines a common base class for the error payload and gets away without error types in the signatures of its wrappers `llvm::Error` and `llvm::Expected<T>`.
+LLVM's rich error handling implementation defines a common base class for the error payload and gets away without error types in the signatures of its wrappers `llvm::Error` and `llvm::Expected<T>`.
 
 Substantiating this focal detail, rather then generalizing it, allows the library to provide seasoned tooling around its basic entities. I consider that a compelling benefit, because we don't write code for the sake of error handling. I think _simple_ and _compact_ are the most appreciated properties in this problem domain. That's where we will need helper functions.
 
@@ -45,7 +45,7 @@ These types can now be considered by other frequently used helper functions to s
 
 ### ErrorList
 
-The following code shows the synergy of `llvm::ErrorList` with `llvm::handleAllErrors`, a library function which acts like a `catch` clause selector for errors.
+The following code shows the synergy of `llvm::ErrorList` with `llvm::handleAllErrors()`, a library function which acts like a `catch` clause selector for errors.
 
 {% highlight cpp %}
 using namespace llvm;
@@ -71,9 +71,9 @@ handleAllErrors(
 );
 {% endhighlight %}
 
-The behavior of `llvm::handleAllErrors` is obvious for regular errors: compare the type of the given error to the argument type of each handler top-down and invoke the first match. That's great and intuitive behavior, but it's not really what we want in case of `llvm::ErrorList`.
+The behavior of `llvm::handleAllErrors()` is obvious for regular errors: compare the type of the given error to the argument type of each handler top-down and invoke the first match. That's great and intuitive behavior, but it's not really what we want in case of `llvm::ErrorList`.
 
-Without special handling, the above example would invoke the first handler and we had to use another `llvm::handleAllErrors` inside to reach the actual errors. Too much code for error handling and most likely no practical use case will require this kind of behavior. As `llvm::handleAllErrors` knows about the `llvm::ErrorList` special-case, it does the decomposition for us and dispatches the internal errors' payloads directly. For nested error lists, this results in a depth-first traversal.
+Without special handling, the above example would invoke the first handler and we had to use another `llvm::handleAllErrors()` inside to reach the actual errors. Too much code for error handling and most likely no practical use case will require this kind of behavior. As `llvm::handleAllErrors()` knows about the `llvm::ErrorList` special-case, it does the decomposition for us and dispatches the internal errors' payloads directly. For nested error lists, this results in a depth-first traversal.
 
 Effect: simple and compact code plus no need to prepare the error handling code for multiple failures.
 
