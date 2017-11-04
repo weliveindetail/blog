@@ -19,22 +19,28 @@ This post is the second in a series presenting the rich error handling implement
 
 ### Boost Outcome
 
-[Boost Outcome](https://ned14.github.io/outcome/) looks like the current candidate for a future [`std::expected`](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0323r2.pdf) and besides also supporting interoperability with exceptions it seems very similar to `llvm::Expected<T>`. But there is one fundamental difference: With Boost Outcome there are no type-erasing wrappers. Error types are exposed as template parameters. The class signature is [`outcome::result<T,EC>`](https://ned14.github.io/outcome/tutorial/result/). Naturally, the next idea is to represent multiple possible error types with variadic templates: `expected<Y, E1, ..., En>` — that's where I get nervous.
+[Boost Outcome](https://ned14.github.io/outcome/) looks like the current candidate for a future [`std::expected`](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0323r2.pdf). Besides also supporting interoperability with exceptions it seems very similar to `llvm::Expected<T>` at first appearance. But there is one fundamental difference: Boost Outcome's [`outcome::result<T,EC>`](https://ned14.github.io/outcome/tutorial/result/) does not type-erase its payload. Instead error types are exposed as template parameters. Naturally, the next idea is to represent multiple possible error types with variadic templates: `expected<Y, E1, ..., En>` — that's where I get nervous.
 
-Specifying error types in function signatures may not seem like a big deal at first appearance. If anything it looks great in small examples! Thinking again and considering the real size of codebases as well as the impact on API versioning, could make you skeptic. For me this looks like the renewal of exception specifications, just without the really stupid parts. Before rolling out Boost Outcome throughout your codebase, I would recommend reading [The Trouble with Checked Exceptions](http://www.artima.com/intv/handcuffsP.html).
+Using error types in function signatures may not seem like a big deal, but considering the real size of codebases as well as the impact on API versioning, it could make you skeptic. For me this looks like a renewal of exception specifications, just without the really stupid parts.
+
+Sure you could somehow manage to write your own type-erasing wrapper for Boost Outcome but it comes with a need for tooling. And once you finished reading this poat, I think you don't want to write that on your own anymore.
+
+Anyway, before rolling out Boost Outcome throughout your codebase, I would recommend reading [The Trouble with Checked Exceptions](http://www.artima.com/intv/handcuffsP.html).
 
 
 ### Less Generalization, More Common Ground
 
-LLVM's rich error handling doesn't go that way. It defines a common base class for the error payload and gets away without error types in the signatures of its wrappers `llvm::Error` and `llvm::Expected<T>`.
+LLVM's rich error handling imlementation defines a common base class for the error payload and gets away without error types in the signatures of its wrappers `llvm::Error` and `llvm::Expected<T>`.
 
-Substantiating this focal detail, rather then generalizing it, allows the library to provide seasoned tooling around its basic entities. I consider that a compelling benefit, because we don't write code for the sake of error handling. I think _simple_ and _compact_ are the most appreciated properties in this problem domain.
+Substantiating this focal detail, rather then generalizing it, allows the library to provide seasoned tooling around its basic entities. I consider that a compelling benefit, because we don't write code for the sake of error handling. I think _simple_ and _compact_ are the most appreciated properties in this problem domain. That's where we will need helper functions.
 
 A common base class for error types makes it easy to provide special-case implementations:
 
 * `llvm::ErrorList` is handy in situations where one error leads to another or separate operations fail independently
 * `llvm::StringError` represents general-purpose errors that can fit all information into a string and have no distinct recovery strategy
 * `llvm::ECError` stores a simple `std::error_code` and does its part for interoperability
+
+These types can now be considered by other frequently used helper functions to simplify your code.
 
 
 ### ErrorList
@@ -69,7 +75,7 @@ The behavior of `llvm::handleAllErrors` is obvious for regular errors: compare t
 
 Without special handling, the above example would invoke the first handler and we had to use another `llvm::handleAllErrors` inside to reach the actual errors. Too much code for error handling and most likely no practical use case will require this kind of behavior. As `llvm::handleAllErrors` knows about the `llvm::ErrorList` special-case, it does the decomposition for us and dispatches the internal errors' payloads directly. For nested error lists, this results in a depth-first traversal.
 
-Effect: simple and compact code plus no need to touch the error handling for multiple failures.
+Effect: simple and compact code plus no need to prepare the error handling code for multiple failures.
 
 
 ### Error Type Hierarchies
@@ -97,16 +103,16 @@ handleAllErrors(
   });
 {% endhighlight %}
 
-This code defines an error base class `IOError` and two specializations `FileNotFoundError` and `FileAccessDeniedError`. The `openFile()` function may return any one of them, but this doesn't mean we need to handle them all explicitly. Instead the example has special handling only for `FileNotFoundError`, while `FileAccessDeniedError` and all other `IOError`s end up in the last handler.
+This code defines an error base class `IOError` and two specializations `FileNotFoundError` and `FileAccessDeniedError`. `openFile()` returns a `IOError`. Within `llvm::handleAllErrors` we can now filter precisely for with types we need distinct handling in this case. In the example that's the case for `FileNotFoundError`, while `FileAccessDeniedError` and all other `IOError`s end up in the second handler.
 
-Like all type structures, error type hierarchies are powerful when designed right. Involved class names should always express their categories to avoid hard-to-find bugs. This is especially true for error code paths, as coverage is typically low here. The example uses `File` prefixes to indicate the relation to `IOError`s.
+Like all type structures, error type hierarchies are powerful when designed right. Involved class names should in some way express their categories to clarify type-dependent control flow. Also note that `llvm::handleAllErrors()` doesn't currently invoke the handler that matches *best*, but instead the first one that matches *somehow*. If you swap the handlers in the example, all errors will go to the `IOError` handler!
 
 
 ### Conclusion
 
 It's always great to use a library and get handy features that work out of the box. The reason LLVM's rich error handling can provide such features (and implement them in a straightforward and pragmatic way), is that it hardcodes a crucial detail of the system: a common base class for all user-defined error types.
 
-Providing the same kind of tooling with Boost Outcome may not be impossible, but it's not straightforward either. I assume it goes through template hell at least once :) For an error handling approach I consider this a downside. I'd rather go for the simplest possible solution and write compact code that is intuitively understandable to the reader. This is where robustness originates.
+Writing your own wrappers the same kind of tooling for Boost Outcome is not straightforward. I assume it goes through template hell at least once :) For an error handling approach I consider this a downside. I'd rather go for the simplest possible solution and write compact code that is intuitively understandable to the reader. This is where robustness originates.
 
 <a style="float: left;" href="{{ site.baseurl }}{% post_url 2017-09-06-llvm-expected-basics %}">&lt; Prev: Motivation</a>
 <a style="float: right;" href="{{ site.baseurl }}{% post_url 2017-10-28-llvm-expected-helpers %}">Next: All Helpers &gt;</a>
