@@ -18,7 +18,7 @@ layout: default
         • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">{{ page.author }}</span></span>
       {% endif %}
       {% if page.comments %}
-        • <a href="http://weliveindetail.github.io{{ site.baseurl }}{{ page.url }}#disqus_thread">Comments</a>
+        • <a href="#comments" onclick="loadComments()">Comments</a>
       {% endif %}
     </p>
   </header>
@@ -27,7 +27,36 @@ layout: default
     {{ content }}
   </div>
 
+  <script language="JavaScript" type="text/javascript">
+    var disqus_loaded = false;
+
+    var disqus_config = function () {
+      this.page.url = "http://weliveindetail.github.io{{ site.baseurl }}{{ page.url }}";
+      this.page.identifier = "{{ page.url }}";
+    };
+
+    function loadComments() {
+      if (!disqus_loaded) {
+        disqus_loaded = true;
+        $("#comments").html(
+          "<div id='disqus_thread'></div>" + 
+          "<script>" + 
+          "  (function() {" + 
+          "    var d = document, s = d.createElement('script');" + 
+          "    s.src = 'https://http-weliveindetail-github-io-blog.disqus.com/embed.js';" + 
+          "    s.setAttribute('data-timestamp', +new Date());" + 
+          "    (d.head || d.body).appendChild(s);" + 
+          "})();" + 
+          "<\/script>" + 
+          "<noscript>Please enable JavaScript to view comments.</noscript>"
+        );
+      }
+    }
+  </script>
+
   {% if page.comments %}
-    {% include disqus.html %}
+    <div id="comments">
+      <a id="load_comments" href="#comments" onclick="loadComments()"></a>
+    </div>
   {% endif %}
 </article>
