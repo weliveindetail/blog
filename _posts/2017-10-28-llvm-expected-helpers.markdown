@@ -1,7 +1,7 @@
 ---
 layout: post
 author: Stefan Gränitz
-title:  "Rich Polymorphic Error Handling with llvm::Expected<T> — Part 3"
+title:  "Rich Recoverable Error Handling with llvm::Expected<T> — Part 3"
 date:   2017-10-28 19:33:01 +0200
 categories: post
 comments: true
@@ -117,6 +117,11 @@ ModuleHandle addModule(std::unique_ptr<Module> M) {
 {% endhighlight %}
 
 All OrcJIT layers implement the `addModule`/`removeModule` concept. These calls can fail in principle. However, the layers used in this specific case don't generate errors at all, so it's safe to use the helper here.
+
+
+### llvm::logAllUnhandledErrors()
+
+Last but not least, the `logAllUnhandledErrors()` function we saw in Part 1 already, provides an easy way to dump messages to a stream of our choice.
 
 <a style="float: left;" href="{{ site.baseurl }}{% post_url 2017-10-22-llvm-expected-differentiation %}">&lt; Differentiation</a>
 <br>

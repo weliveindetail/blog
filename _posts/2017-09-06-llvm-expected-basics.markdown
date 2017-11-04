@@ -1,7 +1,7 @@
 ---
 layout: post
 author: Stefan Gränitz
-title:  "Rich Polymorphic Error Handling with llvm::Expected<T> — Part 1"
+title:  "Rich Recoverable Error Handling with llvm::Expected<T> — Part 1"
 date:   2017-09-06 18:33:01 +0200
 categories: post
 comments: true
@@ -33,12 +33,14 @@ bool simpleExample() {
 
 int main() {
   if (simpleExample())
-    // ... more code ...
+    // success! more code here
   return 0;
 }
 {% endhighlight %}
 
-In success case `pattern` holds a `llvm::GlobPattern` object, so `takeError()` returns `llvm::Error::success()` which evaluates to `false` and execution continues with the invocation of `GlobPattern::match()`. Our example, however, provokes the error case, because `[a*.txt` is no valid pattern. Instead it causes an internal error. Hence `takeError()` returns an `llvm::Error` object, which evaluats to `true` and (before execution escapes the function) `llvm::logAllUnhandledErrors()` will give us an okish error message:
+In success case `pattern` holds a `llvm::GlobPattern` object, so `takeError()` returns `llvm::Error::success()` which evaluates to `false` and execution continues with the invocation of `GlobPattern::match()`.
+
+Our example, however, provokes the error case: `[a*.txt` is no valid pattern and causes an internal error. Hence `takeError()` returns an `llvm::Error` object, which evaluats to `true` and execution enters the `if` branch. Before we return `false` from here, `llvm::logAllUnhandledErrors()` will give us an okish error message:
 
 <pre>
 [Glob Error] invalid glob pattern: [a*.txt
@@ -64,16 +66,16 @@ bool simpleExample() {
 
 int main() {
   if (simpleExample())
-    // ... more code ...
+    // success! more code here
   return 0;
 }
 {% endhighlight %}
 
-As `GlobPattern::create` now returns the error code, we obtain the resulting `pattern` through an out parameter. Note that this choice has a background: we don't want to use the out parameter for the error code as we would need to `clear()` it in success case explicitly to make sure
+As `GlobPattern::create` now returns a `std::error_code`, we obtain the resulting `pattern` through an out parameter. Note that this choice has a background: we don't want to use the out parameter for the error code as we would need to `clear()` it in success case explicitly to make sure
 * it has no uninitialized memory and 
 * it does not accidentally carry a previously assigned error code.
 
-Also note that we have no choice than to pass `pattern` in and out by reference. We cannot do "better" and use a reference to pointer to `GlobPattern` here, as it required a heap allocation in success case, which is far too expensive. Hence we're forced to create and default-initialize `pattern` before the call. 
+Also note that we have no choice but to pass `pattern` in and out by reference. We cannot do "better" and use a reference to pointer to `GlobPattern` here, as it required a heap allocation in success case, which is far too expensive. We're forced to create and default-initialize `pattern` before the call. 
 
 As a last side effect, we cannot pass `fileName` by move anymore, as it may be used for the error dump:
 
@@ -112,20 +114,20 @@ int main() {
     return 0;
   }
 
-  // ... more code ...
+  // success! more code here
   return 0;
 }
 {% endhighlight %}
 
-Moving the error handling to `main`, we have to change the signature of `simpleExample` to return the error code and add out parameters for both, the actual result and the potential error details. Variables for out parameters have to be created and initialized apriori, which adds unnecessary overhead (actually we never need both).
+Moving the error handling to `main`, we have to change the signature of `simpleExample` to return the error code and add out parameters for both, the actual result and the potential error details. Variables for out parameters have to be created and initialized apriori, which again adds unnecessary overhead (actually we never need both).
 
-Well at least we can be a little smart here: we define `errorFileName` as `std::unique_ptr` to `std::string` and pass this by reference. The interface gets slightly more complicated, but for C++ it's a manual optimization that's perfectly reasonable. In success case, we now pay only for the initialization of the pointer and not the string itself! It's a common pattern to optimize the hot path at an expense of the error path. In the error case performance is not our concern and we don't care about an extra heap allocation. Friendly reminder: never use error handling for regular control flow!
+Well at least we are a little smart here: we define `errorFileName` as `std::unique_ptr` to `std::string` and pass this by reference. The interface gets slightly more complicated, but for C++ it's a manual optimization that's perfectly reasonable. In success case, we now pay only for the initialization of the pointer and not the string itself! It's a common pattern to optimize the success path at the expense of the error path. In case of errors performance is not our concern and we don't care about an extra heap allocation. Friendly reminder: never use error handling for regular control flow!
 
 All in all, shifting the error handling by one level in the call stack, is a significant change to our code and function signatures. Readability suffers, unit tests need to be changed and we need to look very precisely in order to keep the best possible performance and to avoid introducing new edge cases! It's a bunch of details to consider for a rather primitive change.
 
 **The underlying problem here is the limitation of error codes: They communicate enumerable errors very well, but cannot carry extra information.** In my experience people do hesitate to make the effort and return error details. In the majority of cases you get a magic number that can be looked up in some table and figuring out the details is your task for the rest of the day. But things can get worse with error codes, when people start dropping errors "for now" and handling them "later".
 
-**Well, we all know what "later" means and that's the next problem with error codes: There is no mechanism to make sure they are actually handled**. In case you use bools, ints and nullptrs to indicate error situations, establishing a consistent use of `std::error_code` (or any other enumeration) throughout your code base is a good first step, because it gives you a way to search for your failpoints! Nevertheless it still involves manual inspection of each and every occurrance, which makes it harder than necessary to estimate the robustness your codebase.
+**Well, we all know what "later" means and that's the next problem with error codes: There is no mechanism to make sure they are actually handled**. In case you use bools, ints and nullptrs to indicate error situations, establishing a consistent use of `std::error_code` (or any other enumeration) throughout your codebase is a good first step, because it gives you a way to search for your failpoints! Nevertheless it still involves manual inspection of each and every occurrance, which makes it harder than necessary to estimate the robustness your codebase.
 
 Using `llvm::Expected<T>` makes the task surprisingly simple. The only change on the function signature is the return type, from `bool` to `llvm::Expected<bool>`. In `simpleExample` we just forward errors and otherwise call the `match()` member function through an indirection:
 
@@ -146,12 +148,12 @@ int main() {
     return 0;
   }
 
-  // ... more code ...
+  // success! more code here
   return 0;
 }
 {% endhighlight %}
 
-That's it. Compared to the error codes change, this was trivial! No impact on readability. Only 2 lines of new code. Minimal changes on the function signature, so unit test fixes should be fairly easy.
+That's it! Compared to the changes in the error codes version, this was trivial! No impact on readability. Only 2 lines of new code. Minimal changes on the function signature, so unit test fixes should be fairly easy.
 
 Most importantly though for C++ programmers: we keep the best possible performance without any smartness! No new edge cases! Yey!
 
@@ -184,7 +186,7 @@ As we don't want to pass around polymorphic objects directly, the library gives 
 * `llvm::Error` for functions that otherwise return `void`
 * `llvm::Expected<T>` for functions that otherwise return `T`
 
-These wrappers type-erase all error details (just like `std::function` type-erases the details of a function instance). Accessing these information will be cumbersome and also less performant. That's ok, it only happens in error cases. Additionally they implement a very natural behavior for errors:
+These wrappers type-erase all error details (just like `std::function` type-erases the details of a function instance). Accessing these information will be cumbersome and also less performant. That's ok, it only happens in error cases. Additionally these wrappers implement a very natural behavior for errors:
 
 * No duplicates: Similarly to `std::unique_ptr` they don't permit copy but only move.
 * No lost instances: In debug mode, they make sure to be checked for failtures, before they are destroyed or values are accessed.
@@ -197,7 +199,7 @@ Unchecked Expected&lt;T&gt; contained error:
 invalid glob pattern: [a*.txt
 </pre>
 
-There's a lot more details to share about LLVM's rich polymorphic error handling. I hope you are in for the killer feature waiting in Part 2!
+There's a lot more details to share about LLVM's rich recoverable error handling. I hope you are in for the killer feature waiting in Part 2!
 
 <a href="{{ site.baseurl }}{% post_url 2017-10-22-llvm-expected-differentiation %}" style="float: right;">Next: Differentiation &gt;</a>
 <br>
