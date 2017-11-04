@@ -147,10 +147,12 @@ blockquote {
 pre,
 code {
   @include relative-font-size(0.85);
+  font-family: 'Source Code Pro', monospace;
 }
 
 code {
   padding: 1px 3px;
+  font-family: 'Source Code Pro', monospace;
 }
 
 pre {
