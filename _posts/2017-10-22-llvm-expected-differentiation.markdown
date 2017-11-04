@@ -2,7 +2,7 @@
 layout: post
 author: Stefan Gränitz
 title:  "Rich Polymorphic Error Handling with llvm::Expected<T> — Part 2"
-date:   2017-09-07 17:43:01 +0200
+date:   2017-10-22 17:43:01 +0200
 categories: post
 comments: true
 series: expected
@@ -15,7 +15,7 @@ This post is the second in a series presenting the rich error handling implement
 
 ### Alexandrescu's Expected&lt;T&gt;
 
-[This well-known proposal](https://onedrive.live.com/?cid=F1B8FF18A2AEC5C5&id=F1B8FF18A2AEC5C5%211158&parId=root&o=OneUp), for which you can [find an implementation here](https://github.com/martinmoene/spike-expected/tree/master/alexandrescu), is a close relative to `llvm::Expected<T>`. The decision for interoperability with exceptions is the major difference, but gives the opportunity to store the error payload simply as [`std::exception_ptr`](http://en.cppreference.com/w/cpp/error/exception_ptr)). While Alexandrescu added support for `Expected<void>` explicitly, one would return `llvm::Error` in this case.
+[This well-known proposal](https://onedrive.live.com/?cid=F1B8FF18A2AEC5C5&id=F1B8FF18A2AEC5C5%211158&parId=root&o=OneUp), for which you can [find an implementation here](https://github.com/martinmoene/spike-expected/tree/master/alexandrescu), is a close relative to `llvm::Expected<T>`. The major difference is the interoperability with exceptions, which makes it a bad choise for the exception-free codebase. However, it gives the opportunity to make it simple and store the error payload as [`std::exception_ptr`](http://en.cppreference.com/w/cpp/error/exception_ptr). While Alexandrescu added support for `Expected<void>` explicitly, we would return `llvm::Error` in this case.
 
 ### Boost Outcome
 
@@ -106,6 +106,6 @@ It's always great to use a library and get handy features that work out of the b
 
 Providing the same kind of tooling with Boost Outcome may not be impossible, but it's not straightforward either. I assume it goes through template hell at least once :) For an error handling approach I consider this a downside. I'd rather go for the simplest possible solution, which let's me write compact code that is intuitively understandable for me and everyone who reads my code. This is where robustness originates.
 
-<a style="float: left;" href="/blog/post/2017/09/06/llvm-expected-basics.html">&lt; Motivation</a>
-<a style="float: right;" href="/blog/post/2017/09/07/llvm-expected-helpers.html">All Helpers &gt;</a>
+<a style="float: left;" href="{{ site.baseurl }}{% post_url 2017-09-06-llvm-expected-basics %}">&lt; Prev: Motivation</a>
+<a style="float: right;" href="{{ site.baseurl }}{% post_url 2017-10-28-llvm-expected-helpers %}">Next: All Helpers &gt;</a>
 <br>

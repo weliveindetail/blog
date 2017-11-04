@@ -119,7 +119,7 @@ int main() {
 
 Moving the error handling to `main`, we have to change the signature of `simpleExample` to return the error code and add out parameters for both, the actual result and the potential error details. Variables for out parameters have to be created and initialized apriori, which adds unnecessary overhead (actually we never need both).
 
-Now we have the option to be smart: we define `errorFileName` as `unique_ptr` to `std::string` and pass this by reference. Thus, in success case, we pay only for the initialization of the pointer and not the string itself! Instead we trade it for a heap allocation in error case. It makes the interface slightly more complicated, but for C++ it's a manual optimization that's perfectly reasonable.
+Well at least we can be a little smart here: we define `errorFileName` as `std::unique_ptr` to `std::string` and pass this by reference. The interface gets slightly more complicated, but for C++ it's a manual optimization that's perfectly reasonable. In success case, we now pay only for the initialization of the pointer and not the string itself! It's a common pattern to optimize the hot path at an expense of the error path. In the error case performance is not our concern and we don't care about an extra heap allocation. Friendly reminder: never use error handling for regular control flow!
 
 All in all, shifting the error handling by one level in the call stack, is a significant change to our code and function signatures. Readability suffers, unit tests need to be changed and we need to look very precisely in order to keep the best possible performance and to avoid introducing new edge cases! It's a bunch of details to consider for a rather primitive change.
 
@@ -151,12 +151,9 @@ int main() {
 }
 {% endhighlight %}
 
-Summarizing the benefits:
+That's it. Compared to the error codes change, this was trivial! No impact on readability. Only 2 lines of new code. Minimal changes on the function signature, so unit test fixes should be fairly easy.
 
-* **No manual optimization**: efficiency of the solution doesn't require "smartness"
-* **No unnecessary overhead**: this code out-performs even the optimized error codes version
-* **No code bloat**: we only added 2 lines of code, while the error code example requires 8 extra lines
-* **No risk to drop errors**: destroying or accessing an unchecked instance will terminate the program in debug mode
+Most importantly though for C++ programmers: we keep the best possible performance without any smartness! No new edge cases! Yey!
 
 ### Entities
 
@@ -187,7 +184,7 @@ As we don't want to pass around polymorphic objects directly, the library gives 
 * `llvm::Error` for functions that otherwise return `void`
 * `llvm::Expected<T>` for functions that otherwise return `T`
 
-These wrappers type-erase all error details (just like `std::function` type-erases the details of a function instance). Accessing these information will be cumbersome and also less performant, which is ok as it only happens in error cases. Additionally they implement a very natural behavior for errors:
+These wrappers type-erase all error details (just like `std::function` type-erases the details of a function instance). Accessing these information will be cumbersome and also less performant. That's ok, it only happens in error cases. Additionally they implement a very natural behavior for errors:
 
 * No duplicates: Similarly to `std::unique_ptr` they don't permit copy but only move.
 * No lost instances: In debug mode, they make sure to be checked for failtures, before they are destroyed or values are accessed.
@@ -200,7 +197,7 @@ Unchecked Expected&lt;T&gt; contained error:
 invalid glob pattern: [a*.txt
 </pre>
 
-There's a lot more details to share about this way of error handling. I hope you are curious for Part 2?
+There's a lot more details to share about LLVM's rich polymorphic error handling. I hope you are in for the killer feature waiting in Part 2!
 
-<a href="/blog/post/2017/09/07/llvm-expected-differentiation.html" style="float: right;">Differentiation &gt;</a>
+<a href="{{ site.baseurl }}{% post_url 2017-10-22-llvm-expected-differentiation %}" style="float: right;">Next: Differentiation &gt;</a>
 <br>

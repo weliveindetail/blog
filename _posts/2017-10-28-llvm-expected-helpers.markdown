@@ -2,7 +2,7 @@
 layout: post
 author: Stefan Gränitz
 title:  "Rich Polymorphic Error Handling with llvm::Expected<T> — Part 3"
-date:   2017-09-07 19:33:01 +0200
+date:   2017-10-28 19:33:01 +0200
 categories: post
 comments: true
 series: expected
@@ -118,5 +118,5 @@ ModuleHandle addModule(std::unique_ptr<Module> M) {
 
 All OrcJIT layers implement the `addModule`/`removeModule` concept. These calls can fail in principle. However, the layers used in this specific case don't generate errors at all, so it's safe to use the helper here.
 
-<a style="float: left;" href="/blog/post/2017/09/07/llvm-expected-differentiation.html">&lt; Differentiation</a>
+<a style="float: left;" href="{{ site.baseurl }}{% post_url 2017-10-22-llvm-expected-differentiation %}">&lt; Differentiation</a>
 <br>
