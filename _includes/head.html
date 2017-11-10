@@ -20,6 +20,10 @@
   {% endif %}
 
   <script language="JavaScript" type="text/javascript">
+    if (window.location.host == "weliveindetail.github.io" && window.location.protocol != "https:") {
+      window.location.protocol = "https:";
+    }
+
     function decode(a, shift) {
       return a.replace(/[a-zA-Z]/g, function(c){
         return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + shift) ? c : c - 26);
