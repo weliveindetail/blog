@@ -21,26 +21,39 @@ This post is the second in a series presenting the rich error handling implement
 
 [Boost Outcome](https://ned14.github.io/outcome/) looks like the current candidate for a future [`std::expected`](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0323r2.pdf). Besides also supporting interoperability with exceptions it seems very similar to `llvm::Expected<T>` at first appearance. But there is one fundamental difference: Boost Outcome's [`outcome::result<T,EC>`](https://ned14.github.io/outcome/tutorial/result/) does not type-erase its payload. Instead error types are exposed as template parameters. Naturally, the next idea is to represent multiple possible error types with variadic templates: `expected<Y, E1, ..., En>` — that's where I get nervous.
 
-Using error types in function signatures may not seem like a big deal, but considering the real size of codebases as well as the impact on API versioning, it could make you skeptic. For me this looks like a renewal of exception specifications, just without the really stupid parts.
+Using error types in function signatures may not seem like a big deal, but considering the real size of codebases as well as the impact on API versioning, it could make you skeptic. For me this looks like a renewal of exception specifications, just without the really stupid parts. I recommend reading [The Trouble with Checked Exceptions](http://www.artima.com/intv/handcuffsP.html).
 
-Sure you could somehow manage to write your own type-erasing wrapper for Boost Outcome but it comes with a need for tooling. And once you finished reading this post, I think you don't want to write that on your own anymore.
+Well, if that's the only issue then let's write a type-erasing wrapper for Boost Outcome! In a first naive attempt, I tried to use `llvm::ErrorInfoBase` for the payload type in `outcome::result`:
 
-Anyway, before rolling out Boost Outcome throughout your codebase, I would recommend reading [The Trouble with Checked Exceptions](http://www.artima.com/intv/handcuffsP.html).
+{% highlight cpp %}
+template <class T>
+class expected {
+  ...
+  outcome::result<T, llvm::ErrorInfoBase> wrappee;
+};
+{% endhighlight %}
+
+The experiment ended abruptly. Apparently abstract base classes are not what Boost Outcome considers a valid payload:
+<pre>
+outcome/detail/result_storage.hpp:162:5: error: static_assert failed "The type S must be void or default constructible"
+</pre>
+
+Using a default constructible base class works, but there is still [some confusing discussions online](https://www.reddit.com/r/cpp/comments/5qzxdy/reasons_why_expectedt_e_should_always_use/) that suggest not to use Boost Outcome with arbitrary polymorphic types. Anyway, even if you manage to write a type-erased wrapper you still need to implement all the tooling around it youself.
 
 
 ### Less Generalization, More Common Ground
 
-LLVM's rich error handling implementation defines a common base class for the error payload and gets away without error types in the signatures of its wrappers `llvm::Error` and `llvm::Expected<T>`.
+LLVM's rich error handling offers straightforward and pragmatic implementations for its wrappers `llvm::Error` and `llvm::Expected<T>` and at the same time it gets away with without error types in their signatures. The key to simplicity is a common base class for the error payload.
 
-Substantiating this focal detail, rather then generalizing it, allows the library to provide seasoned tooling around its basic entities. I consider that a compelling benefit, because we don't write code for the sake of error handling. I think _simple_ and _compact_ are the most appreciated properties in this problem domain. That's where we will need helper functions.
+Substantiating this focal detail, rather then generalizing it, allows the library to provide seasoned tooling around its basic entities. I consider that a compelling benefit, because we don't write code for the sake of error handling. I think _simple_ and _compact_ are the most appreciated properties in this problem domain.
 
-A common base class for error types makes it easy to provide special-case implementations:
+That's where we need library support. First of all we have a number of useful special-case implementations for errors:
 
 * `llvm::ErrorList` is handy in situations where one error leads to another or separate operations fail independently
 * `llvm::StringError` represents general-purpose errors that can fit all information into a string and have no distinct recovery strategy
 * `llvm::ECError` stores a simple `std::error_code` and does its part for interoperability
 
-These types can now be considered by other frequently used helper functions to simplify your code.
+Library functions now benefit from their knowledge about the existance of these special cases. The goal is to tune the interactions between frequently used entities to simplify the user's code. That's what makes a well-coordinated library.
 
 
 ### ErrorList
@@ -110,9 +123,9 @@ Like all type structures, error type hierarchies are powerful when designed righ
 
 ### Conclusion
 
-It's always great to use a library and get handy features that work out of the box. The reason LLVM's rich error handling can provide such features (and implement them in a straightforward and pragmatic way), is that it hardcodes a crucial detail of the system: a common base class for all user-defined error types.
+It's always great to use a library and get handy features that work out of the box. The reason LLVM's rich error handling can provide such features easily, is that it hardcodes a crucial detail of the system: a common base class for all user-defined error types.
 
-Writing your own wrappers the same kind of tooling for Boost Outcome is not straightforward. I assume it goes through template hell at least once :) For an error handling approach I consider this a downside. I'd rather go for the simplest possible solution and write compact code that is intuitively understandable to the reader. This is where robustness originates.
+Writing your own wrappers and tooling for Boost Outcome is not straightforward. For an error handling approach I consider this a downside. I'd rather go for the simplest possible solution and write compact code that is intuitively understandable to the reader. This is where robustness originates.
 
 <a style="float: left;" href="{{ site.baseurl }}{% post_url 2017-09-06-llvm-expected-basics %}">&lt; Prev: Motivation</a>
 <a style="float: right;" href="{{ site.baseurl }}{% post_url 2017-10-28-llvm-expected-helpers %}">Next: All Helpers &gt;</a>
