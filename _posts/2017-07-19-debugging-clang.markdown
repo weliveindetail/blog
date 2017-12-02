@@ -10,6 +10,10 @@ The high-level documentation for [LLVM](http://llvm.org/docs/) and [Clang](https
 
 Doxygen ([LLVM](http://llvm.org/doxygen/), [Clang](http://clang.llvm.org/doxygen/)) helps a lot to figure what is available through an API and which entry points exists, but it naturally lacks information on how to compose things to achieve your goal.
 
+<p style="text-align: right;">
+  TL;DR &darr; <a href="#so-how-can-we-debug-the-clang-frontend">Debug the Clang frontend</a>
+</p>
+
 ### See how Clang does it
 
 ...is probably the top one answer for questions in the mailing lists or stackoverflow. In fact it's not only a pragmatic solution, but IMHO also quite an effective one because:
