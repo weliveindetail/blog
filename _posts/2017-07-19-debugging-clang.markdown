@@ -47,7 +47,7 @@ clang version 3.8.0 (tags/RELEASE_380/final)
 Target: x86_64-apple-darwin16.6.0
 Thread model: posix
 InstalledDir: /usr/local/bin
- "/Users/staehff/Dev/3rdParty/llvm40-build-xcode/Debug/bin/clang" "-cc1" "-triple" "x86_64-apple-macosx10.12.0" "-Wdeprecated-objc-isa-usage" "-Werror=deprecated-objc-isa-usage" "-emit-obj" "-mrelax-all" "-disable-free" "-disable-llvm-verifier" "-discard-value-names" "-main-file-name" "example.cpp" "-mrelocation-model" "pic" "-pic-level" "2" "-mthread-model" "posix" "-mdisable-fp-elim" "-masm-verbose" "-munwind-tables" "-target-cpu" "penryn" "-target-linker-version" "302.1" "-dwarf-column-info" "-debugger-tuning=lldb" "-coverage-notes-file" "/Users/staehff/Dev/3rdParty/llvm50/build-xcode-llvm-clang/Debug/bin/example.gcno" "-resource-dir" "/Users/staehff/Dev/3rdParty/llvm40-build-xcode/Debug/bin/../lib/clang/4.0.1" "-stdlib=libc++" "-fdeprecated-macro" "-fdebug-compilation-dir" "/Users/staehff/Dev/3rdParty/llvm50/build-xcode-llvm-clang/Debug/bin" "-ferror-limit" "19" "-fmessage-length" "181" "-stack-protector" "1" "-fblocks" "-fobjc-runtime=macosx-10.12.0" "-fencode-extended-block-signature" "-fcxx-exceptions" "-fexceptions" "-fmax-type-align=16" "-fdiagnostics-show-option" "-fcolor-diagnostics" "-o" "example.o" "-x" "c++" "example.cpp"
+ "/path/to/clang" "-cc1" "-triple" "x86_64-apple-macosx10.12.0" "-Wdeprecated-objc-isa-usage" "-Werror=deprecated-objc-isa-usage" "-emit-obj" "-mrelax-all" "-disable-free" "-disable-llvm-verifier" "-discard-value-names" "-main-file-name" "example.cpp" [...] "-o" "example.o" "-x" "c++" "example.cpp"
 </pre>
 
 Take what you need for your use case and invoke the frontend directly as a single process with:

@@ -5,8 +5,9 @@ title:  "Building a JIT from scratch"
 date:   2017-07-18 12:13:01 +0200
 categories: post
 comments: true
---- 
-Implementing a cross-platform native JIT has never been easier than today with LLVM. My GitHub project [JitFromScratch](https://github.com/weliveindetail/JitFromScratch) shows how to use the LLVM ORC libraries to compile the code for a simple function at runtime: 
+---
+
+Implementing a cross-platform native JIT has never been easier than today with LLVM. My GitHub project [JitFromScratch](https://github.com/weliveindetail/JitFromScratch) shows how to use the LLVM ORC libraries to compile the code for a simple function at runtime:
 
 {% highlight c++ %}
 template <size_t sizeOfArray>
@@ -75,7 +76,7 @@ You can find more details on building LLVM from source [in the previous post]({{
 Integer Distances: 3, 0, 3
 </pre>
 
-To explore the code and debug JitFromScratch I'd recommend the cross-platform [QtCreator IDE](https://download.qt.io/official_releases/qtcreator/). As it works with CMake natively, you can just click *Open Project* and select `~/Develop/JitFromScratch/JitFromScratch/CmakeLists.txt`. QtCreator will find your Ninja build and import its settings.
+[QtCreator](https://download.qt.io/official_releases/qtcreator/) is great for codebase exploration. [Since version 4.3](https://blog.qt.io/blog/2016/11/15/cmake-support-in-qt-creator-and-elsewhere/) it works with CMake natively, so you can just click *Open Project* and select `JitFromScratch/CMakeLists.txt` and it should import the Ninja build.
 
 <br>
 <br>
@@ -87,9 +88,9 @@ To explore the code and debug JitFromScratch I'd recommend the cross-platform [Q
 
 {::options parse_block_html="true" /}
 <div id="mac-os-x-1012-content" style="display: none;">
-On Mac OS X you need to install Xcode and the command line tools (I currently use version 8.3). You can download both from [https://developer.apple.com/download/more/](https://developer.apple.com/download/more/) after logging in with your Apple ID. Alternatively they can also be installed via the App Store. Please note that the download will take long either way.
+On Mac OS X 10.12 install Xcode and the command line tools (I currently use version 8.3). You can download both from [https://developer.apple.com/download/more/](https://developer.apple.com/download/more/) after logging in with an Apple ID.
 
-Additionally we need the following packages:
+Additionally you need:
 <pre>
 mac:Develop user$ brew install git
 mac:Develop user$ brew install cmake
@@ -109,7 +110,7 @@ mac:llvm40-build user$ <b>cmake -G Xcode -DCMAKE_OSX_SYSROOT=macosx10.12 -DLLVM_
 mac:llvm40-build user$ cmake --build .
 </pre>
 
-You can find more details on building LLVM from source [in the previous post]({{ site.baseurl }}{% post_url 2017-07-17-notes-setup %}). The build process will again take time, but you can already prepare the next steps. Checkout the sources for the JitFromScratch project and get ready for generating build files. Once the LLVM build is done, you can run the `cmake` commands:
+Please find more details on building LLVM [in the previous post]({{ site.baseurl }}{% post_url 2017-07-17-notes-setup %}). The build process will take time, but you can already prepare the next steps. Checkout the sources for the JitFromScratch project and get ready for generating build files:
 <pre>
 mac:Develop user$ mkdir JitFromScratch
 mac:Develop user$ cd JitFromScratch
@@ -126,7 +127,7 @@ mac:Debug user$ ./JitFromScratch
 Integer Distances: 3, 0, 3
 </pre>
 
-To explore the code and debug JitFromScratch open the generated `~/Develop/JitFromScratch/JitFromScratch-build/JitFromScratch.xcodeproj` with Xcode.
+To explore the code and debug JitFromScratch, open the generated `~/Develop/JitFromScratch/JitFromScratch-build/JitFromScratch.xcodeproj` with Xcode.
 
 <br>
 <br>
@@ -138,12 +139,12 @@ To explore the code and debug JitFromScratch open the generated `~/Develop/JitFr
 
 {::options parse_block_html="true" /}
 <div id="windows-10-content" style="display: none;">
-On Windows you will need to download and install the following tools:
+On Windows download and install the following tools:
 * Visual Studio 2017 (2015 should work too): Get the free community edition downloader from [https://www.visualstudio.com/Downloads](https://www.visualstudio.com/Downloads) and install the *Desktop development with C++* package
 * Git: Any Git Client should be fine, e.g. the GPLv2 licensed [Git-for-Windows](https://github.com/git-for-windows/git/releases) or the commercial/community dual-licensed [SmartGit](http://www.syntevo.com/smartgit/download)
 * CMake: Get the latest stable Windows installer from [https://cmake.org/download/#latest](https://cmake.org/download/#latest)
 
-Now open a **new** command prompt that includes the Visual Studio command line utilities: click Start, type "x64 native tools command", open the *x64 Native Tools Command Prompt for VS 2017* and run these commands:
+Now open a **new** command prompt that includes the Visual Studio command line utilities: click Start, type "x64 native tools command", open the *x64 Native Tools Command Prompt* and run these commands:
 <pre>
 C:\Develop>mkdir llvm40
 C:\Develop>cd llvm40
@@ -157,7 +158,7 @@ C:\Develop\llvm40\llvm40-build><b>cmake -G "Visual Studio 15 2017 Win64" -DLLVM_
 C:\Develop\llvm40\llvm40-build>cmake --build .
 </pre>
 
-You can find more details on building LLVM from source [in the previous post]({{ site.baseurl }}{% post_url 2017-07-17-notes-setup %}). The build process will take time, but you can already prepare the next steps. Checkout the sources for the JitFromScratch project and get ready for generating build files. Once the LLVM build is done, you can run the `cmake` commands:
+Please find more details on building LLVM [in the previous post]({{ site.baseurl }}{% post_url 2017-07-17-notes-setup %}). The build process will take time, but you can already prepare the next steps. Checkout the sources for the JitFromScratch project and get ready for generating build files:
 <pre>
 C:\Develop>mkdir JitFromScratch
 C:\Develop>cd JitFromScratch

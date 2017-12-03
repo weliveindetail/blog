@@ -45,9 +45,9 @@ We can figure out which arguments to pass to cc1 to do the job, by invoking `cla
 
 <pre>
 $ clang -### -g -c -emit-llvm -o /tmp/bitcode.bc /tmp/source.cpp
-[...]
- "/usr/local/bin/clang" "-cc1" "-triple" "x86_64-apple-macosx10.12.0" "-Wdeprecated-objc-isa-usage" "-Werror=deprecated-objc-isa-usage" "-emit-llvm-bc" "-emit-llvm-uselists" "-disable-free" "-main-file-name" "/tmp/source.cpp" "-mrelocation-model" "pic" "-pic-level" "2" "-mthread-model" "posix" "-mdisable-fp-elim" "-masm-verbose" "-munwind-tables" "-target-cpu" "penryn" "-target-linker-version" "274.1" "-dwarf-column-info" "-debug-info-kind=standalone" "-dwarf-version=4" "-debugger-tuning=lldb" "-coverage-notes-file" "/tmp/bitcode.gcno" "-resource-dir" "/Users/user/Develop/llvm40/llvm40-clang/lib/clang/4.0.1" "-stdlib=libc++" "-fdeprecated-macro" "-fdebug-compilation-dir" "/Users/user/Develop/JitFromScratch" "-ferror-limit" "19" "-fmessage-length" "181" "-stack-protector" "1" "-fblocks" "-fobjc-runtime=macosx-10.12.0" "-fencode-extended-block-signature" "-fcxx-exceptions" "-fexceptions" "-fmax-type-align=16" "-fdiagnostics-show-option" "-fcolor-diagnostics" "-o" "/tmp/bitcode.bc" "-x" "c++" "/tmp/source.cpp"
 </pre>
+
+Most of the arguments are defaults so you don't actually need to set them. This said, for any reasonable C++ code you will at least need to set `-resource-dir`.
 
 ### Set -resource-dir
 

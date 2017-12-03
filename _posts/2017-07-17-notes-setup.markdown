@@ -6,7 +6,8 @@ date:       2017-07-17 22:13:01 +0200
 updated:    2017-08-03 23:05:00 +0200
 categories: post
 comments:   true
---- 
+---
+
 A few notes on building LLVM and how to build against it. There's different ways to do this and there's pros and cons with all of them. This is what I got used to.
 
 ### Build LLVM from source
@@ -17,7 +18,7 @@ If you only use LLVM and stay with release versions until the next comes out, yo
 
 ### Use version-specific build directories
 
-The repository is large and rebuilding takes time. Switching between versions in the sources is likely to trigger long rebuilds. I usually have the sources checked out for each major version and a build directories for different configurations or purposes. To build your project against one of these, [use LLVM_DIR as shown below](#use-llvm_dir-to-specify-the-right-build).
+The repository is large and rebuilding takes time. Switching between versions in the sources is likely to trigger long rebuilds. I usually have the sources checked out for each major version and build directories for each configuration or purpose. Use [LLVM_DIR as shown below](#use-llvm_dir-to-specify-the-right-build) to select against which one to build your project.
 
 <pre style="line-height: 1.125em;">
 ~/Develop
@@ -55,15 +56,15 @@ Projects like LLDB and Clang are based on LLVM. By default they live 'in-tree' i
 
 ### Safe time with the right generator and additional options
 
-To save time during a build you can easily exclude examples, tests and documentation. If you don't do cross-compilation you can use `LLVM_TARGETS_TO_BUILD` to prevent LLVM from building all platform backends. In a debug configuration you can use `LLVM_OPTIMIZED_TABLEGEN` to build the TableGen executable in release mode, resulting in a significant speedup for each subsequent source code change that triggers a rerun of TableGen. With the `BUILD_SHARED_LIBS` option each component is built as a shared library instead of a static library, which is the default (`OFF`). Very useful to reduce link times, but recommended only for debug configurations too.
+You can easily exclude examples, tests and documentation. If you don't do cross-compilation you can use `LLVM_TARGETS_TO_BUILD` to prevent LLVM from building all platform backends. In a debug configuration you can use `LLVM_OPTIMIZED_TABLEGEN` to build the TableGen executable in release mode, resulting in a significant speedup for each subsequent source code change that triggers a rerun of TableGen. With the `BUILD_SHARED_LIBS` option each component is built as a shared library instead of a static library, which is the default (`OFF`). Very useful to reduce link times. Only use it in debug configurations.
 
-The recommended build system for LLVM is Ninja, ideally in combination with Ccache. So you might end up with a command line like this:
+Ninja is the recommended build system for LLVM, ideally in combination with ccache. You might end up with a command line like this:
 
 <pre>
 $ cmake -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DLLVM_OPTIMIZED_TABLEGEN=ON -DLLVM_TARGETS_TO_BUILD=host -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_DOCS=OFF ../llvm
 </pre>
 
-Still, on Mac I use the `Xcode` generator a lot as it's also useful to explore the codebase. Same on Windows with `Visual Studio 15 2017 Win64`. On Linux I like to use QtCreator for code exploration, which can deal with CMake directly and figures my Ninja-Ccache build.
+For codebase exploration I need and IDE. On Linux I use QtCreator which can deal with CMake directly [since version 4.3](https://blog.qt.io/blog/2016/11/15/cmake-support-in-qt-creator-and-elsewhere/) and it finds my Ninja-ccache builds. I use `Xcode` generator on OSX and `Visual Studio 15 2017 Win64` on Windows.
 
 ### Use LLVM_DIR to specify the right build
 
