@@ -19,13 +19,13 @@ This is probably the top one answer in the mailing lists or stackoverflow for qu
 
 So after you managed to [build Clang locally]({{ site.baseurl }}{% post_url 2017-07-17-notes-setup %}#use-enable_projects), you eventually find yourself crawling through tons of Clang sources to actually find out how Clang does it. Let's say you want to know how Clang mangles C++ function names. On OSX you would set a breakpoint in [`CXXNameMangler::mangle()`](https://github.com/llvm-mirror/clang/blob/master/lib/AST/ItaniumMangle.cpp#L641). Then build Clang in debug mode and watch it compiling a C++ file like this:
 
-{% highlight c++ %}
+```cpp
 extern int returnValue(int a, char **b);
 
 int main(int argc, char **argv) {
   return returnValue(argc, argv);
 }
-{% endhighlight %}
+```
 
 If you did that the first time, you may be surprised that your breakpoint never hits. Before you start searching for mistakes: You didn't do anything wrong but **just encountered a common pitfall**.
 
@@ -41,24 +41,25 @@ The issue was discussed in more detail on the cfe-dev mailing list some time ago
 
 If you use flags to run the driver you need to translate them from driver to frontend representation first. The `-###` flag is very useful here. Prepend it to your command line to run only the driver and print out transformed arguments:
 
-<pre>
-$ <b>clang -### -c example.cpp</b>
+```terminal
+$ clang -### -c example.cpp
 clang version 3.8.0 (tags/RELEASE_380/final)
 Target: x86_64-apple-darwin16.6.0
 Thread model: posix
 InstalledDir: /usr/local/bin
  "/path/to/clang" "-cc1" "-triple" "x86_64-apple-macosx10.12.0" "-Wdeprecated-objc-isa-usage" "-Werror=deprecated-objc-isa-usage" "-emit-obj" "-mrelax-all" "-disable-free" "-disable-llvm-verifier" "-discard-value-names" "-main-file-name" "example.cpp" [...] "-o" "example.o" "-x" "c++" "example.cpp"
-</pre>
+```
 
 Take what you need for your use case and invoke the frontend directly as a single process with:
-<pre>
-$ <b>clang -cc1 -emit-obj -o ~/example.o -x c++ ~/example.cpp</b>
-</pre>
+```terminal
+$ clang -cc1 -emit-obj example.cpp
+```
 
-If you do this in your IDE your breakpoint will now hit. You can see how name mangling is invoked and you can debug through the process. Happy hacking!
+If you do this in your IDE your breakpoint will now hit. In LLDB it looks like this:
 
+<div class="language-terminal highlighter-rouge">
 <pre class="highlight">
-$ lldb -- clang
+<code>$ lldb -- clang
 (lldb) target create "clang"
 Current executable set to 'clang' (x86_64).
 (lldb) b CXXNameMangler::mangle
@@ -75,6 +76,7 @@ Process 27909 stopped
    642    if (const FunctionDecl *FD = dyn_cast&lt;FunctionDecl&gt;(D))
    643      mangleFunctionEncoding(FD);
    644    else if (const VarDecl *VD = dyn_cast&lt;VarDecl&gt;(D))
-</pre>
+</code></pre>
+</div>
 
 Happy hacking!

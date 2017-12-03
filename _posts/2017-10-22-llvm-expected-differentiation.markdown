@@ -25,18 +25,18 @@ Using error types in function signatures may not seem like a big deal, but consi
 
 Well, if that's the only issue then let's write a type-erasing wrapper for Boost Outcome! In a first naive attempt, I tried to use `llvm::ErrorInfoBase` for the payload type in `outcome::result`:
 
-{% highlight cpp %}
+```cpp
 template <class T>
 class expected {
   ...
   outcome::result<T, llvm::ErrorInfoBase> wrappee;
 };
-{% endhighlight %}
+```
 
 The experiment ended abruptly. Apparently abstract base classes are not what Boost Outcome considers a valid payload:
-<pre>
+```output
 outcome/detail/result_storage.hpp:162:5: error: static_assert failed "The type S must be void or default constructible"
-</pre>
+```
 
 Using a default constructible base class works, but there is still [some confusing discussions online](https://www.reddit.com/r/cpp/comments/5qzxdy/reasons_why_expectedt_e_should_always_use/) that suggest not to use Boost Outcome with arbitrary polymorphic types. Anyway, even if you manage to write a type-erased wrapper you still need to implement all the tooling around it youself.
 
@@ -60,7 +60,7 @@ Library functions now benefit from their knowledge about the existance of these 
 
 The following code shows the synergy of `llvm::ErrorList` with `llvm::handleAllErrors()`, a library function which acts like a `catch` clause selector for errors.
 
-{% highlight cpp %}
+```cpp
 using namespace llvm;
 std::error_code EC = std::make_error_code(std::errc::invalid_argument);
 
@@ -82,7 +82,7 @@ handleAllErrors(
     // called first
   }
 );
-{% endhighlight %}
+```
 
 The behavior of `llvm::handleAllErrors()` is obvious for regular errors: compare the type of the given error to the argument type of each handler top-down and invoke the first match. That's great and intuitive behavior, but it's not really what we want in case of `llvm::ErrorList`.
 
@@ -95,7 +95,7 @@ Effect: simple and compact code plus no need to prepare the error handling code 
 
 When everyone can define their own error types, it may get messy at some point, even if the visibility of definitions is well restricted. Type Hierarchies can help to establish a structure and they are — again — pretty simple.
 
-{% highlight cpp %}
+```cpp
 // Type hierarchy:      IOError
 //                     /       \
 //      FileNotFoundError     AccessDeniedError
@@ -114,7 +114,7 @@ handleAllErrors(
   [](const IOError &err) {
     // handling for all other IO errors
   });
-{% endhighlight %}
+```
 
 This code defines an error base class `IOError` and two specializations `FileNotFoundError` and `FileAccessDeniedError`. `openFile()` returns a `IOError`. Within `llvm::handleAllErrors` we can now filter precisely for with types we need distinct handling in this case. In the example that's the case for `FileNotFoundError`, while `FileAccessDeniedError` and all other `IOError`s end up in the second handler.
 

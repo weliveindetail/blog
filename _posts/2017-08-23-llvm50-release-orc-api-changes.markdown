@@ -5,15 +5,16 @@ title:  "LLVM 5.0 Release ORC API Changes"
 date:   2017-08-23 15:08:01 +0200
 categories: post
 comments: true
---- 
+---
+
 This week's 5.0 release of the LLVM libraries is a good opportunity to see what changed on the ORC JIT API. This is a summary of the most important things I came across when porting the [JitFromScratch](https://github.com/weliveindetail/JitFromScratch) examples.
 
 Please note that the `release_40` compatible branches are still available and just moved into the `llvm40/` nesting level. So you can diff for a specific 4.0 to 5.0 change set quite easily:
-<pre>
+```terminal
 $ git diff llvm40/jit-basics jit-basics
 $ git diff llvm40/jit-basics jit-basics -- CMakeLists.txt
 $ git diff llvm40/jit-debug/gdb-interface jit-debug/gdb-interface -- SimpleOrcJit.h
-</pre>
+```
 
 ### OrcLayerConcept::addModule
 
@@ -25,7 +26,7 @@ Now simple changes like `ModuleSetHandleT` becoming `ModuleHandleT` made a lot o
 
 [Errorization](https://github.com/llvm-mirror/llvm/commit/a81793582b3c47869680d354a97d59c55779c349) is another interesting thing that happened not only on this API entry point, but [in a number of places](https://github.com/llvm-mirror/llvm/commit/c6bf9be16da829a7292b1aa7307c4f162b4c6f72). It incorporates the new [structured error handling](https://llvm.org/docs/ProgrammersManual.html#error-handling) techniques aiming to improve consistency when dealing with error cases.
 
-{% highlight diff %}
+```diff
 $ git diff release_40 release_50 -- ./include/llvm/ExecutionEngine/Orc/IRCompileLayer.h
 diff --git a/include/llvm/ExecutionEngine/Orc/IRCompileLayer.h b/include/llvm/ExecutionEngine/Orc/IRCompileLayer.h
 index f16dd021ea5..fadd334bed0 100644
@@ -58,7 +59,7 @@ index f16dd021ea5..fadd334bed0 100644
 +    auto Obj = std::make_shared<CompileResult>(Compile(*M));
 +    return BaseLayer.addObject(std::move(Obj), std::move(Resolver));
    }
-{% endhighlight %}
+```
 
 ### Templates
 
@@ -66,18 +67,18 @@ The reduction of template code is another step towards simplification that I app
 
 One more example for this is the `RTDyldObjectLinkingLayer` (that btw. was renamed). It replaces template parameters for functors with `typedef`s to `std::function`. On the caller's side it actually makes no difference. While the template parameter was auto deduced in `release_40`, the same expression is now accepted as a regular typed function parameter:
 
-{% highlight c++ %}
+```cpp
 template <typename NotifyLoadedFtor = DoNothingOnNotifyLoaded>
 class ObjectLinkingLayer : public ObjectLinkingLayerBase {
   ...
   ObjectLinkingLayer(
       NotifyLoadedFtor NotifyLoaded = NotifyLoadedFtor(),
       NotifyFinalizedFtor NotifyFinalized = NotifyFinalizedFtor())
-{% endhighlight %}
+```
 
 This code turned into:
 
-{% highlight c++ %}
+```cpp
 class RTDyldObjectLinkingLayer : public RTDyldObjectLinkingLayerBase {
   ...
   /// @brief Functor for receiving object-loaded notifications.
@@ -88,13 +89,13 @@ class RTDyldObjectLinkingLayer : public RTDyldObjectLinkingLayerBase {
       MemoryManagerGetter GetMemMgr,
       NotifyLoadedFtor NotifyLoaded = NotifyLoadedFtor(),
       NotifyFinalizedFtor NotifyFinalized = NotifyFinalizedFtor())
-{% endhighlight %}
+```
 
 ### Component Dependencies
 
 When building the JitFromScratch examples against `release_50` I was a little surprised about linker errors reporting undefined symbols. I hadn't really changed anything, so why was this happening? So far the only explaination for me is that some component dependencies were sorted out. In order to build `jit-basics` we now need to specify `executionengine`, `object`, `runtimedyld` and `support` explicitly. Previously their libraries were linked in automatically by using only `core`, `native` and `orcjit`.
 
-{% highlight diff %}
+```diff
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 5ab1a01..2fbca43 100644
 --- a/CMakeLists.txt
@@ -112,6 +113,6 @@ index 5ab1a01..2fbca43 100644
 +    runtimedyld
 +    support
  )
-{% endhighlight %}
+```
 
-Also using the ORC JIT API? Anything to add? I am happy to hear your opinion and answer questions!
+Also using the ORC JIT API? Anything to add? Happy to hear your opinion or questions!

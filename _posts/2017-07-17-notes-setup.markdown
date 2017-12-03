@@ -40,19 +40,21 @@ The repository is large and rebuilding takes time. Switching between versions in
 
 Projects like LLDB and Clang are based on LLVM. By default they live 'in-tree' in the tools subdirectory and get built with LLVM automatically. However, this adds overhead e.g. with git versioning as you need submodules now for these projects. You can also check them out side-by-side and tell CMake which projects to include using the `LLVM_ENABLE_PROJECTS` option like this:
 
-<pre>
-~/Develop/llvm40 $ git clone https://github.com/llvm-mirror/llvm llvm
-~/Develop/llvm40 $ cd llvm
-~/Develop/llvm40/llvm $ git checkout -b release_40
-~/Develop/llvm40/llvm $ cd ..
-~/Develop/llvm40 $ git clone https://github.com/llvm-mirror/clang clang
-~/Develop/llvm40 $ cd clang
-~/Develop/llvm40/clang $ git checkout -b release_40
-~/Develop/llvm40/clang $ cd ..
-~/Develop/llvm40 $ mkdir build-debug-clang
-~/Develop/llvm40 $ cd build-debug-clang
-~/Develop/llvm40/build-debug-clang $ cmake -DCMAKE_BUILD_TYPE=Debug <b>-DLLVM_ENABLE_PROJECTS=clang</b> ../llvm
-</pre>
+<div class="language-terminal highlighter-rouge">
+<pre class="highlight">
+<code><span class="w">$ </span><span class="nc">git</span><span class="kv"> clone https://github.com/llvm-mirror/llvm llvm
+</span><span class="w">$ </span><span class="nc">cd</span><span class="kv"> llvm
+</span><span class="w">$ </span><span class="nc">git</span><span class="kv"> checkout -b release_40
+</span><span class="w">$ </span><span class="nc">cd</span><span class="kv"> ..
+</span><span class="w">$ </span><span class="nc">git</span><span class="kv"> clone https://github.com/llvm-mirror/clang clang
+</span><span class="w">$ </span><span class="nc">cd</span><span class="kv"> clang
+</span><span class="w">$ </span><span class="nc">git</span><span class="kv"> checkout -b release_40
+</span><span class="w">$ </span><span class="nc">cd</span><span class="kv"> ..
+</span><span class="w">$ </span><span class="nc">mkdir</span><span class="kv"> build-debug-clang
+</span><span class="w">$ </span><span class="nc">cd</span><span class="kv"> build-debug-clang
+</span><span class="w">$ </span><span class="nc">cmake</span><span class="kv"> -DCMAKE_BUILD_TYPE=Debug <b>-DLLVM_ENABLE_PROJECTS=clang</b> ../llvm
+</span></code></pre>
+</div>
 
 ### Safe time with the right generator and additional options
 
@@ -60,9 +62,9 @@ You can easily exclude examples, tests and documentation. If you don't do cross-
 
 Ninja is the recommended build system for LLVM, ideally in combination with ccache. You might end up with a command line like this:
 
-<pre>
+```terminal
 $ cmake -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DLLVM_OPTIMIZED_TABLEGEN=ON -DLLVM_TARGETS_TO_BUILD=host -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_DOCS=OFF ../llvm
-</pre>
+```
 
 For codebase exploration I need and IDE. On Linux I use QtCreator which can deal with CMake directly [since version 4.3](https://blog.qt.io/blog/2016/11/15/cmake-support-in-qt-creator-and-elsewhere/) and it finds my Ninja-ccache builds. I use `Xcode` generator on OSX and `Visual Studio 15 2017 Win64` on Windows.
 
@@ -70,29 +72,29 @@ For codebase exploration I need and IDE. On Linux I use QtCreator which can deal
 
 `find_package(LLVM)` is obviously very useful, but in order to find the right **not installed** LLVM it needs the `LLVM_DIR` variable pointing to it's `LLVMConfig.cmake`. Ideally pass it in via the command line as recommended for the [JitFromScratch](https://github.com/weliveindetail/JitFromScratch) project:
 
-<pre>
+```terminal
 $ cmake -DCMAKE_BUILD_TYPE=Debug <b>-DLLVM_DIR=~/Develop/llvm40/build-debug-clang/lib/cmake/llvm</b> ../JitFromScratch
-</pre>
+```
 
 ### Define the expected LLVM version
 
 Interfaces change a lot and also dealing with multiple versions it can get confusing. Safe yourself and your users by defining which exact version you expect:
 
-{% highlight cmake %}
+```cmake
 find_package(LLVM 4.0 REQUIRED)
-{% endhighlight %}
+```
 
 ### Takeover LLVM_DEFINITIONS
 
 It is important to build your own project with matching preprocessor definitions to prevent mysterious compiler errors when switching to another platform or build configuration. The LLVM package sets various useful variables like `LLVM_ENABLE_RTTI`, `LLVM_BUILD_MAIN_SRC_DIR`, `LLVM_BUILD_BINARY_DIR`, `LLVM_PACKAGE_VERSION` and also <b>a space-separated list of `LLVM_DEFINITIONS`</b>. In the old days of CMake they were applied like this:
 
-{% highlight cmake %}
+```cmake
 add_definitions(${LLVM_DEFINITIONS})
-{% endhighlight %}
+```
 
 As CMake expansion rules changed, this doesn't work anymore with "modern" target-centric CMake. The <b>`target_compile_definitions` command expects a semicolon-separated list</b> or otherwise surrounds the expanded value with quotation marks. It can be an extermely annoying detail. Fortunately after a little research, I found this special CMake helper command, which transforms a space-separated list into a semicolon-separated one:
 
-{% highlight cmake %}
+```cmake
 separate_arguments(LLVM_DEFINITIONS)
 target_compile_definitions(MyTarget PRIVATE ${LLVM_DEFINITIONS}) 
-{% endhighlight %}
+```

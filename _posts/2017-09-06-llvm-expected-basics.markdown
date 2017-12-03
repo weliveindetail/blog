@@ -7,18 +7,18 @@ categories: post
 comments: true
 series: expected
 part: first
---- 
+---
 
 There are good reasons for and against the use of C++ Exceptions. The lack of good alternatives, however, is often considered a strong argument _for_ them. Exception-free codebases just too easily retrogress to archaic error code passing. If your project doesn't go well with Exceptions, it can be a terrible trade-off.
 
-This post is the first in a series presenting the rich error handling implementation introduced to the LLVM libraries recently. In order to make it usable for third parties, I provide a stripped-down version: 
+This post is the first in a series presenting the rich error handling implementation introduced to the LLVM libraries recently. In order to make it usable for third parties, I provide a stripped-down version:
 [https://github.com/weliveindetail/llvm-expected](https://github.com/weliveindetail/llvm-expected).
 
 ### Example llvm::Expected&lt;T&gt;
 
 In a first example we will use the `llvm::GlobPattern` class for a search query with wildcards and make it fail. Handling this failure with `llvm::Expected<T>` and dumping the error info to `stderr`, looks like this:
 
-{% highlight cpp %}
+```cpp
 bool simpleExample() {
   std::string fileName = "[a*.txt";
   Expected<GlobPattern> pattern = GlobPattern::create(std::move(fileName));
@@ -36,21 +36,21 @@ int main() {
     // success! more code here
   return 0;
 }
-{% endhighlight %}
+```
 
 In success case `pattern` holds a `llvm::GlobPattern` object, so `takeError()` returns `llvm::Error::success()` which evaluates to `false` and execution continues with the invocation of `GlobPattern::match()`.
 
 Our example, however, provokes the error case: `[a*.txt` is no valid pattern and causes an internal error. Hence `takeError()` returns an `llvm::Error` object, which evaluats to `true` and execution enters the `if` branch. Before we return `false` from here, `llvm::logAllUnhandledErrors()` will give us an okish error message:
 
-<pre>
+```output
 [Glob Error] invalid glob pattern: [a*.txt
-</pre>
+```
 
 ### Example std::error_code
 
 Doing the same with error codes looks like this:
 
-{% highlight cpp %}
+```cpp
 bool simpleExample() {
   GlobPattern pattern;
   std::string fileName = "[a*.txt"
@@ -69,19 +69,19 @@ int main() {
     // success! more code here
   return 0;
 }
-{% endhighlight %}
+```
 
 As `GlobPattern::create` now returns a `std::error_code`, we obtain the resulting `pattern` through an out parameter. Note that this choice has a background: we don't want to use the out parameter for the error code as we would need to `clear()` it in success case explicitly to make sure
-* it has no uninitialized memory and 
+* it has no uninitialized memory and
 * it does not accidentally carry a previously assigned error code.
 
-Also note that we have no choice but to pass `pattern` in and out by reference. We cannot do "better" and use a reference to pointer to `GlobPattern` here, as it required a heap allocation in success case, which is far too expensive. We're forced to create and default-initialize `pattern` before the call. 
+Also note that we have no choice but to pass `pattern` in and out by reference. We cannot do "better" and use a reference to pointer to `GlobPattern` here, as it required a heap allocation in success case, which is far too expensive. We're forced to create and default-initialize `pattern` before the call.
 
 As a last side effect, we cannot pass `fileName` by move anymore, as it may be used for the error dump:
 
-<pre>
+```output
 [Glob Error] invalid_argument: [a*.txt
-</pre>
+```
 
 ### Motivation
 
@@ -89,8 +89,8 @@ So what do we gain with `llvm::Expected<T>`? A little readablility? A move inste
 
 Let's imagine our `simpleExample` function becomes prominent and other people want to use it too. So we decide to move it to a library. Can we dump to `stderr` straight away in our library? Well, we could provide an extra argument to pass in an arbitrary stream to receive the error message, but maybe the user of the library has an entirely different approach for error handling. Quite likely we'd end up with something like this for error codes:
 
-{% highlight cpp %}
-std::error_code simpleExample(bool &result, 
+```cpp
+std::error_code simpleExample(bool &result,
                               std::unique_ptr<std::string> &errorFileName) {
   GlobPattern pattern;
   std::string fileName = "[a*.txt";
@@ -117,7 +117,7 @@ int main() {
   // success! more code here
   return 0;
 }
-{% endhighlight %}
+```
 
 Moving the error handling to `main`, we have to change the signature of `simpleExample` to return the error code and add out parameters for both, the actual result and the potential error details. Variables for out parameters have to be created and initialized apriori, which again adds unnecessary overhead (actually we never need both).
 
@@ -131,7 +131,7 @@ All in all, shifting the error handling by one level in the call stack, is a sig
 
 Using `llvm::Expected<T>` makes the task surprisingly simple. The only change on the function signature is the return type, from `bool` to `llvm::Expected<bool>`. In `simpleExample` we just forward errors and otherwise call the `match()` member function through an indirection:
 
-{% highlight cpp %}
+```cpp
 Expected<bool> simpleExample() {
   std::string fileName = "[a*.txt";
   Expected<GlobPattern> pattern = GlobPattern::create(std::move(fileName));
@@ -151,7 +151,7 @@ int main() {
   // success! more code here
   return 0;
 }
-{% endhighlight %}
+```
 
 That's it! Compared to the changes in the error codes version, this was trivial! No impact on readability. Only 2 lines of new code. Minimal changes on the function signature, so unit test fixes should be fairly easy.
 
@@ -161,7 +161,7 @@ Most importantly though for C++ programmers: we keep the best possible performan
 
 So going that way, what entities are we supposed to deal with? Instead of a primitive code, we want to hand around a user-defined structure that carries arbitrary information. For the sake of simplicity and other benefits we will see later, it's a class derived from `llvm::ErrorInfoBase`. The [LLVM Programmers Manual](http://llvm.org/docs/ProgrammersManual.html) gives a good example:
 
-{% highlight cpp %}
+```cpp
 class BadFileFormat : public ErrorInfo<BadFileFormat> {
 public:
   static char ID;
@@ -179,9 +179,9 @@ public:
 };
 
 char BadFileFormat::ID; // This should be declared in the C++ file.
-{% endhighlight %}
+```
 
-As we don't want to pass around polymorphic objects directly, the library gives us two lightweight wrappers: 
+As we don't want to pass around polymorphic objects directly, the library gives us two lightweight wrappers:
 
 * `llvm::Error` for functions that otherwise return `void`
 * `llvm::Expected<T>` for functions that otherwise return `T`
@@ -193,11 +193,11 @@ These wrappers type-erase all error details (just like `std::function` type-eras
 
 If we hadn't checked `pattern` for errors in line 4 of the example in the Motivation section, we would get the following message (always, not only in error cases):
 
-<pre>
-Expected&lt;T&gt; must be checked before access or destruction.
-Unchecked Expected&lt;T&gt; contained error:
+```output
+Expected<T> must be checked before access or destruction.
+Unchecked Expected<T> contained error:
 invalid glob pattern: [a*.txt
-</pre>
+```
 
 There's a lot more details to share about LLVM's rich recoverable error handling. I hope you are in for the killer feature waiting in Part 2!
 
