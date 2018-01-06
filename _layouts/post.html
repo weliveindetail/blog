@@ -55,6 +55,25 @@ layout: default
   </script>
 
   {% if page.comments %}
+    <div id="likes">
+      <!-- LikeBtn.com BEGIN -->
+      <span class="likebtn-wrapper" data-theme="roundthumb" data-show_like_label="false" data-dislike_enabled="false"></span>
+      <script>
+        (function() {
+          if (document.getElementById("likebtn_wjs"))
+            return;
+
+          var a=document.createElement("script");
+          a.async=1;
+          a.id="likebtn_wjs";
+          a.src="//w.likebtn.com/js/w/widget.js";
+
+          var m=document.getElementsByTagName("script")[0];
+          m.parentNode.insertBefore(a, m)
+        })();
+      </script>
+      <!-- LikeBtn.com END -->
+    </div>
     <div id="comments">
       <a id="load_comments" href="#comments" onclick="loadComments()"></a>
     </div>
