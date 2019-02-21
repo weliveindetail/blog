@@ -1,7 +1,7 @@
 title: indetail dev blog
 email: stefan.graenitz@gmail.com
 description: >
-  Details about compilers, code and tooling from the world of LLVM
+  Sporadic details on compilers, code and tooling from the world of LLVM
 url: https://weliveindetail.github.io
 baseurl: "/blog"
 twitter_username: weliveindetail
