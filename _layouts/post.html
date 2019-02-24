@@ -39,15 +39,15 @@ layout: default
       if (!disqus_loaded) {
         disqus_loaded = true;
         $("#comments").html(
-          "<div id='disqus_thread'></div>" + 
-          "<script>" + 
-          "  (function() {" + 
-          "    var d = document, s = d.createElement('script');" + 
-          "    s.src = 'https://http-weliveindetail-github-io-blog.disqus.com/embed.js';" + 
-          "    s.setAttribute('data-timestamp', +new Date());" + 
-          "    (d.head || d.body).appendChild(s);" + 
-          "})();" + 
-          "<\/script>" + 
+          "<div id='disqus_thread'></div>" +
+          "<script>" +
+          "  (function() {" +
+          "    var d = document, s = d.createElement('script');" +
+          "    s.src = 'https://http-weliveindetail-github-io-blog.disqus.com/embed.js';" +
+          "    s.setAttribute('data-timestamp', +new Date());" +
+          "    (d.head || d.body).appendChild(s);" +
+          "})();" +
+          "<\/script>" +
           "<noscript>Please enable JavaScript to view comments.</noscript>"
         );
       }
