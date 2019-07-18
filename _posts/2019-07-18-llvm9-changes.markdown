@@ -36,7 +36,7 @@ Here are two more examples from the ongoing release.
       <img alt="Changes in CMake files" src="https://weliveindetail.github.io/git-baobab/examples/llvm9-cmake.png">
     </a>
   </td><td style="padding:20px;">
-    <a href="https://weliveindetail.github.io/git-baobab/examples/llvm9-cpp-executionengine.html">
+    <a href="https://weliveindetail.github.io/git-baobab/examples/llvm9-cpp-executionengine.html?path=llvm-project/llvm">
       <img alt="Changes in ExecutionEngine C++ files" src="https://weliveindetail.github.io/git-baobab/examples/llvm9-cpp-executionengine.png">
     </a>
   </td></tr>
