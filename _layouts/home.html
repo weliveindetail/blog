@@ -8,38 +8,15 @@ layout: default
 
   <ul class="post-list">
     {% for post in site.posts %}
-      {% if post.series == "expected" %}
-        {% if post.part == "first" %}
-          <li>
-            {% assign date_format = site.minima.date_format | default: "%b %-d, %Y" %}
-            <span class="post-meta">
-              Sep 2017 — Nov 2017
-            </span>
+      <li>
+        {% assign date_format = site.minima.date_format | default: "%b %-d, %Y" %}
+        <span class="post-meta">{{ post.date | date: date_format }}</span>
 
-            <h2 style="margin-bottom: 0px;">
-              <a class="post-link" href="{{ post.url | relative_url }}">
-                Series: Rich Recoverable Error Handling with llvm::Expected&lt;T&gt;
-              </a>
-            </h2>
+        <h2>
+          <a class="post-link" href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
+        </h2>
 
-            <a class="episode-link" href="/blog/post/2017/09/06/llvm-expected-basics.html">Motivation</a> •
-            <a class="episode-link" href="/blog/post/2017/10/22/llvm-expected-differentiation.html">Differentiation</a> •
-            <a class="episode-link" href="/blog/post/2017/10/28/llvm-expected-helpers.html">All Helpers</a> •
-            <span style="color: #828282;">Benchmarks</span> •
-            <span style="color: #828282;">Testing</span>
-          </li>
-        {% endif %}
-      {% else %}
-        <li>
-          {% assign date_format = site.minima.date_format | default: "%b %-d, %Y" %}
-          <span class="post-meta">{{ post.date | date: date_format }}</span>
-
-          <h2>
-            <a class="post-link" href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
-          </h2>
-
-        </li>
-      {% endif %}
+      </li>
     {% endfor %}
   </ul>
 
