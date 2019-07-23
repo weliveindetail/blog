@@ -9,7 +9,7 @@ comments: true
 
 Today LLVM release 9.0 branched, here's what changed in a hot-cold map. Click on the diagrams for the interactive view.
 
-[![Changes in C++ files outside tests](https://weliveindetail.github.io/git-baobab/examples/llvm9-cpp-sources.png)](https://weliveindetail.github.io/git-baobab/examples/llvm9-cpp-sources.html)
+[![Changes in C++ files outside tests](https://weliveindetail.github.io/blog/res/llvm9-cpp-sources-with-margin.png)](https://weliveindetail.github.io/git-baobab/examples/llvm9-cpp-sources.html)
 
 The diagram shows the accumulated changes in C++ files outside tests since Release 8.0 branched on Jan 16, 2019. The size of an arc represents the amount of change in a file/directory relative to its sibling files/directories. The color of an arc indicates the amount of change relative to its line count today. The amount of change is the sum of insertions and deletions.
 
