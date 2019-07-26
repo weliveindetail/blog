@@ -44,7 +44,7 @@
 <li><p><a class="reference internal" href="#macos" id="id8">macOS</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#building-lldb-with-cmake-ninja" id="id9">Building LLDB with CMake &amp; Ninja</a></p>
+<li><p><a class="reference internal" href="#building-lldb-with-cmake" id="id9">Building LLDB with CMake</a></p>
 <ul>
 <li><p><a class="reference internal" href="#regular-in-tree-builds" id="id10">Regular in-tree builds</a></p></li>
 <li><p><a class="reference internal" href="#standalone-builds" id="id11">Standalone builds</a></p></li>
@@ -62,20 +62,15 @@
 </li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#building-lldb-with-cmake-and-other-generators" id="id18">Building LLDB with CMake and Other Generators</a></p>
+<li><p><a class="reference internal" href="#building-the-documentation" id="id18">Building The Documentation</a></p></li>
+<li><p><a class="reference internal" href="#cross-compiling-lldb" id="id19">Cross-compiling LLDB</a></p>
 <ul>
-<li><p><a class="reference internal" href="#visual-studio" id="id19">Visual Studio</a></p></li>
+<li><p><a class="reference internal" href="#example-1-cross-compiling-for-linux-arm64-on-ubuntu-host" id="id20">Example 1: Cross-compiling for linux arm64 on Ubuntu host</a></p></li>
+<li><p><a class="reference internal" href="#example-2-cross-compiling-for-android-on-linux" id="id21">Example 2: Cross-compiling for Android on Linux</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#building-the-documentation" id="id20">Building The Documentation</a></p></li>
-<li><p><a class="reference internal" href="#cross-compiling-lldb" id="id21">Cross-compiling LLDB</a></p>
-<ul>
-<li><p><a class="reference internal" href="#example-1-cross-compiling-for-linux-arm64-on-ubuntu-host" id="id22">Example 1: Cross-compiling for linux arm64 on Ubuntu host</a></p></li>
-<li><p><a class="reference internal" href="#example-2-cross-compiling-for-android-on-linux" id="id23">Example 2: Cross-compiling for Android on Linux</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#verifying-python-support" id="id24">Verifying Python Support</a></p></li>
-<li><p><a class="reference internal" href="#code-signing-on-macos" id="id25">Code Signing on macOS</a></p></li>
+<li><p><a class="reference internal" href="#verifying-python-support" id="id22">Verifying Python Support</a></p></li>
+<li><p><a class="reference internal" href="#code-signing-on-macos" id="id23">Code Signing on macOS</a></p></li>
 </ul>
 </div>
 <div class="section" id="preliminaries">
@@ -151,8 +146,8 @@ libc++, which is a required for testing on macOS.</p></li>
 </ul>
 </div>
 </div>
-<div class="section" id="building-lldb-with-cmake-ninja">
-<h2><a class="toc-backref" href="#id9">Building LLDB with CMake &amp; Ninja</a><a class="headerlink" href="#building-lldb-with-cmake-ninja" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="building-lldb-with-cmake">
+<h2><a class="toc-backref" href="#id9">Building LLDB with CMake</a><a class="headerlink" href="#building-lldb-with-cmake" title="Permalink to this headline">¶</a></h2>
 <p>The LLVM project is migrating to a single monolithic respository for LLVM and
 its subprojects. This is the recommended way to build LLDB. Checkout the
 source-tree with git:</p>
@@ -268,6 +263,19 @@ environment variable if it is specified).</p></li>
     <span class="o">&lt;</span><span class="n">path</span> <span class="n">to</span> <span class="n">root</span> <span class="n">of</span> <span class="n">llvm</span> <span class="n">source</span> <span class="n">tree</span><span class="o">&gt;</span>
 </pre></div>
 </div>
+<p>Building with ninja is both faster and simpler than building with Visual Studio,
+but chances are you still want to debug LLDB with an IDE. One solution is to run
+cmake twice and generate the output into two different folders. One for
+compiling (the ninja folder), and one for editing, browsing and debugging.</p>
+<p>Follow the previous instructions in one directory, and generate a Visual Studio
+project in another directory.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">cmake</span> <span class="o">-</span><span class="n">G</span> <span class="s2">&quot;Visual Studio 14 2015&quot;</span> <span class="o">&lt;</span><span class="n">cmake</span> <span class="n">variables</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">path</span> <span class="n">to</span> <span class="n">root</span> <span class="n">of</span> <span class="n">llvm</span> <span class="n">source</span> <span class="n">tree</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Then you can open the .sln file in Visual Studio, set lldb as the startup
+project, and use F5 to run it. You need only edit the project settings to set
+the executable and the working directory to point to binaries inside of the
+ninja tree.</p>
 </div>
 <div class="section" id="netbsd">
 <h4><a class="toc-backref" href="#id14">NetBSD</a><a class="headerlink" href="#netbsd" title="Permalink to this headline">¶</a></h4>
@@ -330,27 +338,8 @@ LLVM</a>):</p>
 </div>
 </div>
 </div>
-<div class="section" id="building-lldb-with-cmake-and-other-generators">
-<h2><a class="toc-backref" href="#id18">Building LLDB with CMake and Other Generators</a><a class="headerlink" href="#building-lldb-with-cmake-and-other-generators" title="Permalink to this headline">¶</a></h2>
-<p>Compiling with ninja is both faster and simpler than compiling with MSVC, but
-chances are you still want to debug LLDB with an IDE. One solution is to run
-cmake twice and generate the output into two different folders. One for
-compiling (the ninja folder), and one for editing, browsing and debugging.</p>
-<div class="section" id="visual-studio">
-<h3><a class="toc-backref" href="#id19">Visual Studio</a><a class="headerlink" href="#visual-studio" title="Permalink to this headline">¶</a></h3>
-<p>Follow the previous instructions in one directory, and generate a Visual Studio
-project in another directory.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">cmake</span> <span class="o">-</span><span class="n">G</span> <span class="s2">&quot;Visual Studio 14 2015&quot;</span> <span class="o">&lt;</span><span class="n">cmake</span> <span class="n">variables</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">path</span> <span class="n">to</span> <span class="n">root</span> <span class="n">of</span> <span class="n">llvm</span> <span class="n">source</span> <span class="n">tree</span><span class="o">&gt;</span>
-</pre></div>
-</div>
-<p>Then you can open the .sln file in Visual Studio, set lldb as the startup
-project, and use F5 to run it. You need only edit the project settings to set
-the executable and the working directory to point to binaries inside of the
-ninja tree.</p>
-</div>
-</div>
 <div class="section" id="building-the-documentation">
-<h2><a class="toc-backref" href="#id20">Building The Documentation</a><a class="headerlink" href="#building-the-documentation" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id18">Building The Documentation</a><a class="headerlink" href="#building-the-documentation" title="Permalink to this headline">¶</a></h2>
 <p>If you wish to build the optional (reference) documentation, additional
 dependencies are required:</p>
 <ul class="simple">
@@ -373,7 +362,7 @@ do:</p>
 </div>
 </div>
 <div class="section" id="cross-compiling-lldb">
-<h2><a class="toc-backref" href="#id21">Cross-compiling LLDB</a><a class="headerlink" href="#cross-compiling-lldb" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id19">Cross-compiling LLDB</a><a class="headerlink" href="#cross-compiling-lldb" title="Permalink to this headline">¶</a></h2>
 <p>In order to debug remote targets running different architectures than your
 host, you will need to compile LLDB (or at least the server component) for the
 target. While the easiest solution is to just compile it locally on the target,
@@ -434,7 +423,7 @@ triple reported by the remote platform.</p></li>
 <p>You can of course also specify the usual cmake options like
 <code class="docutils literal notranslate"><span class="pre">CMAKE_BUILD_TYPE</span></code>, etc.</p>
 <div class="section" id="example-1-cross-compiling-for-linux-arm64-on-ubuntu-host">
-<h3><a class="toc-backref" href="#id22">Example 1: Cross-compiling for linux arm64 on Ubuntu host</a><a class="headerlink" href="#example-1-cross-compiling-for-linux-arm64-on-ubuntu-host" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id20">Example 1: Cross-compiling for linux arm64 on Ubuntu host</a><a class="headerlink" href="#example-1-cross-compiling-for-linux-arm64-on-ubuntu-host" title="Permalink to this headline">¶</a></h3>
 <p>Ubuntu already provides the packages necessary to cross-compile LLDB for arm64.
 It is sufficient to install packages <code class="docutils literal notranslate"><span class="pre">gcc-aarch64-linux-gnu</span></code>,
 <code class="docutils literal notranslate"><span class="pre">g++-aarch64-linux-gnu</span></code>, <code class="docutils literal notranslate"><span class="pre">binutils-aarch64-linux-gnu</span></code>. Then it is possible
@@ -470,7 +459,7 @@ necessary packages in this environment (python-dev, libedit-dev, etc.) and
 point your compiler to use them using the correct -I and -L arguments.</p>
 </div>
 <div class="section" id="example-2-cross-compiling-for-android-on-linux">
-<h3><a class="toc-backref" href="#id23">Example 2: Cross-compiling for Android on Linux</a><a class="headerlink" href="#example-2-cross-compiling-for-android-on-linux" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id21">Example 2: Cross-compiling for Android on Linux</a><a class="headerlink" href="#example-2-cross-compiling-for-android-on-linux" title="Permalink to this headline">¶</a></h3>
 <p>In the case of Android, the toolchain and all required headers and libraries
 are available in the Android NDK.</p>
 <p>The NDK also contains a cmake toolchain file, which makes configuring the build
@@ -496,7 +485,7 @@ is not supported and unlikely to work.</p>
 </div>
 </div>
 <div class="section" id="verifying-python-support">
-<h2><a class="toc-backref" href="#id24">Verifying Python Support</a><a class="headerlink" href="#verifying-python-support" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id22">Verifying Python Support</a><a class="headerlink" href="#verifying-python-support" title="Permalink to this headline">¶</a></h2>
 <p>LLDB has a Python scripting capability and supplies its own Python module named
 lldb. If a script is run inside the command line lldb application, the Python
 module is made available automatically. However, if a script is to be run by a
@@ -516,7 +505,7 @@ built correctly and is available to the default Python interpreter, run:</p>
 </div>
 </div>
 <div class="section" id="code-signing-on-macos">
-<span id="codesigning"></span><h2><a class="toc-backref" href="#id25">Code Signing on macOS</a><a class="headerlink" href="#code-signing-on-macos" title="Permalink to this headline">¶</a></h2>
+<span id="codesigning"></span><h2><a class="toc-backref" href="#id23">Code Signing on macOS</a><a class="headerlink" href="#code-signing-on-macos" title="Permalink to this headline">¶</a></h2>
 <p>To use the in-tree debug server on macOS, lldb needs to be code signed. The
 Debug, DebugClang and Release builds are set to code sign using a code signing
 certificate named <code class="docutils literal notranslate"><span class="pre">lldb_codesign</span></code>. This document explains how to set up the
