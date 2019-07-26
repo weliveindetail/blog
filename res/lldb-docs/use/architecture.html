@@ -1,0 +1,323 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Architecture &#8212; The LLDB Debugger</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/lldb.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Releases" href="../resources/download.html" />
+    <link rel="prev" title="Troubleshooting" href="troubleshooting.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="architecture">
+<h1>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h1>
+<p>LLDB is a large and complex codebase. This section will help you become more
+familiar with the pieces that make up LLDB and give a general overview of the
+general architecture.</p>
+<p>LLDB has many code groupings that makeup the source base:</p>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#api" id="id1">API</a></p></li>
+<li><p><a class="reference internal" href="#breakpoint" id="id2">Breakpoint</a></p></li>
+<li><p><a class="reference internal" href="#commands" id="id3">Commands</a></p></li>
+<li><p><a class="reference internal" href="#core" id="id4">Core</a></p></li>
+<li><p><a class="reference internal" href="#dataformatters" id="id5">Dataformatters</a></p></li>
+<li><p><a class="reference internal" href="#expression" id="id6">Expression</a></p></li>
+<li><p><a class="reference internal" href="#host" id="id7">Host</a></p></li>
+<li><p><a class="reference internal" href="#interpreter" id="id8">Interpreter</a></p></li>
+<li><p><a class="reference internal" href="#symbol" id="id9">Symbol</a></p></li>
+<li><p><a class="reference internal" href="#target" id="id10">Target</a></p></li>
+<li><p><a class="reference internal" href="#utility" id="id11">Utility</a></p></li>
+</ul>
+</div>
+<div class="section" id="api">
+<h2><a class="toc-backref" href="#id1">API</a><a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<p>The API folder contains the public interface to LLDB.</p>
+<p>We are currently vending a C++ API. In order to be able to add methods to this
+API and allow people to link to our classes, we have certain rules that we must
+follow:</p>
+<ul class="simple">
+<li><p>Classes can’t inherit from any other classes.</p></li>
+<li><p>Classes can’t contain virtual methods.</p></li>
+<li><p>Classes should be compatible with script bridging utilities like swig.</p></li>
+<li><p>Classes should be lightweight and be backed by a single member. Pointers (or
+shared pointers) are the preferred choice since they allow changing the
+contents of the backend without affecting the public object layout.</p></li>
+<li><p>The interface should be as minimal as possible in order to give a complete
+API.</p></li>
+</ul>
+<p>By adhering to these rules we should be able to continue to vend a C++ API, and
+make changes to the API as any additional methods added to these classes will
+just be a dynamic loader lookup and they won’t affect the class layout (since
+they aren’t virtual methods, and no members can be added to the class).</p>
+</div>
+<div class="section" id="breakpoint">
+<h2><a class="toc-backref" href="#id2">Breakpoint</a><a class="headerlink" href="#breakpoint" title="Permalink to this headline">¶</a></h2>
+<p>A collection of classes that implement our breakpoint classes. Breakpoints are
+resolved symbolically and always continue to resolve themselves as your program
+runs. Whether settings breakpoints by file and line, by symbol name, by symbol
+regular expression, or by address, breakpoints will keep trying to resolve new
+locations each time shared libraries are loaded. Breakpoints will of course
+unresolve themselves when shared libraries are unloaded. Breakpoints can also
+be scoped to be set only in a specific shared library. By default, breakpoints
+can be set in any shared library and will continue to attempt to be resolved
+with each shared library load.</p>
+<p>Breakpoint options can be set on the breakpoint, or on the individual
+locations. This allows flexibility when dealing with breakpoints and allows us
+to do what the user wants.</p>
+</div>
+<div class="section" id="commands">
+<h2><a class="toc-backref" href="#id3">Commands</a><a class="headerlink" href="#commands" title="Permalink to this headline">¶</a></h2>
+<p>The command source files represent objects that implement the functionality for
+all textual commands available in our command line interface.</p>
+<p>Every command is backed by a <code class="docutils literal notranslate"><span class="pre">lldb_private::CommandObject</span></code> or
+<code class="docutils literal notranslate"><span class="pre">lldb_private::CommandObjectMultiword</span></code> object.</p>
+<p><code class="docutils literal notranslate"><span class="pre">lldb_private::CommandObjectMultiword</span></code> are commands that have subcommands and
+allow command line commands to be logically grouped into a hierarchy.</p>
+<p><code class="docutils literal notranslate"><span class="pre">lldb_private::CommandObject</span></code> command line commands are the objects that
+implement the functionality of the command. They can optionally define options
+for themselves, as well as group those options into logical groups that can go
+together. The help system is tied into these objects and can extract the syntax
+and option groupings to display appropriate help for each command.</p>
+</div>
+<div class="section" id="core">
+<h2><a class="toc-backref" href="#id4">Core</a><a class="headerlink" href="#core" title="Permalink to this headline">¶</a></h2>
+<p>The Core source files contain basic functionality that is required in the
+debugger as well as the class represeting the debugger it self (Debugger). A
+wide variety of classes are implemented:</p>
+<ul class="simple">
+<li><p>Address (section offset addressing)</p></li>
+<li><p>AddressRange</p></li>
+<li><p>Broadcaster / Event / Listener</p></li>
+<li><p>Communication classes that use Connection objects</p></li>
+<li><p>Mangled names</p></li>
+<li><p>Source manager</p></li>
+<li><p>Value objects</p></li>
+</ul>
+</div>
+<div class="section" id="dataformatters">
+<h2><a class="toc-backref" href="#id5">Dataformatters</a><a class="headerlink" href="#dataformatters" title="Permalink to this headline">¶</a></h2>
+<p>A collection of classes that implement the data formatters subsystem.</p>
+<p>Data formatters provide a set of user-tweakable hooks in the ValueObjects world
+that allow to customize presentation aspects of variables. While users interact
+with formatters mostly through the type command, inside LLDB there are a few
+layers to the implementation: DataVisualization at the highest end of the
+spectrum, backed by classes implementing individual formatters, matching rules,
+etc.</p>
+<p>For a general user-level introduction to data formatters, you can look here.</p>
+<p>More details on the architecture are to be found here.</p>
+</div>
+<div class="section" id="expression">
+<h2><a class="toc-backref" href="#id6">Expression</a><a class="headerlink" href="#expression" title="Permalink to this headline">¶</a></h2>
+<p>Expression parsing files cover everything from evaluating DWARF expressions, to
+evaluating expressions using Clang.</p>
+<p>The DWARF expression parser has been heavily modified to support type
+promotion, new opcodes needed for evaluating expressions with symbolic variable
+references (expression local variables, program variables), and other operators
+required by typical expressions such as assign, address of, float/double/long
+double floating point values, casting, and more. The DWARF expression parser
+uses a stack of lldb_private::Value objects. These objects know how to do the
+standard C type promotion, and allow for symbolic references to variables in
+the program and in the LLDB process (expression local and expression global
+variables).</p>
+<p>The expression parser uses a full instance of the Clang compiler in order to
+accurately evaluate expressions. Hooks have been put into Clang so that the
+compiler knows to ask about identifiers it doesn’t know about. Once expressions
+have be compiled into an AST, we can then traverse this AST and either generate
+a DWARF expression that contains simple opcodes that can be quickly
+re-evaluated each time an expression needs to be evaluated, or JIT’ed up into
+code that can be run on the process being debugged.</p>
+</div>
+<div class="section" id="host">
+<h2><a class="toc-backref" href="#id7">Host</a><a class="headerlink" href="#host" title="Permalink to this headline">¶</a></h2>
+<p>LLDB tries to abstract itself from the host upon which it is currently running
+by providing a host abstraction layer. This layer includes functionality, whose
+implementation varies wildly from host to host.</p>
+<p>Host functionality includes abstraction layers for:</p>
+<ul class="simple">
+<li><p>Information about the host system (triple, list of running processes, etc.)</p></li>
+<li><p>Launching processes</p></li>
+<li><p>Various OS primitives like pipes and sockets</p></li>
+</ul>
+<p>It also includes the base classes of the NativeProcess/Thread hierarchy, which
+is used by lldb-server.</p>
+</div>
+<div class="section" id="interpreter">
+<h2><a class="toc-backref" href="#id8">Interpreter</a><a class="headerlink" href="#interpreter" title="Permalink to this headline">¶</a></h2>
+<p>The interpreter classes are the classes responsible for being the base classes
+needed for each command object, and is responsible for tracking and running
+command line commands.</p>
+</div>
+<div class="section" id="symbol">
+<h2><a class="toc-backref" href="#id9">Symbol</a><a class="headerlink" href="#symbol" title="Permalink to this headline">¶</a></h2>
+<p>Symbol classes involve everything needed in order to parse object files and
+debug symbols. All the needed classes for compilation units (code and debug
+info for a source file), functions, lexical blocks within functions, inlined
+functions, types, declaration locations, and variables are in this section.</p>
+</div>
+<div class="section" id="target">
+<h2><a class="toc-backref" href="#id10">Target</a><a class="headerlink" href="#target" title="Permalink to this headline">¶</a></h2>
+<p>Classes that are related to a debug target include:</p>
+<ul class="simple">
+<li><p>Target</p></li>
+<li><p>Process</p></li>
+<li><p>Thread</p></li>
+<li><p>Stack frames</p></li>
+<li><p>Stack frame registers</p></li>
+<li><p>ABI for function calling in process being debugged</p></li>
+<li><p>Execution context batons</p></li>
+</ul>
+</div>
+<div class="section" id="utility">
+<h2><a class="toc-backref" href="#id11">Utility</a><a class="headerlink" href="#utility" title="Permalink to this headline">¶</a></h2>
+<p>This module contains the lowest layers of LLDB. A lot of these classes don’t
+really have anything to do with debugging – they are just there because the
+higher layers of the debugger use these clasess to implement their
+functionality. Others are data structures used in many other parts of the
+debugger (TraceOptions). Most of the functionality in this module could be
+useful in an application that is not a debugger; however, providing a general
+purpose C++ library is an explicit non-goal of this module.</p>
+<p>This module provides following functionality:</p>
+<ul class="simple">
+<li><p>Abstract path manipulation (FileSpec)</p></li>
+<li><p>Architecture specification</p></li>
+<li><p>Data buffers (DataBuffer, DataEncoder, DataExtractor)</p></li>
+<li><p>Logging</p></li>
+<li><p>Structured data manipulation (JSON)</p></li>
+<li><p>Streams</p></li>
+<li><p>Timers</p></li>
+</ul>
+<p>For historic reasons, some of this functionality overlaps that which is
+provided by the LLVM support library.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">LLDB</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Goals &amp; Status</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../status/goals.html">Goals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/status.html">Status</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/projects.html">Projects</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Use &amp; Extension</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="map.html">GDB to LLDB command map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="formatting.html">Frame and Thread Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="variable.html">Variable Formatting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbolication.html">Symbolication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbols.html">Symbols on macOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python.html">Python Scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-reference.html">Python Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote.html">Remote Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../resources/download.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/source.html">Getting the Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/build.html">Build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/test.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/bots.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/sbapi.html">The SB API Coding Rules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/python_reference/index.html">Public Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/namespacelldb.html">Public C++ API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/index.html">Private C++ Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">External Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="http://llvm.org/viewvc/llvm-project/lldb/trunk/">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://reviews.llvm.org">Code Reviews</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://bugs.llvm.org/">Bug Reports</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="troubleshooting.html" title="previous chapter">Troubleshooting</a></li>
+      <li>Next: <a href="../resources/download.html" title="next chapter">Releases</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2019, The LLDB Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Goals &#8212; The LLDB Debugger</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/lldb.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Features" href="features.html" />
+    <link rel="prev" title="The LLDB Debugger" href="../index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="goals">
+<h1>Goals<a class="headerlink" href="#goals" title="Permalink to this headline">¶</a></h1>
+<p>The current state of the art in open source debuggers are that they work in the
+common cases for C applications, but don’t handle many “hard cases” properly.
+For example, C++ expression parsing, handling overloading, templates,
+multi-threading, and other non-trivial scenarios all work in some base cases,
+but don’t work reliably.</p>
+<p>The goal of LLDB is to provide an amazing debugging experience that “just
+works”. We aim to solve these long-standing problems where debuggers get
+confused, so that you can think about debugging your problem, not about
+deficiencies in the debugger.</p>
+<p>With a long view, there is no good reason for a debugger to reinvent its own
+C/C++ parser, type system, know all the target calling convention details,
+implement its own disassembler, etc. By using the existing libraries vended by
+the LLVM project, we believe that many of these problems will be defined away,
+and the debugger can focus on important issues like process control, efficient
+symbol reading and indexing, thread management, and other debugger-specific
+problems.</p>
+<p>Some more specific goals include:</p>
+<ul class="simple">
+<li><p>Build libraries for inclusion in IDEs, command line tools, and other analysis
+tools</p></li>
+<li><p>High performance and efficient memory use</p></li>
+<li><p>Extensible: Python scriptable and use a plug-in architecture</p></li>
+<li><p>Reuse existing compiler technology where it makes sense</p></li>
+<li><p>Excellent multi-threaded debugging support</p></li>
+<li><p>Great support for C, Objective-C and C++</p></li>
+<li><p>Retargetable to support multiple platforms</p></li>
+<li><p>Provide a base for debugger research and other innovation</p></li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">LLDB</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Goals &amp; Status</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Goals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="status.html">Status</a></li>
+<li class="toctree-l1"><a class="reference internal" href="projects.html">Projects</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Use &amp; Extension</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../use/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/map.html">GDB to LLDB command map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/formatting.html">Frame and Thread Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/variable.html">Variable Formatting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/symbolication.html">Symbolication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/symbols.html">Symbols on macOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/python.html">Python Scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/python-reference.html">Python Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/remote.html">Remote Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/architecture.html">Architecture</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../resources/download.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/source.html">Getting the Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/build.html">Build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/test.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/bots.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/sbapi.html">The SB API Coding Rules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/python_reference/index.html">Public Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/namespacelldb.html">Public C++ API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/index.html">Private C++ Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">External Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="http://llvm.org/viewvc/llvm-project/lldb/trunk/">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://reviews.llvm.org">Code Reviews</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://bugs.llvm.org/">Bug Reports</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../index.html" title="previous chapter">The LLDB Debugger</a></li>
+      <li>Next: <a href="features.html" title="next chapter">Features</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2019, The LLDB Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

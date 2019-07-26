@@ -1,0 +1,484 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Symbolication &#8212; The LLDB Debugger</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/lldb.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Symbols on macOS" href="symbols.html" />
+    <link rel="prev" title="Variable Formatting" href="variable.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="symbolication">
+<h1>Symbolication<a class="headerlink" href="#symbolication" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#defining-load-addresses-for-sections" id="id1">Defining Load Addresses for Sections</a></p></li>
+<li><p><a class="reference internal" href="#loading-multiple-executables" id="id2">Loading Multiple Executables</a></p></li>
+<li><p><a class="reference internal" href="#getting-variable-information" id="id3">Getting Variable Information</a></p></li>
+<li><p><a class="reference internal" href="#using-python-api-to-symbolicate" id="id4">Using Python API to Symbolicate</a></p></li>
+<li><p><a class="reference internal" href="#use-builtin-python-module-to-symbolicate" id="id5">Use Builtin Python Module to Symbolicate</a></p></li>
+</ul>
+</div>
+<p>LLDB is separated into a shared library that contains the core of the debugger,
+and a driver that implements debugging and a command interpreter. LLDB can be
+used to symbolicate your crash logs and can often provide more information than
+other symbolication programs:</p>
+<ul class="simple">
+<li><p>Inlined functions</p></li>
+<li><p>Variables that are in scope for an address, along with their locations</p></li>
+</ul>
+<p>The simplest form of symbolication is to load an executable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">create</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">dependents</span> <span class="o">--</span><span class="n">arch</span> <span class="n">x86_64</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">out</span>
+</pre></div>
+</div>
+<p>We use the <code class="docutils literal notranslate"><span class="pre">--no-dependents</span></code> flag with the <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">create</span></code> command so that
+we don’t load all of the dependent shared libraries from the current system.
+When we symbolicate, we are often symbolicating a binary that was running on
+another system, and even though the main executable might reference shared
+libraries in <code class="docutils literal notranslate"><span class="pre">/usr/lib</span></code>, we often don’t want to load the versions on the
+current computer.</p>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">image</span> <span class="pre">list</span></code> command will show us a list of all shared libraries
+associated with the current target. As expected, we currently only have a
+single binary:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">image</span> <span class="nb">list</span>
+<span class="p">[</span>  <span class="mi">0</span><span class="p">]</span> <span class="mi">73431214</span><span class="o">-</span><span class="mi">6</span><span class="n">B76</span><span class="o">-</span><span class="mi">3489</span><span class="o">-</span><span class="mi">9557</span><span class="o">-</span><span class="mi">5075</span><span class="n">F03E36B4</span> <span class="mh">0x0000000100000000</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">out</span>
+      <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">dSYM</span><span class="o">/</span><span class="n">Contents</span><span class="o">/</span><span class="n">Resources</span><span class="o">/</span><span class="n">DWARF</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">out</span>
+</pre></div>
+</div>
+<p>Now we can look up an address:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(lldb) image lookup --address 0x100000aa3
+      Address: a.out[0x0000000100000aa3] (a.out.__TEXT.__text + 131)
+      Summary: a.out`main + 67 at main.c:13
+</pre></div>
+</div>
+<p>Since we haven’t specified a slide or any load addresses for individual
+sections in the binary, the address that we use here is a file address. A file
+address refers to a virtual address as defined by each object file.</p>
+<p>If we didn’t use the <code class="docutils literal notranslate"><span class="pre">--no-dependents</span></code> option with <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">create</span></code>, we
+would have loaded all dependent shared libraries:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">image</span> <span class="nb">list</span>
+<span class="p">[</span>  <span class="mi">0</span><span class="p">]</span> <span class="mi">73431214</span><span class="o">-</span><span class="mi">6</span><span class="n">B76</span><span class="o">-</span><span class="mi">3489</span><span class="o">-</span><span class="mi">9557</span><span class="o">-</span><span class="mi">5075</span><span class="n">F03E36B4</span> <span class="mh">0x0000000100000000</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">out</span>
+      <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">dSYM</span><span class="o">/</span><span class="n">Contents</span><span class="o">/</span><span class="n">Resources</span><span class="o">/</span><span class="n">DWARF</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">out</span>
+<span class="p">[</span>  <span class="mi">1</span><span class="p">]</span> <span class="mi">8</span><span class="n">CBCF9B9</span><span class="o">-</span><span class="n">EBB7</span><span class="o">-</span><span class="mi">365</span><span class="n">E</span><span class="o">-</span><span class="n">A3FF</span><span class="o">-</span><span class="mi">2</span><span class="n">F3850763C6B</span> <span class="mh">0x0000000000000000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">system</span><span class="o">/</span><span class="n">libsystem_c</span><span class="o">.</span><span class="n">dylib</span>
+<span class="p">[</span>  <span class="mi">2</span><span class="p">]</span> <span class="mi">62</span><span class="n">AA0B84</span><span class="o">-</span><span class="mi">188</span><span class="n">A</span><span class="o">-</span><span class="mi">348</span><span class="n">B</span><span class="o">-</span><span class="mi">8</span><span class="n">F9E</span><span class="o">-</span><span class="mf">3E2</span><span class="n">DB08DB93C</span> <span class="mh">0x0000000000000000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">system</span><span class="o">/</span><span class="n">libsystem_dnssd</span><span class="o">.</span><span class="n">dylib</span>
+<span class="p">[</span>  <span class="mi">3</span><span class="p">]</span> <span class="n">C0535565</span><span class="o">-</span><span class="mi">35</span><span class="n">D1</span><span class="o">-</span><span class="mi">31</span><span class="n">A7</span><span class="o">-</span><span class="n">A744</span><span class="o">-</span><span class="mi">63</span><span class="n">D9F10F12A4</span> <span class="mh">0x0000000000000000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">system</span><span class="o">/</span><span class="n">libsystem_kernel</span><span class="o">.</span><span class="n">dylib</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>Now if we do a lookup using a file address, this can result in multiple matches
+since most shared libraries have a virtual address space that starts at zero:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(lldb) image lookup -a 0x1000
+      Address: a.out[0x0000000000001000] (a.out.__PAGEZERO + 4096)
+
+      Address: libsystem_c.dylib[0x0000000000001000] (libsystem_c.dylib.__TEXT.__text + 928)
+      Summary: libsystem_c.dylib`mcount + 9
+
+      Address: libsystem_dnssd.dylib[0x0000000000001000] (libsystem_dnssd.dylib.__TEXT.__text + 456)
+      Summary: libsystem_dnssd.dylib`ConvertHeaderBytes + 38
+
+      Address: libsystem_kernel.dylib[0x0000000000001000] (libsystem_kernel.dylib.__TEXT.__text + 1116)
+      Summary: libsystem_kernel.dylib`clock_get_time + 102
+...
+</pre></div>
+</div>
+<p>To avoid getting multiple file address matches, you can specify the name of the
+shared library to limit the search:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">image</span> <span class="n">lookup</span> <span class="o">-</span><span class="n">a</span> <span class="mh">0x1000</span> <span class="n">a</span><span class="o">.</span><span class="n">out</span>
+      <span class="n">Address</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">out</span><span class="p">[</span><span class="mh">0x0000000000001000</span><span class="p">]</span> <span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">__PAGEZERO</span> <span class="o">+</span> <span class="mi">4096</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="defining-load-addresses-for-sections">
+<h2><a class="toc-backref" href="#id1">Defining Load Addresses for Sections</a><a class="headerlink" href="#defining-load-addresses-for-sections" title="Permalink to this headline">¶</a></h2>
+<p>When symbolicating your crash logs, it can be tedious if you always have to
+adjust your crashlog-addresses into file addresses. To avoid having to do any
+conversion, you can set the load address for the sections of the modules in
+your target. Once you set any section load address, lookups will switch to
+using load addresses. You can slide all sections in the executable by the same
+amount, or set the load address for individual sections. The <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">modules</span>
+<span class="pre">load</span> <span class="pre">--slide</span></code> command allows us to set the load address for all sections.</p>
+<p>Below is an example of sliding all sections in a.out by adding 0x123000 to each
+section’s file address:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">create</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">dependents</span> <span class="o">--</span><span class="n">arch</span> <span class="n">x86_64</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">out</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">modules</span> <span class="n">load</span> <span class="o">--</span><span class="n">file</span> <span class="n">a</span><span class="o">.</span><span class="n">out</span> <span class="o">--</span><span class="n">slide</span> <span class="mh">0x123000</span>
+</pre></div>
+</div>
+<p>It is often much easier to specify the actual load location of each section by
+name. Crash logs on macOS have a Binary Images section that specifies that
+address of the __TEXT segment for each binary. Specifying a slide requires
+requires that you first find the original (file) address for the __TEXT
+segment, and subtract the two values. If you specify the address of the __TEXT
+segment with <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">modules</span> <span class="pre">load</span> <span class="pre">section</span> <span class="pre">address</span></code>, you don’t need to do any
+calculations. To specify the load addresses of sections we can specify one or
+more section name + address pairs in the <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">modules</span> <span class="pre">load</span></code> command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">create</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">dependents</span> <span class="o">--</span><span class="n">arch</span> <span class="n">x86_64</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">out</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">modules</span> <span class="n">load</span> <span class="o">--</span><span class="n">file</span> <span class="n">a</span><span class="o">.</span><span class="n">out</span> <span class="n">__TEXT</span> <span class="mh">0x100123000</span>
+</pre></div>
+</div>
+<p>We specified that the __TEXT section is loaded at 0x100123000. Now that we have
+defined where sections have been loaded in our target, any lookups we do will
+now use load addresses so we don’t have to do any math on the addresses in the
+crashlog backtraces, we can just use the raw addresses:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(lldb) image lookup --address 0x100123aa3
+      Address: a.out[0x0000000100000aa3] (a.out.__TEXT.__text + 131)
+      Summary: a.out`main + 67 at main.c:13
+</pre></div>
+</div>
+</div>
+<div class="section" id="loading-multiple-executables">
+<h2><a class="toc-backref" href="#id2">Loading Multiple Executables</a><a class="headerlink" href="#loading-multiple-executables" title="Permalink to this headline">¶</a></h2>
+<p>You often have more than one executable involved when you need to symbolicate a
+crash log. When this happens, you create a target for the main executable or
+one of the shared libraries, then add more modules to the target using the
+<code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">modules</span> <span class="pre">add</span></code> command.</p>
+<p>Lets say we have a Darwin crash log that contains the following images:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Binary</span> <span class="n">Images</span><span class="p">:</span>
+   <span class="mh">0x100000000</span> <span class="o">-</span>    <span class="mh">0x100000ff7</span> <span class="o">&lt;</span><span class="n">A866975B</span><span class="o">-</span><span class="n">CA1E</span><span class="o">-</span><span class="mi">3649</span><span class="o">-</span><span class="mi">98</span><span class="n">D0</span><span class="o">-</span><span class="mi">6</span><span class="n">C5FAA444ECF</span><span class="o">&gt;</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">out</span>
+<span class="mh">0x7fff83f32000</span> <span class="o">-</span> <span class="mh">0x7fff83ffefe7</span> <span class="o">&lt;</span><span class="mi">8</span><span class="n">CBCF9B9</span><span class="o">-</span><span class="n">EBB7</span><span class="o">-</span><span class="mi">365</span><span class="n">E</span><span class="o">-</span><span class="n">A3FF</span><span class="o">-</span><span class="mi">2</span><span class="n">F3850763C6B</span><span class="o">&gt;</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">system</span><span class="o">/</span><span class="n">libsystem_c</span><span class="o">.</span><span class="n">dylib</span>
+<span class="mh">0x7fff883db000</span> <span class="o">-</span> <span class="mh">0x7fff883e3ff7</span> <span class="o">&lt;</span><span class="mi">62</span><span class="n">AA0B84</span><span class="o">-</span><span class="mi">188</span><span class="n">A</span><span class="o">-</span><span class="mi">348</span><span class="n">B</span><span class="o">-</span><span class="mi">8</span><span class="n">F9E</span><span class="o">-</span><span class="mf">3E2</span><span class="n">DB08DB93C</span><span class="o">&gt;</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">system</span><span class="o">/</span><span class="n">libsystem_dnssd</span><span class="o">.</span><span class="n">dylib</span>
+<span class="mh">0x7fff8c0dc000</span> <span class="o">-</span> <span class="mh">0x7fff8c0f7ff7</span> <span class="o">&lt;</span><span class="n">C0535565</span><span class="o">-</span><span class="mi">35</span><span class="n">D1</span><span class="o">-</span><span class="mi">31</span><span class="n">A7</span><span class="o">-</span><span class="n">A744</span><span class="o">-</span><span class="mi">63</span><span class="n">D9F10F12A4</span><span class="o">&gt;</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">system</span><span class="o">/</span><span class="n">libsystem_kernel</span><span class="o">.</span><span class="n">dylib</span>
+</pre></div>
+</div>
+<p>First we create the target using the main executable and then add any extra
+shared libraries we want:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">create</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">dependents</span> <span class="o">--</span><span class="n">arch</span> <span class="n">x86_64</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">out</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">modules</span> <span class="n">add</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">system</span><span class="o">/</span><span class="n">libsystem_c</span><span class="o">.</span><span class="n">dylib</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">modules</span> <span class="n">add</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">system</span><span class="o">/</span><span class="n">libsystem_dnssd</span><span class="o">.</span><span class="n">dylib</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">modules</span> <span class="n">add</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">system</span><span class="o">/</span><span class="n">libsystem_kernel</span><span class="o">.</span><span class="n">dylib</span>
+</pre></div>
+</div>
+<p>If you have debug symbols in standalone files, such as dSYM files on macOS,
+you can specify their paths using the –symfile option for the <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">create</span></code>
+(recent LLDB releases only) and <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">modules</span> <span class="pre">add</span></code> commands:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">create</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">dependents</span> <span class="o">--</span><span class="n">arch</span> <span class="n">x86_64</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">out</span> <span class="o">--</span><span class="n">symfile</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">dSYM</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">modules</span> <span class="n">add</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">system</span><span class="o">/</span><span class="n">libsystem_c</span><span class="o">.</span><span class="n">dylib</span> <span class="o">--</span><span class="n">symfile</span> <span class="o">/</span><span class="n">build</span><span class="o">/</span><span class="n">server</span><span class="o">/</span><span class="n">a</span><span class="o">/</span><span class="n">libsystem_c</span><span class="o">.</span><span class="n">dylib</span><span class="o">.</span><span class="n">dSYM</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">modules</span> <span class="n">add</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">system</span><span class="o">/</span><span class="n">libsystem_dnssd</span><span class="o">.</span><span class="n">dylib</span> <span class="o">--</span><span class="n">symfile</span> <span class="o">/</span><span class="n">build</span><span class="o">/</span><span class="n">server</span><span class="o">/</span><span class="n">b</span><span class="o">/</span><span class="n">libsystem_dnssd</span><span class="o">.</span><span class="n">dylib</span><span class="o">.</span><span class="n">dSYM</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">modules</span> <span class="n">add</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">system</span><span class="o">/</span><span class="n">libsystem_kernel</span><span class="o">.</span><span class="n">dylib</span> <span class="o">--</span><span class="n">symfile</span> <span class="o">/</span><span class="n">build</span><span class="o">/</span><span class="n">server</span><span class="o">/</span><span class="n">c</span><span class="o">/</span><span class="n">libsystem_kernel</span><span class="o">.</span><span class="n">dylib</span><span class="o">.</span><span class="n">dSYM</span>
+</pre></div>
+</div>
+<p>Then we set the load addresses for each __TEXT section (note the colors of the
+load addresses above and below) using the first address from the Binary Images
+section for each image:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">modules</span> <span class="n">load</span> <span class="o">--</span><span class="n">file</span> <span class="n">a</span><span class="o">.</span><span class="n">out</span> <span class="mh">0x100000000</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">modules</span> <span class="n">load</span> <span class="o">--</span><span class="n">file</span> <span class="n">libsystem_c</span><span class="o">.</span><span class="n">dylib</span> <span class="mh">0x7fff83f32000</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">modules</span> <span class="n">load</span> <span class="o">--</span><span class="n">file</span> <span class="n">libsystem_dnssd</span><span class="o">.</span><span class="n">dylib</span> <span class="mh">0x7fff883db000</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">target</span> <span class="n">modules</span> <span class="n">load</span> <span class="o">--</span><span class="n">file</span> <span class="n">libsystem_kernel</span><span class="o">.</span><span class="n">dylib</span> <span class="mh">0x7fff8c0dc000</span>
+</pre></div>
+</div>
+<p>Now any stack backtraces that haven’t been symbolicated can be symbolicated
+using <code class="docutils literal notranslate"><span class="pre">image</span> <span class="pre">lookup</span></code> with the raw backtrace addresses.</p>
+<p>Given the following raw backtrace:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Thread</span> <span class="mi">0</span> <span class="n">Crashed</span><span class="p">::</span> <span class="n">Dispatch</span> <span class="n">queue</span><span class="p">:</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">main</span><span class="o">-</span><span class="n">thread</span>
+<span class="mi">0</span>   <span class="n">libsystem_kernel</span><span class="o">.</span><span class="n">dylib</span>           <span class="mh">0x00007fff8a1e6d46</span> <span class="n">__kill</span> <span class="o">+</span> <span class="mi">10</span>
+<span class="mi">1</span>   <span class="n">libsystem_c</span><span class="o">.</span><span class="n">dylib</span>                <span class="mh">0x00007fff84597df0</span> <span class="n">abort</span> <span class="o">+</span> <span class="mi">177</span>
+<span class="mi">2</span>   <span class="n">libsystem_c</span><span class="o">.</span><span class="n">dylib</span>                <span class="mh">0x00007fff84598e2a</span> <span class="n">__assert_rtn</span> <span class="o">+</span> <span class="mi">146</span>
+<span class="mi">3</span>   <span class="n">a</span><span class="o">.</span><span class="n">out</span>                            <span class="mh">0x0000000100000f46</span> <span class="n">main</span> <span class="o">+</span> <span class="mi">70</span>
+<span class="mi">4</span>   <span class="n">libdyld</span><span class="o">.</span><span class="n">dylib</span>                    <span class="mh">0x00007fff8c4197e1</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>We can now symbolicate the load addresses:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">image</span> <span class="n">lookup</span> <span class="o">-</span><span class="n">a</span> <span class="mh">0x00007fff8a1e6d46</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">image</span> <span class="n">lookup</span> <span class="o">-</span><span class="n">a</span> <span class="mh">0x00007fff84597df0</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">image</span> <span class="n">lookup</span> <span class="o">-</span><span class="n">a</span> <span class="mh">0x00007fff84598e2a</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">image</span> <span class="n">lookup</span> <span class="o">-</span><span class="n">a</span> <span class="mh">0x0000000100000f46</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="getting-variable-information">
+<h2><a class="toc-backref" href="#id3">Getting Variable Information</a><a class="headerlink" href="#getting-variable-information" title="Permalink to this headline">¶</a></h2>
+<p>If you add the –verbose flag to the <code class="docutils literal notranslate"><span class="pre">image</span> <span class="pre">lookup</span> <span class="pre">--address</span></code> command, you
+can get verbose information which can often include the locations of some of
+your local variables:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(lldb) image lookup --address 0x100123aa3 --verbose
+      Address: a.out[0x0000000100000aa3] (a.out.__TEXT.__text + 110)
+      Summary: a.out`main + 50 at main.c:13
+      Module: file = &quot;/tmp/a.out&quot;, arch = &quot;x86_64&quot;
+CompileUnit: id = {0x00000000}, file = &quot;/tmp/main.c&quot;, language = &quot;ISO C:1999&quot;
+   Function: id = {0x0000004f}, name = &quot;main&quot;, range = [0x0000000100000bc0-0x0000000100000dc9)
+   FuncType: id = {0x0000004f}, decl = main.c:9, compiler_type = &quot;int (int, const char **, const char **, const char **)&quot;
+      Blocks: id = {0x0000004f}, range = [0x100000bc0-0x100000dc9)
+               id = {0x000000ae}, range = [0x100000bf2-0x100000dc4)
+   LineEntry: [0x0000000100000bf2-0x0000000100000bfa): /tmp/main.c:13:23
+      Symbol: id = {0x00000004}, range = [0x0000000100000bc0-0x0000000100000dc9), name=&quot;main&quot;
+   Variable: id = {0x000000bf}, name = &quot;path&quot;, type= &quot;char [1024]&quot;, location = DW_OP_fbreg(-1072), decl = main.c:28
+   Variable: id = {0x00000072}, name = &quot;argc&quot;, type= &quot;int&quot;, location = r13, decl = main.c:8
+   Variable: id = {0x00000081}, name = &quot;argv&quot;, type= &quot;const char **&quot;, location = r12, decl = main.c:8
+   Variable: id = {0x00000090}, name = &quot;envp&quot;, type= &quot;const char **&quot;, location = r15, decl = main.c:8
+   Variable: id = {0x0000009f}, name = &quot;aapl&quot;, type= &quot;const char **&quot;, location = rbx, decl = main.c:8
+</pre></div>
+</div>
+<p>The interesting part is the variables that are listed. The variables are the
+parameters and local variables that are in scope for the address that was
+specified. These variable entries have locations which are shown in bold above.
+Crash logs often have register information for the first frame in each stack,
+and being able to reconstruct one or more local variables can often help you
+decipher more information from a crash log than you normally would be able to.
+Note that this is really only useful for the first frame, and only if your
+crash logs have register information for your threads.</p>
+</div>
+<div class="section" id="using-python-api-to-symbolicate">
+<h2><a class="toc-backref" href="#id4">Using Python API to Symbolicate</a><a class="headerlink" href="#using-python-api-to-symbolicate" title="Permalink to this headline">¶</a></h2>
+<p>All of the commands above can be done through the python script bridge. The
+code below will recreate the target and add the three shared libraries that we
+added in the darwin crash log example above:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">triple</span> <span class="o">=</span> <span class="s2">&quot;x86_64-apple-macosx&quot;</span>
+<span class="n">platform_name</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">add_dependents</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">target</span> <span class="o">=</span> <span class="n">lldb</span><span class="o">.</span><span class="n">debugger</span><span class="o">.</span><span class="n">CreateTarget</span><span class="p">(</span><span class="s2">&quot;/tmp/a.out&quot;</span><span class="p">,</span> <span class="n">triple</span><span class="p">,</span> <span class="n">platform_name</span><span class="p">,</span> <span class="n">add_dependents</span><span class="p">,</span> <span class="n">lldb</span><span class="o">.</span><span class="n">SBError</span><span class="p">())</span>
+<span class="k">if</span> <span class="n">target</span><span class="p">:</span>
+      <span class="c1"># Get the executable module</span>
+      <span class="n">module</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">GetModuleAtIndex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+      <span class="n">target</span><span class="o">.</span><span class="n">SetSectionLoadAddress</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">FindSection</span><span class="p">(</span><span class="s2">&quot;__TEXT&quot;</span><span class="p">),</span> <span class="mh">0x100000000</span><span class="p">)</span>
+      <span class="n">module</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">AddModule</span> <span class="p">(</span><span class="s2">&quot;/usr/lib/system/libsystem_c.dylib&quot;</span><span class="p">,</span> <span class="n">triple</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;/build/server/a/libsystem_c.dylib.dSYM&quot;</span><span class="p">)</span>
+      <span class="n">target</span><span class="o">.</span><span class="n">SetSectionLoadAddress</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">FindSection</span><span class="p">(</span><span class="s2">&quot;__TEXT&quot;</span><span class="p">),</span> <span class="mh">0x7fff83f32000</span><span class="p">)</span>
+      <span class="n">module</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">AddModule</span> <span class="p">(</span><span class="s2">&quot;/usr/lib/system/libsystem_dnssd.dylib&quot;</span><span class="p">,</span> <span class="n">triple</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;/build/server/b/libsystem_dnssd.dylib.dSYM&quot;</span><span class="p">)</span>
+      <span class="n">target</span><span class="o">.</span><span class="n">SetSectionLoadAddress</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">FindSection</span><span class="p">(</span><span class="s2">&quot;__TEXT&quot;</span><span class="p">),</span> <span class="mh">0x7fff883db000</span><span class="p">)</span>
+      <span class="n">module</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">AddModule</span> <span class="p">(</span><span class="s2">&quot;/usr/lib/system/libsystem_kernel.dylib&quot;</span><span class="p">,</span> <span class="n">triple</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;/build/server/c/libsystem_kernel.dylib.dSYM&quot;</span><span class="p">)</span>
+      <span class="n">target</span><span class="o">.</span><span class="n">SetSectionLoadAddress</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">FindSection</span><span class="p">(</span><span class="s2">&quot;__TEXT&quot;</span><span class="p">),</span> <span class="mh">0x7fff8c0dc000</span><span class="p">)</span>
+
+      <span class="n">load_addr</span> <span class="o">=</span> <span class="mh">0x00007fff8a1e6d46</span>
+      <span class="c1"># so_addr is a section offset address, or a lldb.SBAddress object</span>
+      <span class="n">so_addr</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">ResolveLoadAddress</span> <span class="p">(</span><span class="n">load_addr</span><span class="p">)</span>
+      <span class="c1"># Get a symbol context for the section offset address which includes</span>
+      <span class="c1"># a module, compile unit, function, block, line entry, and symbol</span>
+      <span class="n">sym_ctx</span> <span class="o">=</span> <span class="n">so_addr</span><span class="o">.</span><span class="n">GetSymbolContext</span> <span class="p">(</span><span class="n">lldb</span><span class="o">.</span><span class="n">eSymbolContextEverything</span><span class="p">)</span>
+      <span class="nb">print</span> <span class="n">sym_ctx</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="use-builtin-python-module-to-symbolicate">
+<h2><a class="toc-backref" href="#id5">Use Builtin Python Module to Symbolicate</a><a class="headerlink" href="#use-builtin-python-module-to-symbolicate" title="Permalink to this headline">¶</a></h2>
+<p>LLDB includes a module in the lldb package named lldb.utils.symbolication. This module contains a lot of symbolication functions that simplify the symbolication process by allowing you to create objects that represent symbolication class objects such as:</p>
+<ul class="simple">
+<li><p>lldb.utils.symbolication.Address</p></li>
+<li><p>lldb.utils.symbolication.Section</p></li>
+<li><p>lldb.utils.symbolication.Image</p></li>
+<li><p>lldb.utils.symbolication.Symbolicator</p></li>
+</ul>
+<p><strong>lldb.utils.symbolication.Address</strong></p>
+<p>This class represents an address that will be symbolicated. It will cache any
+information that has been looked up: module, compile unit, function, block,
+line entry, symbol. It does this by having a lldb.SBSymbolContext as a member
+variable.</p>
+<p><strong>lldb.utils.symbolication.Section</strong></p>
+<p>This class represents a section that might get loaded in a
+lldb.utils.symbolication.Image. It has helper functions that allow you to set
+it from text that might have been extracted from a crash log file.</p>
+<p><strong>lldb.utils.symbolication.Image</strong></p>
+<p>This class represents a module that might get loaded into the target we use for
+symbolication. This class contains the executable path, optional symbol file
+path, the triple, and the list of sections that will need to be loaded if we
+choose the ask the target to load this image. Many of these objects will never
+be loaded into the target unless they are needed by symbolication. You often
+have a crash log that has 100 to 200 different shared libraries loaded, but
+your crash log stack backtraces only use a few of these shared libraries. Only
+the images that contain stack backtrace addresses need to be loaded in the
+target in order to symbolicate.</p>
+<p>Subclasses of this class will want to override the
+locate_module_and_debug_symbols method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">CustomImage</span><span class="p">(</span><span class="n">lldb</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">symbolication</span><span class="o">.</span><span class="n">Image</span><span class="p">):</span>
+   <span class="k">def</span> <span class="nf">locate_module_and_debug_symbols</span> <span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="c1"># Locate the module and symbol given the info found in the crash log</span>
+</pre></div>
+</div>
+<p>Overriding this function allows clients to find the correct executable module
+and symbol files as they might reside on a build server.</p>
+<p><strong>lldb.utils.symbolication.Symbolicator</strong></p>
+<p>This class coordinates the symbolication process by loading only the
+lldb.utils.symbolication.Image instances that need to be loaded in order to
+symbolicate an supplied address.</p>
+<p><strong>lldb.macosx.crashlog</strong></p>
+<p>lldb.macosx.crashlog is a package that is distributed on macOS builds that
+subclasses the above classes. This module parses the information in the Darwin
+crash logs and creates symbolication objects that represent the images, the
+sections and the thread frames for the backtraces. It then uses the functions
+in the lldb.utils.symbolication to symbolicate the crash logs.</p>
+<p>This module installs a new <code class="docutils literal notranslate"><span class="pre">crashlog</span></code> command into the lldb command
+interpreter so that you can use it to parse and symbolicate macOS crash
+logs:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">command</span> <span class="n">script</span> <span class="kn">import</span> <span class="nn">lldb.macosx.crashlog</span>
+<span class="s2">&quot;crashlog&quot;</span> <span class="ow">and</span> <span class="s2">&quot;save_crashlog&quot;</span> <span class="n">command</span> <span class="n">installed</span><span class="p">,</span> <span class="n">use</span> <span class="n">the</span> <span class="s2">&quot;--help&quot;</span> <span class="n">option</span> <span class="k">for</span> <span class="n">detailed</span> <span class="n">help</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">crashlog</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">crash</span><span class="o">.</span><span class="n">log</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>The command that is installed has built in help that shows the options that can
+be used when symbolicating:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">crashlog</span> <span class="o">--</span><span class="n">help</span>
+<span class="n">Usage</span><span class="p">:</span> <span class="n">crashlog</span> <span class="p">[</span><span class="n">options</span><span class="p">]</span>  <span class="p">[</span><span class="n">FILE</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Symbolicate one or more darwin crash log files to provide source file and line
+information, inlined stack frames back to the concrete functions, and
+disassemble the location of the crash for the first frame of the crashed
+thread. If this script is imported into the LLDB command interpreter, a
+<code class="docutils literal notranslate"><span class="pre">crashlog</span></code> command will be added to the interpreter for use at the LLDB
+command line. After a crash log has been parsed and symbolicated, a target will
+have been created that has all of the shared libraries loaded at the load
+addresses found in the crash log file. This allows you to explore the program
+as if it were stopped at the locations described in the crash log and functions
+can  be disassembled and lookups can be performed using the addresses found in
+the crash log.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Options</span><span class="p">:</span>
+<span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+<span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">verbose</span>         <span class="n">display</span> <span class="n">verbose</span> <span class="n">debug</span> <span class="n">info</span>
+<span class="o">-</span><span class="n">g</span><span class="p">,</span> <span class="o">--</span><span class="n">debug</span>           <span class="n">display</span> <span class="n">verbose</span> <span class="n">debug</span> <span class="n">logging</span>
+<span class="o">-</span><span class="n">a</span><span class="p">,</span> <span class="o">--</span><span class="n">load</span><span class="o">-</span><span class="nb">all</span>        <span class="n">load</span> <span class="nb">all</span> <span class="n">executable</span> <span class="n">images</span><span class="p">,</span> <span class="ow">not</span> <span class="n">just</span> <span class="n">the</span> <span class="n">images</span> <span class="n">found</span>
+                        <span class="ow">in</span> <span class="n">the</span> <span class="n">crashed</span> <span class="n">stack</span> <span class="n">frames</span>
+<span class="o">--</span><span class="n">images</span>              <span class="n">show</span> <span class="n">image</span> <span class="nb">list</span>
+<span class="o">--</span><span class="n">debug</span><span class="o">-</span><span class="n">delay</span><span class="o">=</span><span class="n">NSEC</span>    <span class="n">pause</span> <span class="k">for</span> <span class="n">NSEC</span> <span class="n">seconds</span> <span class="k">for</span> <span class="n">debugger</span>
+<span class="o">-</span><span class="n">c</span><span class="p">,</span> <span class="o">--</span><span class="n">crashed</span><span class="o">-</span><span class="n">only</span>    <span class="n">only</span> <span class="n">symbolicate</span> <span class="n">the</span> <span class="n">crashed</span> <span class="n">thread</span>
+<span class="o">-</span><span class="n">d</span> <span class="n">DISASSEMBLE_DEPTH</span><span class="p">,</span> <span class="o">--</span><span class="n">disasm</span><span class="o">-</span><span class="n">depth</span><span class="o">=</span><span class="n">DISASSEMBLE_DEPTH</span>
+                        <span class="nb">set</span> <span class="n">the</span> <span class="n">depth</span> <span class="ow">in</span> <span class="n">stack</span> <span class="n">frames</span> <span class="n">that</span> <span class="n">should</span> <span class="n">be</span>
+                        <span class="n">disassembled</span> <span class="p">(</span><span class="n">default</span> <span class="ow">is</span> <span class="mi">1</span><span class="p">)</span>
+<span class="o">-</span><span class="n">D</span><span class="p">,</span> <span class="o">--</span><span class="n">disasm</span><span class="o">-</span><span class="nb">all</span>      <span class="n">enabled</span> <span class="n">disassembly</span> <span class="n">of</span> <span class="n">frames</span> <span class="n">on</span> <span class="nb">all</span> <span class="n">threads</span> <span class="p">(</span><span class="ow">not</span> <span class="n">just</span>
+                        <span class="n">the</span> <span class="n">crashed</span> <span class="n">thread</span><span class="p">)</span>
+<span class="o">-</span><span class="n">B</span> <span class="n">DISASSEMBLE_BEFORE</span><span class="p">,</span> <span class="o">--</span><span class="n">disasm</span><span class="o">-</span><span class="n">before</span><span class="o">=</span><span class="n">DISASSEMBLE_BEFORE</span>
+                        <span class="n">the</span> <span class="n">number</span> <span class="n">of</span> <span class="n">instructions</span> <span class="n">to</span> <span class="n">disassemble</span> <span class="n">before</span> <span class="n">the</span>
+                        <span class="n">frame</span> <span class="n">PC</span>
+<span class="o">-</span><span class="n">A</span> <span class="n">DISASSEMBLE_AFTER</span><span class="p">,</span> <span class="o">--</span><span class="n">disasm</span><span class="o">-</span><span class="n">after</span><span class="o">=</span><span class="n">DISASSEMBLE_AFTER</span>
+                        <span class="n">the</span> <span class="n">number</span> <span class="n">of</span> <span class="n">instructions</span> <span class="n">to</span> <span class="n">disassemble</span> <span class="n">after</span> <span class="n">the</span>
+                        <span class="n">frame</span> <span class="n">PC</span>
+<span class="o">-</span><span class="n">C</span> <span class="n">NLINES</span><span class="p">,</span> <span class="o">--</span><span class="n">source</span><span class="o">-</span><span class="n">context</span><span class="o">=</span><span class="n">NLINES</span>
+                        <span class="n">show</span> <span class="n">NLINES</span> <span class="n">source</span> <span class="n">lines</span> <span class="n">of</span> <span class="n">source</span> <span class="n">context</span> <span class="p">(</span><span class="n">default</span> <span class="o">=</span>
+                        <span class="mi">4</span><span class="p">)</span>
+<span class="o">--</span><span class="n">source</span><span class="o">-</span><span class="n">frames</span><span class="o">=</span><span class="n">NFRAMES</span>
+                        <span class="n">show</span> <span class="n">source</span> <span class="k">for</span> <span class="n">NFRAMES</span> <span class="p">(</span><span class="n">default</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+<span class="o">--</span><span class="n">source</span><span class="o">-</span><span class="nb">all</span>          <span class="n">show</span> <span class="n">source</span> <span class="k">for</span> <span class="nb">all</span> <span class="n">threads</span><span class="p">,</span> <span class="ow">not</span> <span class="n">just</span> <span class="n">the</span> <span class="n">crashed</span>
+                        <span class="n">thread</span>
+<span class="o">-</span><span class="n">i</span><span class="p">,</span> <span class="o">--</span><span class="n">interactive</span>     <span class="n">parse</span> <span class="nb">all</span> <span class="n">crash</span> <span class="n">logs</span> <span class="ow">and</span> <span class="n">enter</span> <span class="n">interactive</span> <span class="n">mode</span>
+</pre></div>
+</div>
+<p>The source for the “symbolication” and “crashlog” modules are available in SVN.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">LLDB</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Goals &amp; Status</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../status/goals.html">Goals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/status.html">Status</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/projects.html">Projects</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Use &amp; Extension</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="map.html">GDB to LLDB command map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="formatting.html">Frame and Thread Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="variable.html">Variable Formatting</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Symbolication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbols.html">Symbols on macOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python.html">Python Scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-reference.html">Python Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote.html">Remote Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../resources/download.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/source.html">Getting the Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/build.html">Build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/test.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/bots.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/sbapi.html">The SB API Coding Rules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/python_reference/index.html">Public Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/namespacelldb.html">Public C++ API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/index.html">Private C++ Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">External Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="http://llvm.org/viewvc/llvm-project/lldb/trunk/">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://reviews.llvm.org">Code Reviews</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://bugs.llvm.org/">Bug Reports</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="variable.html" title="previous chapter">Variable Formatting</a></li>
+      <li>Next: <a href="symbols.html" title="next chapter">Symbols on macOS</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2019, The LLDB Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

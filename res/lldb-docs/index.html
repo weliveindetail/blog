@@ -1,0 +1,233 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>LLDB Homepage &#8212; The LLDB Debugger</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/lldb.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Goals" href="status/goals.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="the-lldb-debugger">
+<h1>The LLDB Debugger<a class="headerlink" href="#the-lldb-debugger" title="Permalink to this headline">¶</a></h1>
+<p>Welcome to the LLDB version 8 documentation!</p>
+<p>LLDB is a next generation, high-performance debugger. It is built as a set of
+reusable components which highly leverage existing libraries in the larger LLVM
+Project, such as the Clang expression parser and LLVM disassembler.</p>
+<p>LLDB is the default debugger in Xcode on macOS and supports debugging C,
+Objective-C and C++ on the desktop and iOS devices and simulator.</p>
+<p>All of the code in the LLDB project is available under the
+<a class="reference external" href="http://llvm.org/docs/DeveloperPolicy.html#new-llvm-project-license-framework">“Apache 2.0 License with LLVM exceptions”</a>.</p>
+<div class="section" id="why-a-new-debugger">
+<h2>Why a New Debugger?<a class="headerlink" href="#why-a-new-debugger" title="Permalink to this headline">¶</a></h2>
+<p>In order to achieve our goals we decided to start with a fresh architecture
+that would support modern multi-threaded programs, handle debugging symbols in
+an efficient manner, use compiler based code knowledge and have plug-in support
+for functionality and extensions. Additionally we want the debugger
+capabilities to be available to other analysis tools, be they scripts or
+compiled programs, without requiring them to be GPL.</p>
+</div>
+<div class="section" id="compiler-integration-benefits">
+<h2>Compiler Integration Benefits<a class="headerlink" href="#compiler-integration-benefits" title="Permalink to this headline">¶</a></h2>
+<p>LLDB currently converts debug information into clang types so that it can
+leverage the clang compiler infrastructure. This allows LLDB to support the
+latest C, C++, Objective-C and Objective-C++ language features and runtimes in
+expressions without having to reimplement any of this functionality. It also
+leverages the compiler to take care of all ABI details when making functions
+calls for expressions, when disassembling instructions and extracting
+instruction details, and much more.</p>
+<p>The major benefits include:</p>
+<ul class="simple">
+<li><p>Up to date language support for C, C++, Objective-C</p></li>
+<li><p>Multi-line expressions that can declare local variables and types</p></li>
+<li><p>Utilize the JIT for expressions when supported</p></li>
+<li><p>Evaluate expression Intermediate Representation (IR) when JIT can’t be used</p></li>
+</ul>
+</div>
+<div class="section" id="reusability">
+<h2>Reusability<a class="headerlink" href="#reusability" title="Permalink to this headline">¶</a></h2>
+<p>The LLDB debugger APIs are exposed as a C++ object oriented interface in a
+shared library. The lldb command line tool links to, and uses this public API.
+On macOS the shared library is exposed as a framework named LLDB.framework,
+and unix systems expose it as lldb.so. The entire API is also then exposed
+through Python script bindings which allow the API to be used within the LLDB
+embedded script interpreter, and also in any python script that loads the
+lldb.py module in standard python script files. See the Python Reference page
+for more details on how and where Python can be used with the LLDB API.</p>
+<p>Sharing the LLDB API allows LLDB to not only be used for debugging, but also
+for symbolication, disassembly, object and symbol file introspection, and much
+more.</p>
+</div>
+<div class="section" id="platform-support">
+<h2>Platform Support<a class="headerlink" href="#platform-support" title="Permalink to this headline">¶</a></h2>
+<p>LLDB is known to work on the following platforms, but ports to new platforms
+are welcome:</p>
+<ul class="simple">
+<li><p>macOS desktop user space debugging for i386 and x86_64</p></li>
+<li><p>iOS simulator debugging on i386 and x86_64</p></li>
+<li><p>iOS device debugging on ARM and AArch64</p></li>
+<li><p>Linux local user-space debugging for i386, x86_64 and PPC64le</p></li>
+<li><p>FreeBSD local user-space debugging for i386 and x86_64</p></li>
+<li><p>Windows local user-space debugging for i386 (*)</p></li>
+</ul>
+<p>(*) Support for Windows is under active development. Basic functionality is
+expected to work, with functionality improving rapidly.</p>
+</div>
+<div class="section" id="get-involved">
+<h2>Get Involved<a class="headerlink" href="#get-involved" title="Permalink to this headline">¶</a></h2>
+<p>To check out the code, use:</p>
+<p>svn co <a class="reference external" href="http://llvm.org/svn/llvm-project/lldb/trunk">http://llvm.org/svn/llvm-project/lldb/trunk</a> lldb</p>
+<p>Note that LLDB generally builds from top-of-trunk</p>
+<ul class="simple">
+<li><p>On macOS with Xcode</p></li>
+<li><p>On Linux and FreeBSD (with clang and libstdc++/libc++)</p></li>
+<li><p>On NetBSD (with GCC and clang and libstdc++/libc++)</p></li>
+<li><p>On Windows with VS 2012 or higher using CMake</p></li>
+</ul>
+<p>See the LLDB Build Page for platform-specific build instructions.</p>
+<p>Discussions about LLDB should go to the <a class="reference external" href="http://lists.llvm.org/mailman/listinfo/lldb-dev">lldb-dev</a> mailing list. Commit
+messages for the lldb SVN module are automatically sent to the <a class="reference external" href="http://lists.llvm.org/mailman/listinfo/lldb-commits">lldb-commits</a> mailing list , and
+this is also the preferred mailing list for patch submissions.</p>
+<p>See the Projects page if you are looking for some interesting areas to
+contribute to lldb.</p>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">LLDB</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Goals &amp; Status</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="status/goals.html">Goals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="status/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="status/status.html">Status</a></li>
+<li class="toctree-l1"><a class="reference internal" href="status/projects.html">Projects</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Use &amp; Extension</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="use/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use/map.html">GDB to LLDB command map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use/formatting.html">Frame and Thread Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use/variable.html">Variable Formatting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use/symbolication.html">Symbolication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use/symbols.html">Symbols on macOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use/python.html">Python Scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use/python-reference.html">Python Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use/remote.html">Remote Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use/architecture.html">Architecture</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="resources/download.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources/source.html">Getting the Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources/build.html">Build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources/test.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources/bots.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources/sbapi.html">The SB API Coding Rules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/python_reference/index.html">Public Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/namespacelldb.html">Public C++ API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/index.html">Private C++ Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">External Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="http://llvm.org/viewvc/llvm-project/lldb/trunk/">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://reviews.llvm.org">Code Reviews</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://bugs.llvm.org/">Bug Reports</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="status/goals.html" title="next chapter">Goals</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2019, The LLDB Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

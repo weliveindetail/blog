@@ -1,0 +1,226 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Getting the Sources &#8212; The LLDB Debugger</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/lldb.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Build" href="build.html" />
+    <link rel="prev" title="Releases" href="download.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-the-sources">
+<h1>Getting the Sources<a class="headerlink" href="#getting-the-sources" title="Permalink to this headline">¶</a></h1>
+<p>Refer to the <a class="reference external" href="http://llvm.org/docs/GettingStarted.html#getting-started-with-llvm">LLVM Getting Started Guide</a>
+for general instructions on how to check out source. Note that LLDB
+depends on having a working checkout of LLVM and Clang, so the first
+step is to download and build as described at the above URL. The same
+repository also contains LLDB.</p>
+<p>Git browser: <a class="reference external" href="https://github.com/llvm/llvm-project/tree/master/lldb">https://github.com/llvm/llvm-project/tree/master/lldb</a></p>
+<p>For macOS building from Xcode, simply checkout LLDB and then build
+from Xcode. The Xcode project will automatically detect that it is a
+fresh checkout, and checkout LLVM and Clang automatically. Unlike
+other platforms / build systems, it will use the following directory
+structure.</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span>lldb
+|
+`-- llvm
+    |
+    +-- tools
+        |
+        `-- clang
+</pre></div>
+</div>
+</div></blockquote>
+<p>So updating your checkout will consist of updating LLDB, LLV&lt;, and
+Clang in these locations.  Refer to the <a class="reference external" href="build.html">Build Instructions</a> for more detailed instructions on how to build for a
+particular platform / build system combination.</p>
+<div class="section" id="contributing-to-lldb">
+<h2>Contributing to LLDB<a class="headerlink" href="#contributing-to-lldb" title="Permalink to this headline">¶</a></h2>
+<p>Please refer to the <a class="reference external" href="http://llvm.org/docs/DeveloperPolicy.html">LLVM Developer Policy</a> for information about
+authoring and uploading a patch. LLDB differs from the LLVM Developer
+Policy in the following respects.</p>
+<p>Test infrastructure. It is still important to submit tests with your
+patches, but LLDB uses a different system for tests. Refer to the
+<cite>lldb/test</cite> folder on disk for examples of how to write tests.  For
+anything not explicitly listed here, assume that LLDB follows the LLVM
+policy.</p>
+</div>
+<div class="section" id="error-handling-and-use-of-assertions-in-lldb">
+<h2>Error handling and use of assertions in LLDB<a class="headerlink" href="#error-handling-and-use-of-assertions-in-lldb" title="Permalink to this headline">¶</a></h2>
+<p>Contrary to Clang, which is typically a short-lived process, LLDB
+debuggers stay up and running for a long time, often serving multiple
+debug sessions initiated by an IDE. For this reason LLDB code needs to
+be extra thoughtful about how to handle errors. Below are a couple
+rules of thumb:</p>
+<ul class="simple">
+<li><p>Invalid input.  To deal with invalid input, such as malformed DWARF,
+missing object files, or otherwise inconsistent debug info, LLVM’s
+error handling types such as <a class="reference external" href="http://llvm.org/doxygen/classllvm_1_1Expected.html">llvm::Expected&lt;T&gt;</a> or
+<a class="reference external" href="http://llvm.org/doxygen/classllvm_1_1Optional.html">llvm::Optional&lt;T&gt;</a> should be
+used. Functions that may fail should return their result using these
+wrapper types instead of using a bool to indicate success. Returning
+a default value when an error occurred is also discouraged.</p></li>
+<li><p>Assertions.  Assertions (from <cite>assert.h</cite>) should be used liberally
+to assert internal consistency.  Assertions shall <strong>never</strong> be
+used to detect invalid user input, such as malformed DWARF.  An
+assertion should be placed to assert invariants that the developer
+is convinced will always hold, regardless what an end-user does with
+LLDB. Because assertions are not present in release builds, the
+checks in an assertion may be more expensive than otherwise
+permissible. In combination with the LLDB test suite, assertions are
+what allows us to refactor and evolve the LLDB code base.</p></li>
+<li><p>Logging. LLDB provides a very rich logging API. When recoverable
+errors cannot reasonably by surfaced to the end user, the error may
+be written to a topical log channel.</p></li>
+<li><p>Soft assertions.  LLDB provides <cite>lldb_assert()</cite> as a soft
+alternative to cover the middle ground of situations that indicate a
+recoverable bug in LLDB.  In a Debug configuration <cite>lldb_assert()</cite>
+behaves like <cite>assert()</cite>. In a Release configuration it will print a
+warning and encourage the user to file a bug report, similar to
+LLVM’s crash handler, and then return execution. Use these sparingly
+and only if error handling is not otherwise feasible.  Specifically,
+new code should not be using <cite>lldb_assert()</cite> and existing
+uses should be replaced by other means of error handling.</p></li>
+<li><p>Fatal errors.  Aborting LLDB’s process using
+<cite>llvm::report_fatal_error()</cite> or <cite>abort()</cite> should be avoided at all
+costs.  It’s acceptable to use <a class="reference external" href="http://llvm.org/doxygen/Support_2ErrorHandling_8h.html">llvm_unreachable()</a> for
+actually unreachable code such as the default in an otherwise
+exhaustive switch statement.</p></li>
+</ul>
+<p>Overall, please keep in mind that the debugger is often used as a last
+resort, and a crash in the debugger is rarely appreciated by the
+end-user.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">LLDB</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Goals &amp; Status</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../status/goals.html">Goals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/status.html">Status</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/projects.html">Projects</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Use &amp; Extension</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../use/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/map.html">GDB to LLDB command map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/formatting.html">Frame and Thread Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/variable.html">Variable Formatting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/symbolication.html">Symbolication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/symbols.html">Symbols on macOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/python.html">Python Scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/python-reference.html">Python Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/remote.html">Remote Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use/architecture.html">Architecture</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Resources</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="download.html">Releases</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting the Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bots.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sbapi.html">The SB API Coding Rules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/python_reference/index.html">Public Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/namespacelldb.html">Public C++ API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/index.html">Private C++ Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">External Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="http://llvm.org/viewvc/llvm-project/lldb/trunk/">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://reviews.llvm.org">Code Reviews</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://bugs.llvm.org/">Bug Reports</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="download.html" title="previous chapter">Releases</a></li>
+      <li>Next: <a href="build.html" title="next chapter">Build</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2019, The LLDB Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

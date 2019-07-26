@@ -1,0 +1,454 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Frame and Thread Format &#8212; The LLDB Debugger</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/lldb.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Variable Formatting" href="variable.html" />
+    <link rel="prev" title="GDB to LLDB command map" href="map.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="frame-and-thread-format">
+<h1>Frame and Thread Format<a class="headerlink" href="#frame-and-thread-format" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#format-strings" id="id1">Format Strings</a></p></li>
+<li><p><a class="reference internal" href="#variables" id="id2">Variables</a></p></li>
+<li><p><a class="reference internal" href="#control-characters" id="id3">Control Characters</a></p></li>
+<li><p><a class="reference internal" href="#desensitizing-characters-in-the-format-string" id="id4">Desensitizing Characters in the Format String</a></p></li>
+<li><p><a class="reference internal" href="#scoping" id="id5">Scoping</a></p></li>
+<li><p><a class="reference internal" href="#making-the-frame-format" id="id6">Making the Frame Format</a></p></li>
+<li><p><a class="reference internal" href="#making-your-own-formats" id="id7">Making Your own Formats</a></p></li>
+</ul>
+</div>
+<p>LLDB has a facility to allow users to define the format of the information that
+generates the descriptions for threads and stack frames. Typically when your
+program stops at a breakpoint you will get two lines that describes why your
+thread stopped and where:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">*</span> <span class="n">thread</span> <span class="c1">#1, queue = &#39;com.apple.main-thread&#39;, stop reason = breakpoint 1.1</span>
+    <span class="n">frame</span> <span class="c1">#0: test`main at test.c:5</span>
+</pre></div>
+</div>
+<p>Stack backtraces frames also have a similar information line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">thread</span> <span class="n">backtrace</span>
+<span class="o">*</span> <span class="n">thread</span> <span class="c1">#1, queue = &#39;com.apple.main-thread&#39;, stop reason = breakpoint 1.1</span>
+    <span class="n">frame</span> <span class="c1">#0: 0x0000000100000e85 a.out`main + 4 at test.c:19</span>
+    <span class="n">frame</span> <span class="c1">#1: 0x0000000100000e40 a.out`start + 52</span>
+</pre></div>
+</div>
+<p>The two format strings that govern the printing in these output forms can
+currently be set using the settings set command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">settings</span> <span class="nb">set</span> <span class="n">thread</span><span class="o">-</span><span class="n">stop</span><span class="o">-</span><span class="nb">format</span> <span class="n">STRING</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">settings</span> <span class="nb">set</span> <span class="n">frame</span><span class="o">-</span><span class="nb">format</span> <span class="n">STRING</span>
+</pre></div>
+</div>
+<p>The first of these is an abbreviated thread output, that just contains data
+about the thread, and not the stop frame. It will always get used in situations
+where the frame output follows immediately, so that information would be
+redundant. The second is the frame printing.</p>
+<p>There is another thread format used for commands like thread list where the
+thread information isn’t followed by frame info. In that case, it is convenient
+to have frame zero information in the thread output. That format is set by:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">settings</span> <span class="nb">set</span> <span class="n">thread</span><span class="o">-</span><span class="nb">format</span> <span class="n">STRING</span>
+</pre></div>
+</div>
+<div class="section" id="format-strings">
+<h2><a class="toc-backref" href="#id1">Format Strings</a><a class="headerlink" href="#format-strings" title="Permalink to this headline">¶</a></h2>
+<p>So what is the format of the format strings? Format strings can contain plain
+text, control characters and variables that have access to the current program
+state.</p>
+<p>Normal characters are any text that doesn’t contain a <code class="docutils literal notranslate"><span class="pre">{</span></code>, <code class="docutils literal notranslate"><span class="pre">}</span></code>, <code class="docutils literal notranslate"><span class="pre">$</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">\</span></code> character.</p>
+<p>Variable names are found in between a <code class="docutils literal notranslate"><span class="pre">${</span></code> prefix, and end with a <code class="docutils literal notranslate"><span class="pre">}</span></code>
+suffix. In other words, a variable looks like <code class="docutils literal notranslate"><span class="pre">${frame.pc}</span></code>.</p>
+</div>
+<div class="section" id="variables">
+<h2><a class="toc-backref" href="#id2">Variables</a><a class="headerlink" href="#variables" title="Permalink to this headline">¶</a></h2>
+<p>A complete list of currently supported format string variables is listed below:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 85%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Variable Name</strong></p></td>
+<td><p><strong>Description</strong></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">file.basename</span></code></p></td>
+<td><p>The current compile unit file basename for the current frame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">file.fullpath</span></code></p></td>
+<td><p>The current compile unit file fullpath for the current frame.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">language</span></code></p></td>
+<td><p>The current compile unit language for the current frame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">frame.index</span></code></p></td>
+<td><p>The frame index (0, 1, 2, 3…)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">frame.no-debug</span></code></p></td>
+<td><p>Evaluates to true if the frame has no debug info.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">frame.pc</span></code></p></td>
+<td><p>The generic frame register for the program counter.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">frame.sp</span></code></p></td>
+<td><p>The generic frame register for the stack pointer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">frame.fp</span></code></p></td>
+<td><p>The generic frame register for the frame pointer.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">frame.flags</span></code></p></td>
+<td><p>The generic frame register for the flags register.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">frame.reg.NAME</span></code></p></td>
+<td><p>Access to any platform specific register by name (replace <code class="docutils literal notranslate"><span class="pre">NAME</span></code> with the name of the desired register).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">function.name</span></code></p></td>
+<td><p>The name of the current function or symbol.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">function.name-with-args</span></code></p></td>
+<td><p>The name of the current function with arguments and values or the symbol name.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">function.name-without-args</span></code></p></td>
+<td><p>The name of the current function without arguments and values (used to include a function name in-line in the <code class="docutils literal notranslate"><span class="pre">disassembly-format</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">function.pc-offset</span></code></p></td>
+<td><p>The program counter offset within the current function or symbol</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">function.addr-offset</span></code></p></td>
+<td><p>The offset in bytes of the current function, formatted as ” + dddd”</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">function.concrete-only-addr-offset-no-padding</span></code></p></td>
+<td><p>Similar to <code class="docutils literal notranslate"><span class="pre">function.addr-offset</span></code> except that there are no spaces in the output (e.g. “+dddd”) and the offset is computed from the nearest concrete function – inlined functions are not included</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">function.changed</span></code></p></td>
+<td><p>Will evaluate to true when the line being formatted is a different symbol context from the previous line (may be used in <code class="docutils literal notranslate"><span class="pre">disassembly-format</span></code> to print the new function name on a line by itself at the start of a new function).  Inlined functions are not considered for this variable</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">function.initial-function</span></code></p></td>
+<td><p>Will evaluate to true if this is the start of the first function, as opposed to a change of functions (may be used in <code class="docutils literal notranslate"><span class="pre">disassembly-format</span></code> to print the function name for the first function being disassembled)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">line.file.basename</span></code></p></td>
+<td><p>The line table entry basename to the file for the current line entry in the current frame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">line.file.fullpath</span></code></p></td>
+<td><p>The line table entry fullpath to the file for the current line entry in the current frame.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">line.number</span></code></p></td>
+<td><p>The line table entry line number for the current line entry in the current frame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">line.start-addr</span></code></p></td>
+<td><p>The line table entry start address for the current line entry in the current frame.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">line.end-addr</span></code></p></td>
+<td><p>The line table entry end address for the current line entry in the current frame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">module.file.basename</span></code></p></td>
+<td><p>The basename of the current module (shared library or executable)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">module.file.fullpath</span></code></p></td>
+<td><p>The basename of the current module (shared library or executable)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">process.file.basename</span></code></p></td>
+<td><p>The basename of the file for the process</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">process.file.fullpath</span></code></p></td>
+<td><p>The fullname of the file for the process</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">process.id</span></code></p></td>
+<td><p>The process ID native to the system on which the inferior runs.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">process.name</span></code></p></td>
+<td><p>The name of the process at runtime</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">thread.id</span></code></p></td>
+<td><p>The thread identifier for the current thread</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">thread.index</span></code></p></td>
+<td><p>The unique one based thread index ID which is guaranteed to be unique as threads come and go.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">thread.name</span></code></p></td>
+<td><p>The name of the thread if the target OS supports naming threads</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">thread.queue</span></code></p></td>
+<td><p>The queue name of the thread if the target OS supports dispatch queues</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">thread.stop-reason</span></code></p></td>
+<td><p>A textual reason each thread stopped</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">thread.return-value</span></code></p></td>
+<td><p>The return value of the latest step operation (currently only for step-out.)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">thread.completed-expression</span></code></p></td>
+<td><p>The expression result for a thread that just finished an interrupted expression evaluation.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">target.arch</span></code></p></td>
+<td><p>The architecture of the current target</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">script.target:python_func</span></code></p></td>
+<td><p>Use a Python function to generate a piece of textual output</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">script.process:python_func</span></code></p></td>
+<td><p>Use a Python function to generate a piece of textual output</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">script.thread:python_func</span></code></p></td>
+<td><p>Use a Python function to generate a piece of textual output</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">script.frame:python_func</span></code></p></td>
+<td><p>Use a Python function to generate a piece of textual output</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">current-pc-arrow</span></code></p></td>
+<td><p>Prints either <code class="docutils literal notranslate"><span class="pre">-&gt;</span></code> or `` `` if the current pc value is matched (used in <code class="docutils literal notranslate"><span class="pre">disassembly-format</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">addr-file-or-load</span></code></p></td>
+<td><p>Formats an address either as a load address, or if process has not yet been launched, as a load address (used in <code class="docutils literal notranslate"><span class="pre">disassembly-format</span></code>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="control-characters">
+<h2><a class="toc-backref" href="#id3">Control Characters</a><a class="headerlink" href="#control-characters" title="Permalink to this headline">¶</a></h2>
+<p>Control characters include <code class="docutils literal notranslate"><span class="pre">{</span></code>, <code class="docutils literal notranslate"><span class="pre">}</span></code>, and <code class="docutils literal notranslate"><span class="pre">\</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">{</span></code> and <code class="docutils literal notranslate"><span class="pre">}</span></code> are used for scoping blocks, and the <code class="docutils literal notranslate"><span class="pre">\</span></code> character allows
+you to desensitize control characters and also emit non-printable characters.</p>
+</div>
+<div class="section" id="desensitizing-characters-in-the-format-string">
+<h2><a class="toc-backref" href="#id4">Desensitizing Characters in the Format String</a><a class="headerlink" href="#desensitizing-characters-in-the-format-string" title="Permalink to this headline">¶</a></h2>
+<p>The backslash control character allows your to enter the typical <code class="docutils literal notranslate"><span class="pre">\a</span></code>,
+<code class="docutils literal notranslate"><span class="pre">\b</span></code>, <code class="docutils literal notranslate"><span class="pre">\f</span></code>, <code class="docutils literal notranslate"><span class="pre">\n</span></code>, <code class="docutils literal notranslate"><span class="pre">\r</span></code>, <code class="docutils literal notranslate"><span class="pre">\t</span></code>, <code class="docutils literal notranslate"><span class="pre">\v</span></code>, <code class="docutils literal notranslate"><span class="pre">\\</span></code>, characters and along
+with the standard octal representation <code class="docutils literal notranslate"><span class="pre">\0123</span></code> and hex <code class="docutils literal notranslate"><span class="pre">\xAB</span></code> characters.
+This allows you to enter escape characters into your format strings and will
+allow colorized output for terminals that support color.</p>
+</div>
+<div class="section" id="scoping">
+<h2><a class="toc-backref" href="#id5">Scoping</a><a class="headerlink" href="#scoping" title="Permalink to this headline">¶</a></h2>
+<p>Many times the information that you might have in your prompt might not be
+available and you won``t want it to print out if it isn``t valid. To take care
+of this you can enclose everything that must resolve into a scope. A scope is
+starts with <code class="docutils literal notranslate"><span class="pre">{</span></code> and ends with <code class="docutils literal notranslate"><span class="pre">}</span></code>. For example in order to only display the
+current frame line table entry basename and line number when the information is
+available for the current frame:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;{ at {$line.file.basename}:$</span><span class="si">{line.number}</span><span class="s2">}&quot;</span>
+</pre></div>
+</div>
+<p>Broken down this is:</p>
+<ul class="simple">
+<li><p>The start the scope: <code class="docutils literal notranslate"><span class="pre">{</span></code> ,</p></li>
+<li><p>format whose content will only be displayed if all information is available: <code class="docutils literal notranslate"><span class="pre">at</span> <span class="pre">{$line.file.basename}:${line.number}</span></code></p></li>
+<li><p>end the scope: <code class="docutils literal notranslate"><span class="pre">}</span></code></p></li>
+</ul>
+</div>
+<div class="section" id="making-the-frame-format">
+<h2><a class="toc-backref" href="#id6">Making the Frame Format</a><a class="headerlink" href="#making-the-frame-format" title="Permalink to this headline">¶</a></h2>
+<p>The information that we see when stopped in a frame:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span> <span class="c1">#0: 0x0000000100000e85 a.out`main + 4 at test.c:19</span>
+</pre></div>
+</div>
+<p>can be displayed with the following format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;frame #$</span><span class="si">{frame.index}</span><span class="s2">: $</span><span class="si">{frame.pc}</span><span class="s2">{ $</span><span class="si">{module.file.basename}</span><span class="s2">`$</span><span class="si">{function.name}</span><span class="s2">{${function.pc-offset}}}{ at $</span><span class="si">{line.file.basename}</span><span class="s2">:$</span><span class="si">{line.number}</span><span class="s2">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<p>This breaks down to:</p>
+<ul class="simple">
+<li><p>Always print the frame index and frame PC: <code class="docutils literal notranslate"><span class="pre">frame</span> <span class="pre">#${frame.index}:</span> <span class="pre">${frame.pc}</span></code>,</p></li>
+<li><p>only print the module followed by a tick if there is a valid module for the current frame: <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">${module.file.basename}`}</span></code>,</p></li>
+<li><p>print the function name with optional offset: <code class="docutils literal notranslate"><span class="pre">{${function.name}{${function.pc-offset}}}</span></code>,</p></li>
+<li><p>print the line info if it is available: <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">at</span> <span class="pre">${line.file.basename}:${line.number}}</span></code>,</p></li>
+<li><p>then finish off with a newline: <code class="docutils literal notranslate"><span class="pre">\n</span></code>.</p></li>
+</ul>
+</div>
+<div class="section" id="making-your-own-formats">
+<h2><a class="toc-backref" href="#id7">Making Your own Formats</a><a class="headerlink" href="#making-your-own-formats" title="Permalink to this headline">¶</a></h2>
+<p>When modifying your own format strings, it is useful to start with the default
+values for the frame and thread format strings. These can be accessed with the
+<code class="docutils literal notranslate"><span class="pre">settings</span> <span class="pre">show</span></code> command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">settings</span> <span class="n">show</span> <span class="n">thread</span><span class="o">-</span><span class="nb">format</span>
+<span class="n">thread</span><span class="o">-</span><span class="nb">format</span> <span class="p">(</span><span class="nb">format</span><span class="o">-</span><span class="n">string</span><span class="p">)</span> <span class="o">=</span> <span class="s2">&quot;thread #$</span><span class="si">{thread.index}</span><span class="s2">: tid = ${thread.id%tid}{, $</span><span class="si">{frame.pc}</span><span class="s2">}{ $</span><span class="si">{module.file.basename}</span><span class="s2">{`${function.name-with-args}{${frame.no-debug}${function.pc-offset}}}}{ at $</span><span class="si">{line.file.basename}</span><span class="s2">:$</span><span class="si">{line.number}</span><span class="s2">}{, name = &#39;$</span><span class="si">{thread.name}</span><span class="s2">&#39;}{, queue = &#39;$</span><span class="si">{thread.queue}</span><span class="s2">&#39;}{, activity = &#39;$</span><span class="si">{thread.info.activity.name}</span><span class="s2">&#39;}{, $</span><span class="si">{thread.info.trace_messages}</span><span class="s2"> messages}{, stop reason = ${thread.stop-reason}}{</span><span class="se">\n</span><span class="s2">Return value: ${thread.return-value}}{</span><span class="se">\n</span><span class="s2">Completed expression: ${thread.completed-expression}}</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">settings</span> <span class="n">show</span> <span class="n">frame</span><span class="o">-</span><span class="nb">format</span>
+<span class="n">frame</span><span class="o">-</span><span class="nb">format</span> <span class="p">(</span><span class="nb">format</span><span class="o">-</span><span class="n">string</span><span class="p">)</span> <span class="o">=</span> <span class="s2">&quot;frame #$</span><span class="si">{frame.index}</span><span class="s2">:{ ${frame.no-debug}$</span><span class="si">{frame.pc}</span><span class="s2">}{ $</span><span class="si">{module.file.basename}</span><span class="s2">{`${function.name-with-args}{${frame.no-debug}${function.pc-offset}}}}{ at $</span><span class="si">{line.file.basename}</span><span class="s2">:$</span><span class="si">{line.number}</span><span class="s2">}{${function.is-optimized} [opt]}</span><span class="se">\n</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<p>When making thread formats, you will need surround any of the information that
+comes from a stack frame with scopes ({ frame-content }) as the thread format
+doesn’t always want to show frame information. When displaying the backtrace
+for a thread, we don’t need to duplicate the information for frame zero in the
+thread information:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">thread</span> <span class="n">backtrace</span>
+<span class="n">thread</span> <span class="c1">#1: tid = 0x2e03, stop reason = breakpoint 1.1 2.1</span>
+  <span class="n">frame</span> <span class="c1">#0: 0x0000000100000e85 a.out`main + 4 at test.c:19</span>
+  <span class="n">frame</span> <span class="c1">#1: 0x0000000100000e40 a.out`start + 52</span>
+</pre></div>
+</div>
+<p>The frame related variables are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">${file.*}</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">${frame.*}</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">${function.*}</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">${line.*}</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">${module.*}</span></code></p></li>
+</ul>
+<p>Looking at the default format for the thread, and underlining the frame
+information:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">thread</span> <span class="c1">#${thread.index}: tid = ${thread.id}{, ${frame.pc}}{ ${module.file.basename}`${function.name}{${function.pc-offset}}}{, stop reason = ${thread.stop-reason}}{, name = ${thread.name}}{, queue = ${thread.queue}}\n</span>
+</pre></div>
+</div>
+<p>We can see that all frame information is contained in scopes so that when the
+thread information is displayed in a context where we only want to show thread
+information, we can do so.</p>
+<p>For both thread and frame formats, you can use ${script.target:python_func},
+${script.process:python_func} and ${script.thread:python_func} (and of course
+${script.frame:python_func} for frame formats) In all cases, the signature of
+python_func is expected to be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">python_func</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span><span class="n">unused</span><span class="p">):</span>
+  <span class="o">...</span>
+  <span class="k">return</span> <span class="n">string</span>
+</pre></div>
+</div>
+<p>Where object is an instance of the SB class associated to the keyword you are
+using.</p>
+<p>e.g. Assuming your function looks like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">thread_printer_func</span> <span class="p">(</span><span class="n">thread</span><span class="p">,</span><span class="n">unused</span><span class="p">):</span>
+  <span class="k">return</span> <span class="s2">&quot;Thread </span><span class="si">%s</span><span class="s2"> has </span><span class="si">%d</span><span class="s2"> frames</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">thread</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">thread</span><span class="o">.</span><span class="n">num_frames</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>And you set it up with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">settings</span> <span class="nb">set</span> <span class="n">thread</span><span class="o">-</span><span class="nb">format</span> <span class="s2">&quot;${script.thread:thread_printer_func}&quot;</span>
+</pre></div>
+</div>
+<p>you would see output like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">*</span> <span class="n">Thread</span> <span class="n">main</span> <span class="n">has</span> <span class="mi">21</span> <span class="n">frames</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">LLDB</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Goals &amp; Status</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../status/goals.html">Goals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/status.html">Status</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/projects.html">Projects</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Use &amp; Extension</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="map.html">GDB to LLDB command map</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Frame and Thread Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="variable.html">Variable Formatting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbolication.html">Symbolication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbols.html">Symbols on macOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python.html">Python Scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-reference.html">Python Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote.html">Remote Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../resources/download.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/source.html">Getting the Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/build.html">Build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/test.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/bots.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/sbapi.html">The SB API Coding Rules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/python_reference/index.html">Public Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/namespacelldb.html">Public C++ API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/index.html">Private C++ Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">External Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="http://llvm.org/viewvc/llvm-project/lldb/trunk/">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://reviews.llvm.org">Code Reviews</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://bugs.llvm.org/">Bug Reports</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="map.html" title="previous chapter">GDB to LLDB command map</a></li>
+      <li>Next: <a href="variable.html" title="next chapter">Variable Formatting</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2019, The LLDB Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,444 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Symbols on macOS &#8212; The LLDB Debugger</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/lldb.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Python Scripting" href="python.html" />
+    <link rel="prev" title="Symbolication" href="symbolication.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="symbols-on-macos">
+<h1>Symbols on macOS<a class="headerlink" href="#symbols-on-macos" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#shell-script-property-list-format" id="id1">Shell Script Property List Format</a></p></li>
+<li><p><a class="reference internal" href="#embedding-uuid-property-lists-inside-the-dsym-bundles" id="id2">Embedding UUID property lists inside the dSYM bundles</a></p></li>
+<li><p><a class="reference internal" href="#file-mapped-uuid-directories" id="id3">File Mapped UUID Directories</a></p></li>
+<li><p><a class="reference internal" href="#dsym-locating-shell-script-tips" id="id4">dSYM Locating Shell Script Tips</a></p></li>
+</ul>
+</div>
+<p>On macOS, debug symbols are often in stand alone bundles called <strong>dSYM</strong> files.
+These are bundles that contain DWARF debug information and other resources
+related to builds and debug info.</p>
+<p>The DebugSymbols.framework framework helps locate dSYM files when given a UUID.
+It can locate the symbols using a variety of methods:</p>
+<ul class="simple">
+<li><p>Spotlight</p></li>
+<li><p>Explicit search paths</p></li>
+<li><p>Implicit search paths</p></li>
+<li><p>File mapped UUID paths</p></li>
+<li><p>Running one or more shell scripts</p></li>
+</ul>
+<p>DebugSymbols.framework also has global defaults that can be modified to allow
+all of the debug tools (lldb, gdb, sample, CoreSymbolication.framework) to
+easily find important debug symbols. The domain for the DebugSymbols.framework
+defaults is <strong>com.apple.DebugSymbols</strong>, and the defaults can be read, written
+or modified using the <strong>defaults</strong> shell command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">defaults</span> <span class="n">read</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">DebugSymbols</span>
+<span class="o">%</span> <span class="n">defaults</span> <span class="n">write</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">DebugSymbols</span> <span class="n">KEY</span> <span class="o">...</span>
+<span class="o">%</span> <span class="n">defaults</span> <span class="n">delete</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">DebugSymbols</span> <span class="n">KEY</span>
+</pre></div>
+</div>
+<p>The following is a list of the defaults key value setting pairs that can
+be used to enhance symbol location:</p>
+<p><strong>DBGFileMappedPaths</strong></p>
+<p>This default can be specified as a single string, or an array of
+strings. Each string represents a directory that contains file mapped
+UUID values that point to dSYM files. See the “File Mapped UUID
+Directories” section below for more details. Whenever
+DebugSymbols.framework is asked to lookup a dSYM file, it will first
+look in any file mapped UUID directories for a quick match.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">defaults</span> <span class="n">write</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">DebugSymbols</span> <span class="n">DBGFileMappedPaths</span> <span class="o">-</span><span class="n">string</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">uuidmap1</span>
+<span class="o">%</span> <span class="n">defaults</span> <span class="n">write</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">DebugSymbols</span> <span class="n">DBGFileMappedPaths</span> <span class="o">-</span><span class="n">array</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">uuidmap1</span>
+    <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">uuidmap2</span>
+</pre></div>
+</div>
+<p><strong>DBGShellCommands</strong></p>
+<p>This default can be specified as a single string, or an array of
+strings. Specifies a shell script that will get run in order to find the
+dSYM. The shell script will be run given a single UUID value as the
+shell command arguments and the shell command is expected to return a
+property list. See the property list format defined below.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">defaults</span> <span class="n">write</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">DebugSymbols</span> <span class="n">DBGShellCommands</span> <span class="o">-</span><span class="n">string</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">script1</span>
+<span class="o">%</span> <span class="n">defaults</span> <span class="n">write</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">DebugSymbols</span> <span class="n">DBGShellCommands</span> <span class="o">-</span><span class="n">array</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">script1</span>
+    <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">script2</span>
+</pre></div>
+</div>
+<p><strong>DBGSpotlightPaths</strong></p>
+<p>Specifies the directories to limit spotlight searches to as a string or
+array of strings. When any other defaults are supplied to
+<strong>com.apple.DebugSymbols</strong>, spotlight searches will be disabled unless
+this default is set to an empty array:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Specify an empty array to keep Spotlight searches enabled in all locations</span>
+<span class="o">%</span> <span class="n">defaults</span> <span class="n">write</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">DebugSymbols</span> <span class="n">DBGSpotlightPaths</span> <span class="o">-</span><span class="n">array</span>
+
+<span class="c1"># Specify an array of paths to limit spotlight searches to certain directories</span>
+<span class="o">%</span> <span class="n">defaults</span> <span class="n">write</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">DebugSymbols</span> <span class="n">DBGSpotlightPaths</span> <span class="o">-</span><span class="n">array</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">dir1</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">dir2</span>
+</pre></div>
+</div>
+<div class="section" id="shell-script-property-list-format">
+<h2><a class="toc-backref" href="#id1">Shell Script Property List Format</a><a class="headerlink" href="#shell-script-property-list-format" title="Permalink to this headline">¶</a></h2>
+<p>Shell scripts that are specified with the <strong>DBGShellCommands</strong> defaults key
+will be run in the order in which they are specified until a match is found.
+The shell script will be invoked with a single UUID string value like
+“23516BE4-29BE-350C-91C9-F36E7999F0F1”. The shell script must respond with a
+property list being written to STDOUT. The property list returned must contain
+UUID string values as the root key values, with a dictionary for each UUID. The
+dictionaries can contain one or more of the following keys:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Key</p></td>
+<td><p>Description</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>DBGArchitecture</strong></p></td>
+<td><p>A textual architecture or target
+triple like “x86_64”, “i386”, or
+“x86_64-apple-macosx”.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>DBGBuildSourcePath</strong></p></td>
+<td><p>A path prefix that was used when
+building the dSYM file. The debug
+information will contain paths
+with this prefix.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>DBGSourcePath</strong></p></td>
+<td><p>A path prefix for where the
+sources exist after the build has
+completed. Often when building
+projects, build machines will
+host the sources in a temporary
+directory while building, then
+move the sources to another
+location for archiving. If the
+paths in the debug info don’t
+match where the sources are
+currently hosted, then specifying
+this path along with the
+<strong>DBGBuildSourcePath</strong> will help
+the developer tools always show
+you sources when debugging or
+symbolicating.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>DBGDSYMPath</strong></p></td>
+<td><p>A path to the dSYM mach-o file
+inside the dSYM bundle.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>DBGSymbolRichExecutable</strong></p></td>
+<td><p>A path to the symbol rich
+executable. Binaries are often
+stripped after being built and
+packaged into a release. If your
+build systems saves an unstripped
+executable a path to this
+executable can be provided.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>DBGError</strong></p></td>
+<td><p>If a binary can not be located
+for the supplied UUID, a user
+readable error can be returned.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Below is a sample shell script output for a binary that contains two
+architectures:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;
+&lt;plist version=&quot;1.0&quot;&gt;
+&lt;dict&gt;
+    &lt;key&gt;23516BE4-29BE-350C-91C9-F36E7999F0F1&lt;/key&gt;
+    &lt;dict&gt;
+        &lt;key&gt;DBGArchitecture&lt;/key&gt;
+        &lt;string&gt;i386&lt;/string&gt;
+        &lt;key&gt;DBGBuildSourcePath&lt;/key&gt;
+        &lt;string&gt;/path/to/build/sources&lt;/string&gt;
+        &lt;key&gt;DBGSourcePath&lt;/key&gt;
+        &lt;string&gt;/path/to/actual/sources&lt;/string&gt;
+        &lt;key&gt;DBGDSYMPath&lt;/key&gt;
+        &lt;string&gt;/path/to/foo.dSYM/Contents/Resources/DWARF/foo&lt;/string&gt;
+        &lt;key&gt;DBGSymbolRichExecutable&lt;/key&gt;
+        &lt;string&gt;/path/to/unstripped/executable&lt;/string&gt;
+    &lt;/dict&gt;
+    &lt;key&gt;A40597AA-5529-3337-8C09-D8A014EB1578&lt;/key&gt;
+    &lt;dict&gt;
+        &lt;key&gt;DBGArchitecture&lt;/key&gt;
+        &lt;string&gt;x86_64&lt;/string&gt;
+        &lt;key&gt;DBGBuildSourcePath&lt;/key&gt;
+        &lt;string&gt;/path/to/build/sources&lt;/string&gt;
+        &lt;key&gt;DBGSourcePath&lt;/key&gt;
+        &lt;string&gt;/path/to/actual/sources&lt;/string&gt;
+        &lt;key&gt;DBGDSYMPath&lt;/key&gt;
+        &lt;string&gt;/path/to/foo.dSYM/Contents/Resources/DWARF/foo&lt;/string&gt;
+        &lt;key&gt;DBGSymbolRichExecutable&lt;/key&gt;
+        &lt;string&gt;/path/to/unstripped/executable&lt;/string&gt;
+    &lt;/dict&gt;
+&lt;/dict&gt;
+&lt;/plist&gt;
+</pre></div>
+</div>
+<p>There is no timeout imposed on a shell script when is it asked to locate a dSYM
+file, so be careful to not make a shell script that has high latency or takes a
+long time to download unless this is really what you want. This can slow down
+debug sessions in LLDB and GDB, symbolication with CoreSymbolication or Report
+Crash, with no visible feedback to the user. You can quickly return a plist
+with a single <strong>DBGError</strong> key that indicates a timeout has been reached. You
+might also want to exec new processes to do the downloads so that if you return
+an error that indicates a timeout, your download can still proceed after your
+shell script has exited so subsequent debug sessions can use the cached files.
+It is also important to track when a current download is in progress in case
+you get multiple requests for the same UUID so that you don’t end up
+downloading the same file simultaneously. Also you will want to verify the
+download was successful and then and only then place the file into the cache
+for tools that will cache files locally.</p>
+</div>
+<div class="section" id="embedding-uuid-property-lists-inside-the-dsym-bundles">
+<h2><a class="toc-backref" href="#id2">Embedding UUID property lists inside the dSYM bundles</a><a class="headerlink" href="#embedding-uuid-property-lists-inside-the-dsym-bundles" title="Permalink to this headline">¶</a></h2>
+<p>Since dSYM files are bundles, you can also place UUID info plists files inside
+your dSYM bundles in the <strong>Contents/Resources</strong> directory. One of the main
+reasons to create the UUID plists inside the dSYM bundles is that it will help
+LLDB and other developer tools show you source. LLDB currently knows how to
+check for these plist files so it can automatically remap the source location
+information in the debug info.</p>
+<p>If we take the two UUID values from the returns plist above, we can split them
+out and save then in the dSYM bundle:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% ls /path/to/foo.dSYM/Contents/Resources
+23516BE4-29BE-350C-91C9-F36E7999F0F1.plist
+A40597AA-5529-3337-8C09-D8A014EB1578.plist
+
+% cat /path/to/foo.dSYM/Contents/Resources/23516BE4-29BE-350C-91C9-F36E7999F0F1.plist
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;
+&lt;plist version=&quot;1.0&quot;&gt;
+&lt;dict&gt;
+   &lt;key&gt;DBGArchitecture&lt;/key&gt;
+   &lt;string&gt;i386&lt;/string&gt;
+   &lt;key&gt;DBGBuildSourcePath&lt;/key&gt;
+   &lt;string&gt;/path/to/build/sources&lt;/string&gt;
+   &lt;key&gt;DBGSourcePath&lt;/key&gt;
+   &lt;string&gt;/path/to/actual/sources&lt;/string&gt;
+   &lt;key&gt;DBGDSYMPath&lt;/key&gt;
+   &lt;string&gt;/path/to/foo.dSYM/Contents/Resources/DWARF/foo&lt;/string&gt;
+   &lt;key&gt;DBGSymbolRichExecutable&lt;/key&gt;
+   &lt;string&gt;/path/to/unstripped/executable&lt;/string&gt;
+   &lt;key&gt;DBGVersion&lt;/key&gt;
+   &lt;string&gt;3&lt;/string&gt;
+   &lt;key&gt;DBGSourcePathRemapping&lt;/key&gt;
+   &lt;dict&gt;
+       &lt;key&gt;/path/to/build/time/src/location1&lt;/key&gt;
+       &lt;string&gt;/path/to/debug/time/src/location&lt;/string&gt;
+       &lt;key&gt;/path/to/build/time/src/location2&lt;/key&gt;
+       &lt;string&gt;/path/to/debug/time/src/location&lt;/string&gt;
+   &lt;/dict&gt;
+   &lt;key&gt;DBGSymbolRichExecutable&lt;/key&gt;
+   &lt;string&gt;/path/to/unstripped/executable&lt;/string&gt;
+&lt;/dict&gt;
+&lt;/plist&gt;
+</pre></div>
+</div>
+<p>Note that the output is very close to what is needed by shell script output, so
+making the results of your shell script will be very easy to create by
+combining two plists into a single one where you take the UUID and use it a
+string key, and the value is the contents of the plist.</p>
+<p>LLDB will read the following entries from the per-UUID plist file in the dSYM
+bundle: <strong>DBGSymbolRichExecutable</strong>, <strong>DBGBuildSourcePath</strong> and
+<strong>DBGSourcePath</strong>, and <strong>DBGSourcePathRemapping</strong> if <strong>DBGVersion</strong> is 3 or
+higher. <strong>DBGBuildSourcePath</strong> and <strong>DBGSourcePath</strong> are for remapping a single
+file path. For instance, the files may be in /BuildDir/SheetApp/SheetApp-37
+when built, but they are in /SourceDir/SheetApp/SheetApp-37 at debug time,
+those two paths could be listed in those keys. If there are multiple source
+path remappings, the <strong>DBGSourcePathRemapping</strong> dictionary can be used, where
+an arbitrary number of entries may be present. <strong>DBGVersion</strong> should be 3 or
+<strong>DBGSourcePathRemapping</strong> will not be read. If both <strong>DBGSourcePathRemapping</strong>
+AND <strong>DBGBuildSourcePath</strong>/<strong>DBGSourcePath</strong> are present in the plist, the
+<strong>DBGSourcePathRemapping</strong> entries will be used for path remapping first. This
+may allow for more specific remappings in the <strong>DBGSourcePathRemapping</strong>
+dictionary and a less specific remapping in the
+<strong>DBGBuildSourcePath</strong>/<strong>DBGSourcePath</strong> pair as a last resort.</p>
+</div>
+<div class="section" id="file-mapped-uuid-directories">
+<h2><a class="toc-backref" href="#id3">File Mapped UUID Directories</a><a class="headerlink" href="#file-mapped-uuid-directories" title="Permalink to this headline">¶</a></h2>
+<p>File Mapped directories can be used for efficient dSYM file lookups for local
+or remote dSYM files. The UUID is broken up by splitting the first 20 hex
+digits into 4 character chunks, and a directory is created for each chunk, and
+each subsequent directory is created inside the previous one. A symlink is then
+created whose name is the last 12 hex digits in the deepest directory. The
+symlinks value is a full path to the mach-o files inside the dSYM bundle which
+contains the DWARF. Whenever DebugSymbols.framework is asked to lookup a dSYM
+file, it will first look in any file mapped UUID directories for a quick match
+if the defaults are appropriately set.</p>
+<p>For example, if we take the sample UUID plist inforamtion from above, we can
+create a File Mapped UUID directory cache in
+<strong>~/Library/SymbolCache/dsyms/uuids</strong>. We can easily see how things are laid
+out:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">find</span> <span class="o">~/</span><span class="n">Library</span><span class="o">/</span><span class="n">SymbolCache</span><span class="o">/</span><span class="n">dsyms</span><span class="o">/</span><span class="n">uuids</span> <span class="o">-</span><span class="nb">type</span> <span class="n">l</span>
+<span class="o">~/</span><span class="n">Library</span><span class="o">/</span><span class="n">SymbolCache</span><span class="o">/</span><span class="n">dsyms</span><span class="o">/</span><span class="n">uuids</span><span class="o">/</span><span class="mi">2351</span><span class="o">/</span><span class="mi">6</span><span class="n">BE4</span><span class="o">/</span><span class="mi">29</span><span class="n">BE</span><span class="o">/</span><span class="mi">350</span><span class="n">C</span><span class="o">/</span><span class="mi">91</span><span class="n">C9</span><span class="o">/</span><span class="n">F36E7999F0F1</span>
+<span class="o">~/</span><span class="n">Library</span><span class="o">/</span><span class="n">SymbolCache</span><span class="o">/</span><span class="n">dsyms</span><span class="o">/</span><span class="n">uuids</span><span class="o">/</span><span class="n">A405</span><span class="o">/</span><span class="mi">97</span><span class="n">AA</span><span class="o">/</span><span class="mi">5529</span><span class="o">/</span><span class="mi">3337</span><span class="o">/</span><span class="mi">8</span><span class="n">C09</span><span class="o">/</span><span class="n">D8A014EB1578</span>
+</pre></div>
+</div>
+<p>The last entries in these file mapped directories are symlinks to the actual
+dsym mach file in the dsym bundle:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">ls</span> <span class="o">-</span><span class="n">lAF</span> <span class="o">~/</span><span class="n">Library</span><span class="o">/</span><span class="n">SymbolCache</span><span class="o">/</span><span class="n">dsyms</span><span class="o">/</span><span class="n">uuids</span><span class="o">/</span><span class="mi">2351</span><span class="o">/</span><span class="mi">6</span><span class="n">BE4</span><span class="o">/</span><span class="mi">29</span><span class="n">BE</span><span class="o">/</span><span class="mi">350</span><span class="n">C</span><span class="o">/</span><span class="mi">91</span><span class="n">C9</span><span class="o">/</span><span class="n">F36E7999F0F1</span>
+<span class="o">~/</span><span class="n">Library</span><span class="o">/</span><span class="n">SymbolCache</span><span class="o">/</span><span class="n">dsyms</span><span class="o">/</span><span class="n">uuids</span><span class="o">/</span><span class="mi">2351</span><span class="o">/</span><span class="mi">6</span><span class="n">BE4</span><span class="o">/</span><span class="mi">29</span><span class="n">BE</span><span class="o">/</span><span class="mi">350</span><span class="n">C</span><span class="o">/</span><span class="mi">91</span><span class="n">C9</span><span class="o">/</span><span class="n">F36E7999F0F1</span><span class="o">@</span> <span class="o">-&gt;</span> <span class="o">../../../../../../</span><span class="n">dsyms</span><span class="o">/</span><span class="n">foo</span><span class="o">.</span><span class="n">dSYM</span><span class="o">/</span><span class="n">Contents</span><span class="o">/</span><span class="n">Resources</span><span class="o">/</span><span class="n">DWARF</span><span class="o">/</span><span class="n">foo</span>
+</pre></div>
+</div>
+<p>Then you can also tell DebugSymbols to check this UUID file map cache using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">defaults</span> <span class="n">write</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">DebugSymbols</span> <span class="n">DBGFileMappedPaths</span> <span class="o">~/</span><span class="n">Library</span><span class="o">/</span><span class="n">SymbolCache</span><span class="o">/</span><span class="n">dsyms</span><span class="o">/</span><span class="n">uuids</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="dsym-locating-shell-script-tips">
+<h2><a class="toc-backref" href="#id4">dSYM Locating Shell Script Tips</a><a class="headerlink" href="#dsym-locating-shell-script-tips" title="Permalink to this headline">¶</a></h2>
+<p>One possible implementation of a dSYM finding shell script is to have the
+script download and cache files locally in a known location. Then create a UUID
+map for each UUID value that was found in a local UUID File Map cache so the
+next query for the dSYM file will be able to use the cached version. So the
+shell script is used to initially download and cache the file, and subsequent
+accesses will use the cache and avoid calling the shell script.</p>
+<p>Then the defaults for DebugSymbols.framework will entail enabling your shell
+script, enabling the file mapped path setting so that already downloaded dSYMS
+fill quickly be found without needing to run the shell script every time, and
+also leaving spotlight enabled so that other normal dSYM files are still found:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">defaults</span> <span class="n">write</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">DebugSymbols</span> <span class="n">DBGShellCommands</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">shellscript</span>
+<span class="o">%</span> <span class="n">defaults</span> <span class="n">write</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">DebugSymbols</span> <span class="n">DBGFileMappedPaths</span> <span class="o">~/</span><span class="n">Library</span><span class="o">/</span><span class="n">SymbolCache</span><span class="o">/</span><span class="n">dsyms</span><span class="o">/</span><span class="n">uuids</span>
+<span class="o">%</span> <span class="n">defaults</span> <span class="n">write</span> <span class="n">com</span><span class="o">.</span><span class="n">apple</span><span class="o">.</span><span class="n">DebugSymbols</span> <span class="n">DBGSpotlightPaths</span> <span class="o">-</span><span class="n">array</span>
+</pre></div>
+</div>
+<p>Hopefully this helps explain how DebugSymbols.framework can help any company
+implement a smart symbol finding and caching with minimal overhead.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">LLDB</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Goals &amp; Status</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../status/goals.html">Goals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/status.html">Status</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../status/projects.html">Projects</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Use &amp; Extension</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="map.html">GDB to LLDB command map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="formatting.html">Frame and Thread Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="variable.html">Variable Formatting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbolication.html">Symbolication</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Symbols on macOS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python.html">Python Scripting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-reference.html">Python Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote.html">Remote Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../resources/download.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/source.html">Getting the Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/build.html">Build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/test.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/bots.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources/sbapi.html">The SB API Coding Rules</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/python_reference/index.html">Public Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/namespacelldb.html">Public C++ API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://lldb.llvm.org/cpp_reference/index.html">Private C++ Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">External Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="http://llvm.org/viewvc/llvm-project/lldb/trunk/">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://reviews.llvm.org">Code Reviews</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://bugs.llvm.org/">Bug Reports</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="symbolication.html" title="previous chapter">Symbolication</a></li>
+      <li>Next: <a href="python.html" title="next chapter">Python Scripting</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2019, The LLDB Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
