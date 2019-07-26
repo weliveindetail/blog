@@ -37,49 +37,49 @@
 <h1>Build<a class="headerlink" href="#build" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#preliminaries" id="id3">Preliminaries</a></p>
+<li><p><a class="reference internal" href="#preliminaries" id="id5">Preliminaries</a></p>
 <ul>
-<li><p><a class="reference internal" href="#windows" id="id4">Windows</a></p></li>
-<li><p><a class="reference internal" href="#linux" id="id5">Linux</a></p></li>
-<li><p><a class="reference internal" href="#macos" id="id6">macOS</a></p></li>
+<li><p><a class="reference internal" href="#windows" id="id6">Windows</a></p></li>
+<li><p><a class="reference internal" href="#linux" id="id7">Linux</a></p></li>
+<li><p><a class="reference internal" href="#macos" id="id8">macOS</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#building-lldb-with-cmake-ninja" id="id7">Building LLDB with CMake &amp; Ninja</a></p>
+<li><p><a class="reference internal" href="#building-lldb-with-cmake-ninja" id="id9">Building LLDB with CMake &amp; Ninja</a></p>
 <ul>
-<li><p><a class="reference internal" href="#regular-in-tree-builds" id="id8">Regular in-tree builds</a></p></li>
-<li><p><a class="reference internal" href="#standalone-builds" id="id9">Standalone builds</a></p></li>
-<li><p><a class="reference internal" href="#common-cmake-options" id="id10">Common CMake options</a></p>
+<li><p><a class="reference internal" href="#regular-in-tree-builds" id="id10">Regular in-tree builds</a></p></li>
+<li><p><a class="reference internal" href="#standalone-builds" id="id11">Standalone builds</a></p></li>
+<li><p><a class="reference internal" href="#commoncmakeoptions" id="id12">Common CMake options</a></p>
 <ul>
-<li><p><a class="reference internal" href="#id1" id="id11">Windows</a></p></li>
-<li><p><a class="reference internal" href="#netbsd" id="id12">NetBSD</a></p></li>
-<li><p><a class="reference internal" href="#id2" id="id13">macOS</a></p></li>
+<li><p><a class="reference internal" href="#id2" id="id13">Windows</a></p></li>
+<li><p><a class="reference internal" href="#netbsd" id="id14">NetBSD</a></p></li>
+<li><p><a class="reference internal" href="#id3" id="id15">macOS</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#cmake-caches" id="id14">CMake caches</a></p>
+<li><p><a class="reference internal" href="#cmakecaches" id="id16">CMake caches</a></p>
 <ul>
-<li><p><a class="reference internal" href="#common-configurations-on-macos" id="id15">Common configurations on macOS</a></p></li>
+<li><p><a class="reference internal" href="#common-configurations-on-macos" id="id17">Common configurations on macOS</a></p></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#building-lldb-with-cmake-and-other-generators" id="id16">Building LLDB with CMake and Other Generators</a></p>
+<li><p><a class="reference internal" href="#building-lldb-with-cmake-and-other-generators" id="id18">Building LLDB with CMake and Other Generators</a></p>
 <ul>
-<li><p><a class="reference internal" href="#visual-studio" id="id17">Visual Studio</a></p></li>
+<li><p><a class="reference internal" href="#visual-studio" id="id19">Visual Studio</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#building-the-documentation" id="id18">Building The Documentation</a></p></li>
-<li><p><a class="reference internal" href="#cross-compiling-lldb" id="id19">Cross-compiling LLDB</a></p>
+<li><p><a class="reference internal" href="#building-the-documentation" id="id20">Building The Documentation</a></p></li>
+<li><p><a class="reference internal" href="#cross-compiling-lldb" id="id21">Cross-compiling LLDB</a></p>
 <ul>
-<li><p><a class="reference internal" href="#example-1-cross-compiling-for-linux-arm64-on-ubuntu-host" id="id20">Example 1: Cross-compiling for linux arm64 on Ubuntu host</a></p></li>
-<li><p><a class="reference internal" href="#example-2-cross-compiling-for-android-on-linux" id="id21">Example 2: Cross-compiling for Android on Linux</a></p></li>
+<li><p><a class="reference internal" href="#example-1-cross-compiling-for-linux-arm64-on-ubuntu-host" id="id22">Example 1: Cross-compiling for linux arm64 on Ubuntu host</a></p></li>
+<li><p><a class="reference internal" href="#example-2-cross-compiling-for-android-on-linux" id="id23">Example 2: Cross-compiling for Android on Linux</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#verifying-python-support" id="id22">Verifying Python Support</a></p></li>
-<li><p><a class="reference internal" href="#code-signing-on-macos" id="id23">Code Signing on macOS</a></p></li>
+<li><p><a class="reference internal" href="#verifying-python-support" id="id24">Verifying Python Support</a></p></li>
+<li><p><a class="reference internal" href="#code-signing-on-macos" id="id25">Code Signing on macOS</a></p></li>
 </ul>
 </div>
 <div class="section" id="preliminaries">
-<h2><a class="toc-backref" href="#id3">Preliminaries</a><a class="headerlink" href="#preliminaries" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">Preliminaries</a><a class="headerlink" href="#preliminaries" title="Permalink to this headline">¶</a></h2>
 <p>LLDB relies on many of the technologies developed by the larger LLVM project.
 In particular, it requires both Clang and LLVM itself in order to build. Due to
 this tight integration the Getting Started guides for both of these projects
@@ -105,7 +105,7 @@ commands below.</p>
 </pre></div>
 </div>
 <div class="section" id="windows">
-<h3><a class="toc-backref" href="#id4">Windows</a><a class="headerlink" href="#windows" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id6">Windows</a><a class="headerlink" href="#windows" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Visual Studio 2015 or greater</p></li>
 <li><p>Windows SDK 8.0 or higher. In general it is best to use the latest available
@@ -136,13 +136,13 @@ appropriate Visual Studio Command Prompt corresponding to the version you wish
 to use.</p>
 </div>
 <div class="section" id="linux">
-<h3><a class="toc-backref" href="#id5">Linux</a><a class="headerlink" href="#linux" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id7">Linux</a><a class="headerlink" href="#linux" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference external" href="http://www.thrysoee.dk/editline">libedit</a></p></li>
 </ul>
 </div>
 <div class="section" id="macos">
-<h3><a class="toc-backref" href="#id6">macOS</a><a class="headerlink" href="#macos" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id8">macOS</a><a class="headerlink" href="#macos" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>To use the in-tree debug server on macOS, lldb needs to be code signed. For
 more information see <a class="reference internal" href="#codesigning"><span class="std std-ref">Code Signing on macOS</span></a> below.</p></li>
@@ -152,7 +152,7 @@ libc++, which is a required for testing on macOS.</p></li>
 </div>
 </div>
 <div class="section" id="building-lldb-with-cmake-ninja">
-<h2><a class="toc-backref" href="#id7">Building LLDB with CMake &amp; Ninja</a><a class="headerlink" href="#building-lldb-with-cmake-ninja" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id9">Building LLDB with CMake &amp; Ninja</a><a class="headerlink" href="#building-lldb-with-cmake-ninja" title="Permalink to this headline">¶</a></h2>
 <p>The LLVM project is migrating to a single monolithic respository for LLVM and
 its subprojects. This is the recommended way to build LLDB. Checkout the
 source-tree with git:</p>
@@ -163,41 +163,44 @@ source-tree with git:</p>
 project, it generates the files needed by your build tool. The recommended
 build tool for LLVM is Ninja.</p>
 <div class="section" id="regular-in-tree-builds">
-<h3><a class="toc-backref" href="#id8">Regular in-tree builds</a><a class="headerlink" href="#regular-in-tree-builds" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id10">Regular in-tree builds</a><a class="headerlink" href="#regular-in-tree-builds" title="Permalink to this headline">¶</a></h3>
 <p>Create a new directory for your build-tree. From there run CMake and point it
 to the <code class="docutils literal notranslate"><span class="pre">llvm</span></code> directory in the source-tree:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">cmake</span> <span class="o">-</span><span class="n">G</span> <span class="n">Ninja</span> <span class="o">-</span><span class="n">DLLVM_ENABLE_PROJECTS</span><span class="o">=</span><span class="s2">&quot;clang;lldb&quot;</span> <span class="p">[</span><span class="o">&lt;</span><span class="n">cmake</span> <span class="n">options</span><span class="o">&gt;</span><span class="p">]</span> <span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">llvm</span><span class="o">-</span><span class="n">project</span><span class="o">/</span><span class="n">llvm</span>
 </pre></div>
 </div>
 <p>We used the <code class="docutils literal notranslate"><span class="pre">LLVM_ENABLE_PROJECTS</span></code> option here to tell the build-system which
-subprojects to build in addition to LLVM. Read more about additional options in
-the CMake Options paragraph. Now run ninja to perform the actual build. We pass
-<code class="docutils literal notranslate"><span class="pre">lldb</span></code> here as the target, so it only builds what is necessary to run the
-lldb driver:</p>
+subprojects to build in addition to LLVM (for more options see <a class="reference external" href="#commoncmakeoptions">Common CMake
+Options</a> and <a class="reference external" href="#cmakecaches">CMake Caches</a>). Now run ninja to perform the actual build.
+We pass <code class="docutils literal notranslate"><span class="pre">lldb</span></code> here as the target, so it only builds what is necessary to run
+the lldb driver:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">ninja</span> <span class="n">lldb</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="standalone-builds">
-<h3><a class="toc-backref" href="#id9">Standalone builds</a><a class="headerlink" href="#standalone-builds" title="Permalink to this headline">¶</a></h3>
-<p>This is another way to build LLDB. You can use the same source-tree as we
-checked out above, but now we will use two build-trees:</p>
+<h3><a class="toc-backref" href="#id11">Standalone builds</a><a class="headerlink" href="#standalone-builds" title="Permalink to this headline">¶</a></h3>
+<p>This is another way to build LLDB. We can use the same source-tree as we
+checked out above, but now we will have two build-trees:</p>
 <ul class="simple">
-<li><p>the main build-tree for LLDB</p></li>
-<li><p>a provided build-tree for LLVM and Clang</p></li>
+<li><p>the main build-tree for LLDB in <code class="docutils literal notranslate"><span class="pre">/path/to/lldb-build</span></code></p></li>
+<li><p>a provided build-tree for LLVM and Clang in <code class="docutils literal notranslate"><span class="pre">/path/to/llvm-build</span></code></p></li>
 </ul>
-<p>We start with the latter. In a new directory, run CMake and point it to the
-<code class="docutils literal notranslate"><span class="pre">llvm</span></code> directory in the source-tree. This time we leave out LLDB and only
-include Clang. Then we build all targets with ninja:</p>
+<p>Run CMake with <code class="docutils literal notranslate"><span class="pre">-B</span></code> pointing to a new directory for the provided build-tree
+and the positional argument pointing to the <code class="docutils literal notranslate"><span class="pre">llvm</span></code> directory in the
+source-tree. Note that we leave out LLDB here and only include Clang (and libcxx
+on macOS). Then we build the <code class="docutils literal notranslate"><span class="pre">ALL</span></code> target with ninja:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">cmake</span> <span class="o">-</span><span class="n">B</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">llvm</span><span class="o">-</span><span class="n">build</span> <span class="o">-</span><span class="n">G</span> <span class="n">Ninja</span> \
         <span class="o">-</span><span class="n">DLLVM_ENABLE_PROJECTS</span><span class="o">=</span><span class="n">clang</span> \
         <span class="p">[</span><span class="o">&lt;</span><span class="n">more</span> <span class="n">cmake</span> <span class="n">options</span><span class="o">&gt;</span><span class="p">]</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">llvm</span><span class="o">-</span><span class="n">project</span><span class="o">/</span><span class="n">llvm</span>
 <span class="o">&gt;</span> <span class="n">ninja</span>
 </pre></div>
 </div>
-<p>Now create a second directory for the LLDB build-tree and run CMake pointing to
-the <code class="docutils literal notranslate"><span class="pre">lldb</span></code> directory in the source-tree. In order to find the provided
-build-tree, the build-system needs the options <code class="docutils literal notranslate"><span class="pre">LLVM_DIR</span></code> and <code class="docutils literal notranslate"><span class="pre">Clang_DIR</span></code>:</p>
+<p>Now run CMake a second time with <code class="docutils literal notranslate"><span class="pre">-B</span></code> pointing to a new directory for the
+main build-tree and the positional argument pointing to the <code class="docutils literal notranslate"><span class="pre">lldb</span></code> directory
+in the source-tree. In order to find the provided build-tree, the build-system
+needs the options <code class="docutils literal notranslate"><span class="pre">LLVM_DIR</span></code> and <code class="docutils literal notranslate"><span class="pre">Clang_DIR</span></code> (CMake variables are
+case-sensitive!):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">cmake</span> <span class="o">-</span><span class="n">B</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">lldb</span><span class="o">-</span><span class="n">build</span> <span class="o">-</span><span class="n">G</span> <span class="n">Ninja</span> \
         <span class="o">-</span><span class="n">DLLVM_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">llvm</span><span class="o">-</span><span class="n">build</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">cmake</span><span class="o">/</span><span class="n">llvm</span> \
         <span class="o">-</span><span class="n">DClang_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">llvm</span><span class="o">-</span><span class="n">build</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">cmake</span><span class="o">/</span><span class="n">clang</span> \
@@ -206,8 +209,8 @@ build-tree, the build-system needs the options <code class="docutils literal not
 </pre></div>
 </div>
 </div>
-<div class="section" id="common-cmake-options">
-<h3><a class="toc-backref" href="#id10">Common CMake options</a><a class="headerlink" href="#common-cmake-options" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="commoncmakeoptions">
+<span id="id1"></span><h3><a class="toc-backref" href="#id12">Common CMake options</a><a class="headerlink" href="#commoncmakeoptions" title="Permalink to this headline">¶</a></h3>
 <p>Following is a description of some of the most important CMake variables which
 you are likely to encounter. A variable FOO is set by adding <code class="docutils literal notranslate"><span class="pre">-DFOO=value</span></code> to
 the CMake command line.</p>
@@ -234,8 +237,8 @@ suite.</p>
 </div>
 <p>It is strongly recommend to use a release build for the compiler to speed up
 test execution.</p>
-<div class="section" id="id1">
-<h4><a class="toc-backref" href="#id11">Windows</a><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id2">
+<h4><a class="toc-backref" href="#id13">Windows</a><a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
 <p>Although the following CMake variables are by no means Windows specific, they
 are commonly used on Windows.</p>
 <ul class="simple">
@@ -267,14 +270,14 @@ environment variable if it is specified).</p></li>
 </div>
 </div>
 <div class="section" id="netbsd">
-<h4><a class="toc-backref" href="#id12">NetBSD</a><a class="headerlink" href="#netbsd" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id14">NetBSD</a><a class="headerlink" href="#netbsd" title="Permalink to this headline">¶</a></h4>
 <p>Current stable NetBSD release doesn’t ship with libpanel(3), therefore it’s
 required to disable curses(3) support with the
 <code class="docutils literal notranslate"><span class="pre">-DLLDB_DISABLE_CURSES:BOOL=TRUE</span></code> option. To make sure check if
 <code class="docutils literal notranslate"><span class="pre">/usr/include/panel.h</span></code> exists in your system.</p>
 </div>
-<div class="section" id="id2">
-<h4><a class="toc-backref" href="#id13">macOS</a><a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id3">
+<h4><a class="toc-backref" href="#id15">macOS</a><a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
 <p>Here are some commonly used LLDB-specific CMake variables on macOS.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">LLDB_BUILD_FRAMEWORK:BOOL</span></code> : Builds the LLDB.framework.</p></li>
@@ -283,17 +286,19 @@ The default is <code class="docutils literal notranslate"><span class="pre">lldb
 </ul>
 </div>
 </div>
-<div class="section" id="cmake-caches">
-<h3><a class="toc-backref" href="#id14">CMake caches</a><a class="headerlink" href="#cmake-caches" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="cmakecaches">
+<span id="id4"></span><h3><a class="toc-backref" href="#id16">CMake caches</a><a class="headerlink" href="#cmakecaches" title="Permalink to this headline">¶</a></h3>
 <p>CMake caches allow to store common sets of configuration options in the form of
-CMake scripts. They are passed to CMake with the <code class="docutils literal notranslate"><span class="pre">-C</span></code> flag, following the
-absolute path to the file on disk. Subsequent <code class="docutils literal notranslate"><span class="pre">-D</span></code> options are still allowed.
-Please find the currently available caches in the
-<a class="reference external" href="https://github.com/llvm/llvm-project/tree/master/lldb/cmake/caches">lldb/cmake/caches/</a>
+CMake scripts and can be useful to reproduce builds for particular use-cases
+(similar to their <a class="reference external" href="http://llvm.org/docs/AdvancedBuilds.html">usage in LLVM and Clang</a>).
+They are passed to CMake with the <code class="docutils literal notranslate"><span class="pre">-C</span></code> flag, following the absolute path to
+the file on disk. Subsequent <code class="docutils literal notranslate"><span class="pre">-D</span></code> options are still allowed. Please find the
+currently available caches in the <a class="reference external" href="https://github.com/llvm/llvm-project/tree/master/lldb/cmake/caches">lldb/cmake/caches/</a>
 directory.</p>
 <div class="section" id="common-configurations-on-macos">
-<h4><a class="toc-backref" href="#id15">Common configurations on macOS</a><a class="headerlink" href="#common-configurations-on-macos" title="Permalink to this headline">¶</a></h4>
-<p>Build, test and install LLDB from the <a class="reference external" href="https://github.com/llvm/llvm-project">monorepo</a>:</p>
+<h4><a class="toc-backref" href="#id17">Common configurations on macOS</a><a class="headerlink" href="#common-configurations-on-macos" title="Permalink to this headline">¶</a></h4>
+<p>Build, test and install LLDB from the <a class="reference external" href="https://github.com/llvm/llvm-project">monorepo</a> (see also <a class="reference external" href="http://llvm.org/docs/BuildingADistribution.html">Building a Distribution of
+LLVM</a>):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">llvm</span><span class="o">/</span><span class="n">llvm</span><span class="o">-</span><span class="n">project</span>
 
 <span class="o">&gt;</span> <span class="n">cmake</span> <span class="o">-</span><span class="n">B</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">lldb</span><span class="o">-</span><span class="n">build</span> <span class="o">-</span><span class="n">G</span> <span class="n">Ninja</span> \
@@ -304,7 +309,7 @@ directory.</p>
 <span class="o">&gt;</span> <span class="n">DESTDIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">lldb</span><span class="o">-</span><span class="n">install</span> <span class="n">ninja</span> <span class="o">-</span><span class="n">C</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">lldb</span><span class="o">-</span><span class="n">build</span> <span class="n">check</span><span class="o">-</span><span class="n">lldb</span> <span class="n">install</span><span class="o">-</span><span class="n">distribution</span>
 </pre></div>
 </div>
-<p>Build LLDB Standalone for development with Xcode:</p>
+<p>Build LLDB standalone for development with Xcode:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">llvm</span><span class="o">/</span><span class="n">llvm</span><span class="o">-</span><span class="n">project</span>
 
 <span class="o">&gt;</span> <span class="n">cmake</span> <span class="o">-</span><span class="n">B</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">llvm</span><span class="o">-</span><span class="n">build</span> <span class="o">-</span><span class="n">G</span> <span class="n">Ninja</span>
@@ -326,13 +331,13 @@ directory.</p>
 </div>
 </div>
 <div class="section" id="building-lldb-with-cmake-and-other-generators">
-<h2><a class="toc-backref" href="#id16">Building LLDB with CMake and Other Generators</a><a class="headerlink" href="#building-lldb-with-cmake-and-other-generators" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id18">Building LLDB with CMake and Other Generators</a><a class="headerlink" href="#building-lldb-with-cmake-and-other-generators" title="Permalink to this headline">¶</a></h2>
 <p>Compiling with ninja is both faster and simpler than compiling with MSVC, but
 chances are you still want to debug LLDB with an IDE. One solution is to run
 cmake twice and generate the output into two different folders. One for
 compiling (the ninja folder), and one for editing, browsing and debugging.</p>
 <div class="section" id="visual-studio">
-<h3><a class="toc-backref" href="#id17">Visual Studio</a><a class="headerlink" href="#visual-studio" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id19">Visual Studio</a><a class="headerlink" href="#visual-studio" title="Permalink to this headline">¶</a></h3>
 <p>Follow the previous instructions in one directory, and generate a Visual Studio
 project in another directory.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">cmake</span> <span class="o">-</span><span class="n">G</span> <span class="s2">&quot;Visual Studio 14 2015&quot;</span> <span class="o">&lt;</span><span class="n">cmake</span> <span class="n">variables</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">path</span> <span class="n">to</span> <span class="n">root</span> <span class="n">of</span> <span class="n">llvm</span> <span class="n">source</span> <span class="n">tree</span><span class="o">&gt;</span>
@@ -345,7 +350,7 @@ ninja tree.</p>
 </div>
 </div>
 <div class="section" id="building-the-documentation">
-<h2><a class="toc-backref" href="#id18">Building The Documentation</a><a class="headerlink" href="#building-the-documentation" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id20">Building The Documentation</a><a class="headerlink" href="#building-the-documentation" title="Permalink to this headline">¶</a></h2>
 <p>If you wish to build the optional (reference) documentation, additional
 dependencies are required:</p>
 <ul class="simple">
@@ -368,7 +373,7 @@ do:</p>
 </div>
 </div>
 <div class="section" id="cross-compiling-lldb">
-<h2><a class="toc-backref" href="#id19">Cross-compiling LLDB</a><a class="headerlink" href="#cross-compiling-lldb" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id21">Cross-compiling LLDB</a><a class="headerlink" href="#cross-compiling-lldb" title="Permalink to this headline">¶</a></h2>
 <p>In order to debug remote targets running different architectures than your
 host, you will need to compile LLDB (or at least the server component) for the
 target. While the easiest solution is to just compile it locally on the target,
@@ -429,7 +434,7 @@ triple reported by the remote platform.</p></li>
 <p>You can of course also specify the usual cmake options like
 <code class="docutils literal notranslate"><span class="pre">CMAKE_BUILD_TYPE</span></code>, etc.</p>
 <div class="section" id="example-1-cross-compiling-for-linux-arm64-on-ubuntu-host">
-<h3><a class="toc-backref" href="#id20">Example 1: Cross-compiling for linux arm64 on Ubuntu host</a><a class="headerlink" href="#example-1-cross-compiling-for-linux-arm64-on-ubuntu-host" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id22">Example 1: Cross-compiling for linux arm64 on Ubuntu host</a><a class="headerlink" href="#example-1-cross-compiling-for-linux-arm64-on-ubuntu-host" title="Permalink to this headline">¶</a></h3>
 <p>Ubuntu already provides the packages necessary to cross-compile LLDB for arm64.
 It is sufficient to install packages <code class="docutils literal notranslate"><span class="pre">gcc-aarch64-linux-gnu</span></code>,
 <code class="docutils literal notranslate"><span class="pre">g++-aarch64-linux-gnu</span></code>, <code class="docutils literal notranslate"><span class="pre">binutils-aarch64-linux-gnu</span></code>. Then it is possible
@@ -465,7 +470,7 @@ necessary packages in this environment (python-dev, libedit-dev, etc.) and
 point your compiler to use them using the correct -I and -L arguments.</p>
 </div>
 <div class="section" id="example-2-cross-compiling-for-android-on-linux">
-<h3><a class="toc-backref" href="#id21">Example 2: Cross-compiling for Android on Linux</a><a class="headerlink" href="#example-2-cross-compiling-for-android-on-linux" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id23">Example 2: Cross-compiling for Android on Linux</a><a class="headerlink" href="#example-2-cross-compiling-for-android-on-linux" title="Permalink to this headline">¶</a></h3>
 <p>In the case of Android, the toolchain and all required headers and libraries
 are available in the Android NDK.</p>
 <p>The NDK also contains a cmake toolchain file, which makes configuring the build
@@ -491,7 +496,7 @@ is not supported and unlikely to work.</p>
 </div>
 </div>
 <div class="section" id="verifying-python-support">
-<h2><a class="toc-backref" href="#id22">Verifying Python Support</a><a class="headerlink" href="#verifying-python-support" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id24">Verifying Python Support</a><a class="headerlink" href="#verifying-python-support" title="Permalink to this headline">¶</a></h2>
 <p>LLDB has a Python scripting capability and supplies its own Python module named
 lldb. If a script is run inside the command line lldb application, the Python
 module is made available automatically. However, if a script is to be run by a
@@ -511,7 +516,7 @@ built correctly and is available to the default Python interpreter, run:</p>
 </div>
 </div>
 <div class="section" id="code-signing-on-macos">
-<span id="codesigning"></span><h2><a class="toc-backref" href="#id23">Code Signing on macOS</a><a class="headerlink" href="#code-signing-on-macos" title="Permalink to this headline">¶</a></h2>
+<span id="codesigning"></span><h2><a class="toc-backref" href="#id25">Code Signing on macOS</a><a class="headerlink" href="#code-signing-on-macos" title="Permalink to this headline">¶</a></h2>
 <p>To use the in-tree debug server on macOS, lldb needs to be code signed. The
 Debug, DebugClang and Release builds are set to code sign using a code signing
 certificate named <code class="docutils literal notranslate"><span class="pre">lldb_codesign</span></code>. This document explains how to set up the
