@@ -156,7 +156,8 @@ source-tree with git:</p>
 </div>
 <p>CMake is a cross-platform build-generator tool. CMake does not build the
 project, it generates the files needed by your build tool. The recommended
-build tool for LLVM is Ninja. Please also read <a class="reference external" href="http://llvm.org/docs/CMake.html">Building LLVM with CMake</a>.</p>
+build tool for LLVM is Ninja, but other generators like Xcode or Visual Studio
+may be used as well. Please also read <a class="reference external" href="http://llvm.org/docs/CMake.html">Building LLVM with CMake</a>.</p>
 <div class="section" id="regular-in-tree-builds">
 <h3><a class="toc-backref" href="#id8">Regular in-tree builds</a><a class="headerlink" href="#regular-in-tree-builds" title="Permalink to this headline">¶</a></h3>
 <p>Create a new directory for your build-tree. From there run CMake and point it
@@ -167,7 +168,7 @@ to the <code class="docutils literal notranslate"><span class="pre">llvm</span><
 <p>We used the <code class="docutils literal notranslate"><span class="pre">LLVM_ENABLE_PROJECTS</span></code> option here to tell the build-system which
 subprojects to build in addition to LLVM (for more options see
 <a class="reference internal" href="#commoncmakeoptions"><span class="std std-ref">Common CMake options</span></a> and <a class="reference internal" href="#cmakecaches"><span class="std std-ref">CMake caches</span></a>). Parts of the LLDB test suite
-require <cite>lld</cite>. Add it to the list in order to run all tests. Once CMake is done,
+require <code class="docutils literal notranslate"><span class="pre">lld</span></code>. Add it to the list in order to run all tests. Once CMake is done,
 run ninja to perform the actual build. We pass <code class="docutils literal notranslate"><span class="pre">lldb</span></code> here as the target, so
 it only builds what is necessary to run the lldb driver:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">ninja</span> <span class="n">lldb</span>
@@ -287,9 +288,9 @@ required to disable curses(3) support with the
 </div>
 <div class="section" id="id2">
 <h4><a class="toc-backref" href="#id13">macOS</a><a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
-<p>On macOS the LLDB test suite requires libc++. Either add <cite>libcxx</cite> to
+<p>On macOS the LLDB test suite requires libc++. Either add <code class="docutils literal notranslate"><span class="pre">libcxx</span></code> to
 <code class="docutils literal notranslate"><span class="pre">LLVM_ENABLE_PROJECTS</span></code> or disable the test suite with
-<code class="docutils literal notranslate"><span class="pre">LLDB_ENABLE_TESTS=OFF</span></code>. Here are some more useful options:</p>
+<code class="docutils literal notranslate"><span class="pre">LLDB_ENABLE_TESTS=OFF</span></code>. Further useful options:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">LLDB_BUILD_FRAMEWORK:BOOL</span></code>: Builds the LLDB.framework.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">LLDB_CODESIGN_IDENTITY:STRING</span></code>: Set the identity to use for code-signing
