@@ -8,15 +8,19 @@ layout: default
 
   <ul class="post-list">
     {% for post in site.posts %}
-      <li>
-        {% assign date_format = site.minima.date_format | default: "%b %-d, %Y" %}
-        <span class="post-meta">{{ post.date | date: date_format }}</span>
+      {% if post.url contains '2017/09/06/llvm-expected-basics.html' %}
+        <!-- This is only a forward to keep the permalink -->
+      {% else %}
+        <li>
+          {% assign date_format = site.minima.date_format | default: "%b %-d, %Y" %}
+          <span class="post-meta">{{ post.date | date: date_format }}</span>
 
-        <h2>
-          <a class="post-link" href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
-        </h2>
+          <h2>
+            <a class="post-link" href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
+          </h2>
 
-      </li>
+        </li>
+      {% endif %}
     {% endfor %}
   </ul>
 

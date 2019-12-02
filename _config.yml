@@ -1,12 +1,6 @@
 title: indetail dev blog
-email: stefan.graenitz@gmail.com
-description: >
-  Sporadic details on compilers, code and tooling from the world of LLVM
 url: https://weliveindetail.github.io
 baseurl: "/blog"
-twitter_username: weliveindetail
-github_username:  weliveindetail
-linkedin_username: stefan-gränitz-254298113
 
 # Build settings
 markdown: kramdown
@@ -14,15 +8,3 @@ theme: minima
 pulgins:
   - jekyll-feed
   - jekyll-email-protect
-
-# Exclude from processing.
-# The following items will not be processed, by default. Create a custom list
-# to override the default setting.
-# exclude:
-#   - Gemfile
-#   - Gemfile.lock
-#   - node_modules
-#   - vendor/bundle/
-#   - vendor/cache/
-#   - vendor/gems/
-#   - vendor/ruby/
