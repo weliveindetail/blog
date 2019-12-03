@@ -1,5 +1,6 @@
 title: indetail dev blog
 description: Sporadic details on compilers, code and tooling from the world of LLVM
+author: Stefan Gränitz
 url: https://weliveindetail.github.io
 baseurl: "/blog"
 
