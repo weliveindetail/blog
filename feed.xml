@@ -1,0 +1,924 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.0">Jekyll</generator><link href="http://localhost:4000/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/blog/" rel="alternate" type="text/html" /><updated>2019-12-03T12:30:35+01:00</updated><id>http://localhost:4000/blog/</id><title type="html">indetail dev blog</title><subtitle>Sporadic details on compilers, code and tooling from the world of LLVM</subtitle><entry><title type="html">What’s the matter with yaml-bench in the llvm-9-dev apt package?</title><link href="http://localhost:4000/blog/post/2019/12/02/apt-llvm-9-dev-yaml-bench.html" rel="alternate" type="text/html" title="What's the matter with yaml-bench in the llvm-9-dev apt package?" /><published>2019-12-02T15:07:01+01:00</published><updated>2019-12-02T15:07:01+01:00</updated><id>http://localhost:4000/blog/post/2019/12/02/apt-llvm-9-dev-yaml-bench</id><content type="html" xml:base="http://localhost:4000/blog/post/2019/12/02/apt-llvm-9-dev-yaml-bench.html">&lt;p&gt;The LLVM project publishes prebuilt &lt;a href=&quot;http://apt.llvm.org/&quot;&gt;apt packages&lt;/a&gt;.
+A client project can easily install a release build of version X via
+&lt;code class=&quot;highlighter-rouge&quot;&gt;apt-get install llvm-X-dev&lt;/code&gt; and call &lt;code class=&quot;highlighter-rouge&quot;&gt;find_package(LLVM)&lt;/code&gt; from CMake.
+This mechanism is broken in the prepackaged LLVM 9, which was released in
+Sepember 2019. The CMake configuration &lt;a href=&quot;https://travis-ci.org/weliveindetail/apt-llvm-9-dev-repro/builds/619590445#L204&quot;&gt;fails with an error message like this&lt;/a&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;CMake Error at /usr/lib/llvm-9/lib/cmake/llvm/LLVMExports.cmake:1323 (message):
+
+  The imported target &quot;yaml-bench&quot; references the file
+
+     &quot;/usr/lib/llvm-9/bin/yaml-bench&quot;
+
+  but this file does not exist.  Possible reasons include:
+
+  * The file was deleted, renamed, or moved to another location.
+
+  * An install or uninstall procedure did not complete successfully.
+
+  * The installation package was faulty and contained
+
+     &quot;/usr/lib/llvm-9/lib/cmake/llvm/LLVMExports.cmake&quot;
+
+  but not all the files it references.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The issue here is that &lt;code class=&quot;highlighter-rouge&quot;&gt;LLVMExports.cmake&lt;/code&gt; references the &lt;code class=&quot;highlighter-rouge&quot;&gt;yaml-bench&lt;/code&gt;
+exectuable that is not part
+&lt;a href=&quot;https://packages.debian.org/sid/llvm-9-dev&quot;&gt;of the package&lt;/a&gt; or
+&lt;a href=&quot;https://salsa.debian.org/pkg-llvm-team/llvm-toolchain/blob/9/debian/control#L320&quot;&gt;any of its dependencies&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;workaround&quot;&gt;Workaround&lt;/h3&gt;
+
+&lt;p&gt;It’s very very unlikely you actually need &lt;code class=&quot;highlighter-rouge&quot;&gt;yaml-bench&lt;/code&gt;. If you have the
+necessary privileges, you may simpliy &lt;code class=&quot;highlighter-rouge&quot;&gt;touch /usr/lib/llvm-9/bin/yaml-bench&lt;/code&gt;
+to put in an empty dummy file. It’s the
+&lt;a href=&quot;https://github.com/weliveindetail/apt-llvm-9-dev-repro/commit/86497a3b&quot;&gt;workaround I choose in my repro&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Otherwise install &lt;code class=&quot;highlighter-rouge&quot;&gt;libclang-common-9-dev&lt;/code&gt;, which happens to
+&lt;a href=&quot;https://packages.debian.org/sid/amd64/libclang-common-9-dev/filelist&quot;&gt;provide &lt;code class=&quot;highlighter-rouge&quot;&gt;yaml-bench&lt;/code&gt;&lt;/a&gt;
+together with &lt;a href=&quot;https://packages.debian.org/sid/libclang-common-9-dev#pdownload&quot;&gt;46MB of unrelated files&lt;/a&gt;.&lt;/p&gt;</content><author><name>Stefan Gränitz</name></author><summary type="html">The LLVM project publishes prebuilt apt packages. A client project can easily install a release build of version X via apt-get install llvm-X-dev and call find_package(LLVM) from CMake. This mechanism is broken in the prepackaged LLVM 9, which was released in Sepember 2019. The CMake configuration fails with an error message like this:</summary></entry><entry><title type="html">LLVM Release 9.0 changes</title><link href="http://localhost:4000/blog/post/2019/07/18/llvm9-changes.html" rel="alternate" type="text/html" title="LLVM Release 9.0 changes" /><published>2019-07-18T16:57:01+02:00</published><updated>2019-07-18T16:57:01+02:00</updated><id>http://localhost:4000/blog/post/2019/07/18/llvm9-changes</id><content type="html" xml:base="http://localhost:4000/blog/post/2019/07/18/llvm9-changes.html">&lt;p&gt;Today LLVM release 9.0 branched, here’s what changed in a hot-cold map. Click on the diagrams for the interactive view.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://weliveindetail.github.io/git-baobab/examples/llvm9-cpp-sources.html&quot;&gt;&lt;img src=&quot;https://weliveindetail.github.io/blog/res/llvm9-cpp-sources-with-margin.png&quot; alt=&quot;Changes in C++ files outside tests&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The diagram shows the accumulated changes in C++ files outside tests since Release 8.0 branched on Jan 16, 2019. The size of an arc represents the amount of change in a file/directory relative to its sibling files/directories. The color of an arc indicates the amount of change relative to its line count today. The amount of change is the sum of insertions and deletions.&lt;/p&gt;
+
+&lt;p&gt;I generated the diagram with &lt;a href=&quot;https://github.com/weliveindetail/git-baobab&quot;&gt;git-baobab&lt;/a&gt;, a little tool I played around with in spare time during the last months:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ git clone https://github.com/llvm/llvm-project.git
+$ cd llvm-project
+$ git checkout release/9.x
+$ git merge-base origin/release/8.x HEAD
+7b5565418f4d6e113ba805dad40d471d23bca6f6
+$ git baobab 7b5565418f4 --cpp -exclude &quot;/(test|unittest|unittests)/&quot;
+Commits 7b5565418f4d..2cf681a11aea
+Filter matches 11896 tracked files
+4879337 lines today, 707834 lines changed
+Export chart to /var/folders/2k/myk8kt8d4f52dzr19331wtxr0000gn/T/tmp1knfujcn.html
+Show in browser? [Y/n] y
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Here are two more examples from the ongoing release.&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;tr&gt;&lt;td style=&quot;padding:20px;&quot;&gt;
+    &lt;a href=&quot;https://weliveindetail.github.io/git-baobab/examples/llvm9-cmake.html&quot;&gt;
+      &lt;img alt=&quot;Changes in CMake files&quot; src=&quot;https://weliveindetail.github.io/git-baobab/examples/llvm9-cmake.png&quot; /&gt;
+    &lt;/a&gt;
+  &lt;/td&gt;&lt;td style=&quot;padding:20px;&quot;&gt;
+    &lt;a href=&quot;https://weliveindetail.github.io/git-baobab/examples/llvm9-cpp-executionengine.html?path=llvm-project/llvm&quot;&gt;
+      &lt;img alt=&quot;Changes in ExecutionEngine C++ files&quot; src=&quot;https://weliveindetail.github.io/git-baobab/examples/llvm9-cpp-executionengine.png&quot; /&gt;
+    &lt;/a&gt;
+  &lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;p&gt;The left diagram uses the &lt;code class=&quot;highlighter-rouge&quot;&gt;--cmake&lt;/code&gt; flag, which includes &lt;code class=&quot;highlighter-rouge&quot;&gt;CMakeLists.txt&lt;/code&gt; files as well as files with &lt;code class=&quot;highlighter-rouge&quot;&gt;.cmake&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;.in&lt;/code&gt; extensions. Speciically for people working with the JIT components of LLVM, the right diagram shows what changed in ExecutionEngine C++ files.&lt;/p&gt;</content><author><name>Stefan Gränitz</name></author><summary type="html">Today LLVM release 9.0 branched, here’s what changed in a hot-cold map. Click on the diagrams for the interactive view.</summary></entry><entry><title type="html">Rich Recoverable Error Handling with llvm::Expected</title><link href="http://localhost:4000/blog/post/2017/10/22/llvm-expected.html" rel="alternate" type="text/html" title="Rich Recoverable Error Handling with llvm::Expected&lt;T&gt;" /><published>2017-10-22T17:43:01+02:00</published><updated>2017-10-22T17:43:01+02:00</updated><id>http://localhost:4000/blog/post/2017/10/22/llvm-expected</id><content type="html" xml:base="http://localhost:4000/blog/post/2017/10/22/llvm-expected.html">&lt;p&gt;There are good reasons for and against the use of C++ Exceptions. The lack of good alternatives, however, is often considered a strong argument &lt;em&gt;for&lt;/em&gt; them. Exception-free codebases just too easily retrogress to archaic error code passing. If your project doesn’t go well with Exceptions, it can be a terrible trade-off.&lt;/p&gt;
+
+&lt;p&gt;This post is the first in a series presenting the rich error handling implementation introduced to the LLVM libraries recently. In order to make it usable for third parties, I provide a stripped-down version:
+&lt;a href=&quot;https://github.com/weliveindetail/llvm-expected&quot;&gt;https://github.com/weliveindetail/llvm-expected&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;example-llvmexpectedt&quot;&gt;Example llvm::Expected&amp;lt;T&amp;gt;&lt;/h3&gt;
+
+&lt;p&gt;In a first example we will use the &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::GlobPattern&lt;/code&gt; class for a search query with wildcards and make it fail. Handling this failure with &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Expected&amp;lt;T&amp;gt;&lt;/code&gt; and dumping the error info to &lt;code class=&quot;highlighter-rouge&quot;&gt;stderr&lt;/code&gt;, looks like this:&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;simpleExample&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;[a*.txt&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Expected&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GlobPattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GlobPattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;move&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;err&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;takeError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;logAllUnhandledErrors&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;move&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cerr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;[Glob Error] &quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;match&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;...&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;simpleExample&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// success! more code here
+&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;In success case &lt;code class=&quot;highlighter-rouge&quot;&gt;pattern&lt;/code&gt; holds a &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::GlobPattern&lt;/code&gt; object, so &lt;code class=&quot;highlighter-rouge&quot;&gt;takeError()&lt;/code&gt; returns &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Error::success()&lt;/code&gt; which evaluates to &lt;code class=&quot;highlighter-rouge&quot;&gt;false&lt;/code&gt; and execution continues with the invocation of &lt;code class=&quot;highlighter-rouge&quot;&gt;GlobPattern::match()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Our example, however, provokes the error case: &lt;code class=&quot;highlighter-rouge&quot;&gt;[a*.txt&lt;/code&gt; is no valid pattern and causes an internal error. Hence &lt;code class=&quot;highlighter-rouge&quot;&gt;takeError()&lt;/code&gt; returns an &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Error&lt;/code&gt; object, which evaluats to &lt;code class=&quot;highlighter-rouge&quot;&gt;true&lt;/code&gt; and execution enters the &lt;code class=&quot;highlighter-rouge&quot;&gt;if&lt;/code&gt; branch. Before we return &lt;code class=&quot;highlighter-rouge&quot;&gt;false&lt;/code&gt; from here, &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::logAllUnhandledErrors()&lt;/code&gt; will give us an okish error message:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-output&quot;&gt;[Glob Error] invalid glob pattern: [a*.txt
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;example-stderror_code&quot;&gt;Example std::error_code&lt;/h3&gt;
+
+&lt;p&gt;Doing the same with error codes looks like this:&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;simpleExample&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;GlobPattern&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;[a*.txt&quot;&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error_code&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ec&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GlobPattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cerr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;[Glob Error] &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getErrorDescription&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;: &quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cerr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;match&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;...&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;simpleExample&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// success! more code here
+&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;As &lt;code class=&quot;highlighter-rouge&quot;&gt;GlobPattern::create&lt;/code&gt; now returns a &lt;code class=&quot;highlighter-rouge&quot;&gt;std::error_code&lt;/code&gt;, we obtain the resulting &lt;code class=&quot;highlighter-rouge&quot;&gt;pattern&lt;/code&gt; through an out parameter. Note that this choice has a background: we don’t want to use the out parameter for the error code as we would need to &lt;code class=&quot;highlighter-rouge&quot;&gt;clear()&lt;/code&gt; it in success case explicitly to make sure&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;it has no uninitialized memory and&lt;/li&gt;
+  &lt;li&gt;it does not accidentally carry a previously assigned error code.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Also note that we have no choice but to pass &lt;code class=&quot;highlighter-rouge&quot;&gt;pattern&lt;/code&gt; in and out by reference. We cannot do “better” and use a reference to pointer to &lt;code class=&quot;highlighter-rouge&quot;&gt;GlobPattern&lt;/code&gt; here, as it required a heap allocation in success case, which is far too expensive. We’re forced to create and default-initialize &lt;code class=&quot;highlighter-rouge&quot;&gt;pattern&lt;/code&gt; before the call.&lt;/p&gt;
+
+&lt;p&gt;As a last side effect, we cannot pass &lt;code class=&quot;highlighter-rouge&quot;&gt;fileName&lt;/code&gt; by move anymore, as it may be used for the error dump:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-output&quot;&gt;[Glob Error] invalid_argument: [a*.txt
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;motivation&quot;&gt;Motivation&lt;/h3&gt;
+
+&lt;p&gt;So what do we gain with &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Expected&amp;lt;T&amp;gt;&lt;/code&gt;? A little readablility? A move instead of a const-ref or copy? Save one stack allocation plus initialization? No that’s just the sugar. What we really gain is flexibility! We’ll see that in the following example.&lt;/p&gt;
+
+&lt;p&gt;Let’s imagine our &lt;code class=&quot;highlighter-rouge&quot;&gt;simpleExample&lt;/code&gt; function becomes prominent and other people want to use it too. So we decide to move it to a library. Can we dump to &lt;code class=&quot;highlighter-rouge&quot;&gt;stderr&lt;/code&gt; straight away in our library? Well, we could provide an extra argument to pass in an arbitrary stream to receive the error message, but maybe the user of the library has an entirely different approach for error handling. Quite likely we’d end up with something like this for error codes:&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error_code&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;simpleExample&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                              &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unique_ptr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;errorFileName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;GlobPattern&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;[a*.txt&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error_code&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ec&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GlobPattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;errorFileName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;make_unique&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;match&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;...&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error_code&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unique_ptr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;errorFileName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nullptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// heap alloc in error case
+&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error_code&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ec&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;simpleExample&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;errorFileName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cerr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;[simpleExample Error] &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getErrorDescription&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot; &quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cerr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;errorFileName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;c1&quot;&gt;// success! more code here
+&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Moving the error handling to &lt;code class=&quot;highlighter-rouge&quot;&gt;main&lt;/code&gt;, we have to change the signature of &lt;code class=&quot;highlighter-rouge&quot;&gt;simpleExample&lt;/code&gt; to return the error code and add out parameters for both, the actual result and the potential error details. Variables for out parameters have to be created and initialized apriori, which again adds unnecessary overhead (actually we never need both).&lt;/p&gt;
+
+&lt;p&gt;Well at least we are a little smart here: we define &lt;code class=&quot;highlighter-rouge&quot;&gt;errorFileName&lt;/code&gt; as &lt;code class=&quot;highlighter-rouge&quot;&gt;std::unique_ptr&lt;/code&gt; to &lt;code class=&quot;highlighter-rouge&quot;&gt;std::string&lt;/code&gt; and pass this by reference. The interface gets slightly more complicated, but for C++ it’s a manual optimization that’s perfectly reasonable. In success case, we now pay only for the initialization of the pointer and not the string itself! It’s a common pattern to optimize the success path at the expense of the error path. In case of errors performance is not our concern and we don’t care about an extra heap allocation. Friendly reminder: never use error handling for regular control flow!&lt;/p&gt;
+
+&lt;p&gt;All in all, shifting the error handling by one level in the call stack, is a significant change to our code and function signatures. Readability suffers, unit tests need to be changed and we need to look very precisely in order to keep the best possible performance and to avoid introducing new edge cases! It’s a bunch of details to consider for a rather primitive change.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;The underlying problem here is the limitation of error codes: They communicate enumerable errors very well, but cannot carry extra information.&lt;/strong&gt; In my experience people do hesitate to make the effort and return error details. In the majority of cases you get a magic number that can be looked up in some table and figuring out the details is your task for the rest of the day. But things can get worse with error codes, when people start dropping errors “for now” and handling them “later”.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Well, we all know what “later” means and that’s the next problem with error codes: There is no mechanism to make sure they are actually handled&lt;/strong&gt;. In case you use bools, ints and nullptrs to indicate error situations, establishing a consistent use of &lt;code class=&quot;highlighter-rouge&quot;&gt;std::error_code&lt;/code&gt; (or any other enumeration) throughout your codebase is a good first step, because it gives you a way to search for your failpoints! Nevertheless it still involves manual inspection of each and every occurrance, which makes it harder than necessary to estimate the robustness your codebase.&lt;/p&gt;
+
+&lt;p&gt;Using &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Expected&amp;lt;T&amp;gt;&lt;/code&gt; makes the task surprisingly simple. The only change on the function signature is the return type, from &lt;code class=&quot;highlighter-rouge&quot;&gt;bool&lt;/code&gt; to &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Expected&amp;lt;bool&amp;gt;&lt;/code&gt;. In &lt;code class=&quot;highlighter-rouge&quot;&gt;simpleExample&lt;/code&gt; we just forward errors and otherwise call the &lt;code class=&quot;highlighter-rouge&quot;&gt;match()&lt;/code&gt; member function through an indirection:&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;Expected&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;simpleExample&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;[a*.txt&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Expected&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GlobPattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GlobPattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;move&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;takeError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;match&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;...&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Expected&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;simpleExample&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;err&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;takeError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;logAllUnhandledErrors&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;move&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;errs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;[simpleExample Error] &quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;c1&quot;&gt;// success! more code here
+&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;That’s it! Compared to the changes in the error codes version, this was trivial! No impact on readability. Only 2 lines of new code. Minimal changes on the function signature, so unit test fixes should be fairly easy.&lt;/p&gt;
+
+&lt;p&gt;Most importantly though for C++ programmers: we keep the best possible performance without any smartness! No new edge cases! Yey!&lt;/p&gt;
+
+&lt;h3 id=&quot;entities&quot;&gt;Entities&lt;/h3&gt;
+
+&lt;p&gt;So going that way, what entities are we supposed to deal with? Instead of a primitive code, we want to hand around a user-defined structure that carries arbitrary information. For the sake of simplicity and other benefits we will see later, it’s a class derived from &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::ErrorInfoBase&lt;/code&gt;. The &lt;a href=&quot;http://llvm.org/docs/ProgrammersManual.html&quot;&gt;LLVM Programmers Manual&lt;/a&gt; gives a good example:&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;BadFileFormat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ErrorInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BadFileFormat&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;BadFileFormat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StringRef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;
+
+  &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;raw_ostream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;OS&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot; is malformed&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error_code&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;convertToErrorCode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;make_error_code&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;object_error&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parse_failed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BadFileFormat&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// This should be declared in the C++ file.
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;As we don’t want to pass around polymorphic objects directly, the library gives us two lightweight wrappers:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Error&lt;/code&gt; for functions that otherwise return &lt;code class=&quot;highlighter-rouge&quot;&gt;void&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Expected&amp;lt;T&amp;gt;&lt;/code&gt; for functions that otherwise return &lt;code class=&quot;highlighter-rouge&quot;&gt;T&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;These wrappers type-erase all error details (just like &lt;code class=&quot;highlighter-rouge&quot;&gt;std::function&lt;/code&gt; type-erases the details of a function instance). Accessing these information will be cumbersome and also less performant. That’s ok, it only happens in error cases. Additionally these wrappers implement a very natural behavior for errors:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;No duplicates: Similarly to &lt;code class=&quot;highlighter-rouge&quot;&gt;std::unique_ptr&lt;/code&gt; they don’t permit copy but only move.&lt;/li&gt;
+  &lt;li&gt;No lost instances: In debug mode, they make sure to be checked for failtures, before they are destroyed or values are accessed.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;If we hadn’t checked &lt;code class=&quot;highlighter-rouge&quot;&gt;pattern&lt;/code&gt; for errors in line 4 of the example in the Motivation section, we would get the following message (always, not only in error cases):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-output&quot;&gt;Expected&amp;lt;T&amp;gt; must be checked before access or destruction.
+Unchecked Expected&amp;lt;T&amp;gt; contained error:
+invalid glob pattern: [a*.txt
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;alexandrescus-expectedt&quot;&gt;Alexandrescu’s Expected&amp;lt;T&amp;gt;&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://onedrive.live.com/?cid=F1B8FF18A2AEC5C5&amp;amp;id=F1B8FF18A2AEC5C5%211158&amp;amp;parId=root&amp;amp;o=OneUp&quot;&gt;This well-known proposal&lt;/a&gt;, for which you can &lt;a href=&quot;https://github.com/martinmoene/spike-expected/tree/master/alexandrescu&quot;&gt;find an implementation here&lt;/a&gt;, is a close relative to &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Expected&amp;lt;T&amp;gt;&lt;/code&gt;. The major difference is the interoperability with exceptions, which makes it a bad choice for the exception-free codebase. However, it gives the opportunity to make it simple and store the error payload as &lt;a href=&quot;http://en.cppreference.com/w/cpp/error/exception_ptr&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;std::exception_ptr&lt;/code&gt;&lt;/a&gt;. While Alexandrescu added support for &lt;code class=&quot;highlighter-rouge&quot;&gt;Expected&amp;lt;void&amp;gt;&lt;/code&gt; explicitly, we would return &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Error&lt;/code&gt; in this case.&lt;/p&gt;
+
+&lt;h3 id=&quot;boost-outcome&quot;&gt;Boost Outcome&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://ned14.github.io/outcome/&quot;&gt;Boost Outcome&lt;/a&gt; looks like the current candidate for a future &lt;a href=&quot;http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0323r2.pdf&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;std::expected&lt;/code&gt;&lt;/a&gt;. Besides also supporting interoperability with exceptions it seems very similar to &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Expected&amp;lt;T&amp;gt;&lt;/code&gt; at first appearance. But there is one fundamental difference: Boost Outcome’s &lt;a href=&quot;https://ned14.github.io/outcome/tutorial/result/&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;outcome::result&amp;lt;T,EC&amp;gt;&lt;/code&gt;&lt;/a&gt; does not type-erase its payload. Instead error types are exposed as template parameters. Naturally, the next idea is to represent multiple possible error types with variadic templates: &lt;code class=&quot;highlighter-rouge&quot;&gt;expected&amp;lt;Y, E1, ..., En&amp;gt;&lt;/code&gt; — that’s where I get nervous.&lt;/p&gt;
+
+&lt;p&gt;Using error types in function signatures may not seem like a big deal, but considering the real size of codebases as well as the impact on API versioning, it could make you skeptic. For me this looks like a renewal of exception specifications, just without the really stupid parts. I recommend reading &lt;a href=&quot;http://www.artima.com/intv/handcuffsP.html&quot;&gt;The Trouble with Checked Exceptions&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Well, if that’s the only issue then let’s write a type-erasing wrapper for Boost Outcome! In a first naive attempt, I tried to use &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::ErrorInfoBase&lt;/code&gt; for the payload type in &lt;code class=&quot;highlighter-rouge&quot;&gt;outcome::result&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;template&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;expected&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;outcome&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;llvm&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ErrorInfoBase&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wrappee&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The experiment ended abruptly. Apparently abstract base classes are not what Boost Outcome considers a valid payload:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-output&quot;&gt;outcome/detail/result_storage.hpp:162:5: error: static_assert failed &quot;The type S must be void or default constructible&quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Using a default constructible base class works, but there is still &lt;a href=&quot;https://www.reddit.com/r/cpp/comments/5qzxdy/reasons_why_expectedt_e_should_always_use/&quot;&gt;some confusing discussions online&lt;/a&gt; that suggest not to use Boost Outcome with arbitrary polymorphic types. Anyway, even if you manage to write a type-erased wrapper you still need to implement all the tooling around it youself.&lt;/p&gt;
+
+&lt;h3 id=&quot;less-generalization-more-common-ground&quot;&gt;Less Generalization, More Common Ground&lt;/h3&gt;
+
+&lt;p&gt;LLVM’s rich error handling offers straightforward and pragmatic implementations for its wrappers &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Error&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Expected&amp;lt;T&amp;gt;&lt;/code&gt; and at the same time it gets away with without error types in their signatures. The key to simplicity is a common base class for the error payload.&lt;/p&gt;
+
+&lt;p&gt;Substantiating this focal detail, rather then generalizing it, allows the library to provide seasoned tooling around its basic entities. I consider that a compelling benefit, because we don’t write code for the sake of error handling. I think &lt;em&gt;simple&lt;/em&gt; and &lt;em&gt;compact&lt;/em&gt; are the most appreciated properties in this problem domain.&lt;/p&gt;
+
+&lt;p&gt;That’s where we need library support. First of all we have a number of useful special-case implementations for errors:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::ErrorList&lt;/code&gt; is handy in situations where one error leads to another or separate operations fail independently&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::StringError&lt;/code&gt; represents general-purpose errors that can fit all information into a string and have no distinct recovery strategy&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::ECError&lt;/code&gt; stores a simple &lt;code class=&quot;highlighter-rouge&quot;&gt;std::error_code&lt;/code&gt; and does its part for interoperability&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Library functions now benefit from their knowledge about the existance of these special cases. The goal is to tune the interactions between frequently used entities to simplify the user’s code. That’s what makes a well-coordinated library.&lt;/p&gt;
+
+&lt;h3 id=&quot;errorlist&quot;&gt;ErrorList&lt;/h3&gt;
+
+&lt;p&gt;The following code shows the synergy of &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::ErrorList&lt;/code&gt; with &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::handleAllErrors()&lt;/code&gt;, a library function which acts like a &lt;code class=&quot;highlighter-rouge&quot;&gt;catch&lt;/code&gt; clause selector for errors.&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;using&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;namespace&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;llvm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error_code&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;EC&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;make_error_code&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;errc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;invalid_argument&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;Error&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;firstErr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;errorCodeToError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;EC&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Error&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;aftereffect&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;make_error&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StringError&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;msg&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;inconvertibleErrorCode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// payload of bar is ErrorList of ECError and StringError
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Error&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;joinErrors&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;firstErr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;aftereffect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;handleAllErrors&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;move&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[](&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ErrorList&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// never called
+&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[](&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StringError&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// called second
+&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[](&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ECError&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// called first
+&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The behavior of &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::handleAllErrors()&lt;/code&gt; is obvious for regular errors: compare the type of the given error to the argument type of each handler top-down and invoke the first match. That’s great and intuitive behavior, but it’s not really what we want in case of &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::ErrorList&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Without special handling, the above example would invoke the first handler and we had to use another &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::handleAllErrors()&lt;/code&gt; inside to reach the actual errors. Too much code for error handling and most likely no practical use case will require this kind of behavior. As &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::handleAllErrors()&lt;/code&gt; knows about the &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::ErrorList&lt;/code&gt; special-case, it does the decomposition for us and dispatches the internal errors’ payloads directly. For nested error lists, this results in a depth-first traversal.&lt;/p&gt;
+
+&lt;p&gt;Effect: simple and compact code plus no need to prepare the error handling code for multiple failures.&lt;/p&gt;
+
+&lt;h3 id=&quot;error-type-hierarchies&quot;&gt;Error Type Hierarchies&lt;/h3&gt;
+
+&lt;p&gt;When everyone can define their own error types, it may get messy at some point, even if the visibility of definitions is well restricted. Type Hierarchies can help to establish a structure and they are — again — pretty simple.&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// Type hierarchy:      IOError
+//                     /       \
+//      FileNotFoundError     AccessDeniedError
+//
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;IOError&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ErrorInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IOError&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;FileNotFoundError&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ErrorInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FileNotFoundError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOError&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;FileAccessDeniedError&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ErrorInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FileAccessDeniedError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOError&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;file&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;openFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(...);&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;handleAllErrors&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;takeError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[](&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FileNotFoundError&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// special handling for IO error FileNotFoundError
+&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;[](&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOError&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// handling for all other IO errors
+&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;This code defines an error base class &lt;code class=&quot;highlighter-rouge&quot;&gt;IOError&lt;/code&gt; and two specializations &lt;code class=&quot;highlighter-rouge&quot;&gt;FileNotFoundError&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;FileAccessDeniedError&lt;/code&gt;. &lt;code class=&quot;highlighter-rouge&quot;&gt;openFile()&lt;/code&gt; returns a &lt;code class=&quot;highlighter-rouge&quot;&gt;IOError&lt;/code&gt;. Within &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::handleAllErrors&lt;/code&gt; we can now filter precisely for with types we need distinct handling in this case. In the example that’s the case for &lt;code class=&quot;highlighter-rouge&quot;&gt;FileNotFoundError&lt;/code&gt;, while &lt;code class=&quot;highlighter-rouge&quot;&gt;FileAccessDeniedError&lt;/code&gt; and all other &lt;code class=&quot;highlighter-rouge&quot;&gt;IOError&lt;/code&gt;s end up in the second handler.&lt;/p&gt;
+
+&lt;p&gt;Like all type structures, error type hierarchies are powerful when designed right. Involved class names should in some way express their categories to clarify type-dependent control flow. Also note that &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::handleAllErrors()&lt;/code&gt; doesn’t currently invoke the handler that matches &lt;em&gt;best&lt;/em&gt;, but instead the first one that matches &lt;em&gt;somehow&lt;/em&gt;. If you swap the handlers in the example, all errors will go to the &lt;code class=&quot;highlighter-rouge&quot;&gt;IOError&lt;/code&gt; handler!&lt;/p&gt;
+
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;It’s always great to use a library and get handy features that work out of the box. The reason LLVM’s rich error handling can provide such features easily, is that it hardcodes a crucial detail of the system: a common base class for all user-defined error types.&lt;/p&gt;
+
+&lt;p&gt;Writing your own wrappers and tooling for Boost Outcome is not straightforward. For an error handling approach I consider this a downside. I’d rather go for the simplest possible solution and write compact code that is intuitively understandable to the reader. This is where robustness originates.&lt;/p&gt;
+
+&lt;h3 id=&quot;references&quot;&gt;References&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;LLVM error handling docs&lt;br /&gt; &lt;a href=&quot;http://llvm.org/docs/ProgrammersManual.html#error-handling&quot;&gt;http://llvm.org/docs/ProgrammersManual.html#error-handling&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Expected&amp;lt;T&amp;gt;&lt;/code&gt; as a C++17 Header-Only Library&lt;br /&gt; &lt;a href=&quot;https://github.com/weliveindetail/llvm-expected&quot;&gt;https://github.com/weliveindetail/llvm-expected&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;</content><author><name>Stefan Gränitz</name></author><summary type="html">There are good reasons for and against the use of C++ Exceptions. The lack of good alternatives, however, is often considered a strong argument for them. Exception-free codebases just too easily retrogress to archaic error code passing. If your project doesn’t go well with Exceptions, it can be a terrible trade-off.</summary></entry><entry><title type="html">Rich Recoverable Error Handling with llvm::Expected</title><link href="http://localhost:4000/blog/post/2017/09/06/llvm-expected-basics.html" rel="alternate" type="text/html" title="Rich Recoverable Error Handling with llvm::Expected&lt;T&gt;" /><published>2017-09-06T00:05:01+02:00</published><updated>2017-09-06T00:05:01+02:00</updated><id>http://localhost:4000/blog/post/2017/09/06/llvm-expected-basics</id><content type="html" xml:base="http://localhost:4000/blog/post/2017/09/06/llvm-expected-basics.html">&lt;p&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/p&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta http-equiv=&quot;Refresh&quot; content=&quot;0; url=https://weliveindetail.github.io/blog/post/2017/10/22/llvm-expected.html&quot; /&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;p&gt;
+      Forwarding to
+      &lt;a href=&quot;https://weliveindetail.github.io/blog/post/2017/10/22/llvm-expected.html&quot;&gt;
+        https://weliveindetail.github.io/blog/post/2017/10/22/llvm-expected.html
+      &lt;/a&gt;.
+    &lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</content><author><name>Stefan Gränitz</name></author><summary type="html">&amp;lt;!DOCTYPE html&amp;gt; Forwarding to https://weliveindetail.github.io/blog/post/2017/10/22/llvm-expected.html .</summary></entry><entry><title type="html">LLVM 5.0 Release ORC API Changes</title><link href="http://localhost:4000/blog/post/2017/08/23/llvm50-release-orc-api-changes.html" rel="alternate" type="text/html" title="LLVM 5.0 Release ORC API Changes" /><published>2017-08-23T15:08:01+02:00</published><updated>2017-08-23T15:08:01+02:00</updated><id>http://localhost:4000/blog/post/2017/08/23/llvm50-release-orc-api-changes</id><content type="html" xml:base="http://localhost:4000/blog/post/2017/08/23/llvm50-release-orc-api-changes.html">&lt;p&gt;This week’s 5.0 release of the LLVM libraries is a good opportunity to see what changed on the ORC JIT API. This is a summary of the most important things I came across when porting the &lt;a href=&quot;https://github.com/weliveindetail/JitFromScratch&quot;&gt;JitFromScratch&lt;/a&gt; examples.&lt;/p&gt;
+
+&lt;p&gt;Please note that the &lt;code class=&quot;highlighter-rouge&quot;&gt;release_40&lt;/code&gt; compatible branches are still available and just moved into the &lt;code class=&quot;highlighter-rouge&quot;&gt;llvm40/&lt;/code&gt; nesting level. So you can diff for a specific 4.0 to 5.0 change set quite easily:&lt;/p&gt;
+&lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; diff llvm40/jit-basics jit-basics
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; diff llvm40/jit-basics jit-basics -- CMakeLists.txt
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; diff llvm40/jit-debug/gdb-interface jit-debug/gdb-interface -- SimpleOrcJit.h
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;orclayerconceptaddmodule&quot;&gt;OrcLayerConcept::addModule&lt;/h3&gt;
+
+&lt;p&gt;The most anticipated news for me is the simplification of the ORC layer API from module-sets to single modules. Please don’t misunderstand, I liked the idea to commit a set of modules at once in order to achieve cross-module optimization! However, in practice I never saw it used anywhere and so it always seemed overcomplicate the API without actual use.&lt;/p&gt;
+
+&lt;p&gt;Now simple changes like &lt;code class=&quot;highlighter-rouge&quot;&gt;ModuleSetHandleT&lt;/code&gt; becoming &lt;code class=&quot;highlighter-rouge&quot;&gt;ModuleHandleT&lt;/code&gt; made a lot of things easier. In order to still make use of cross-module optimizations, you can link the your modules into one using &lt;a href=&quot;http://llvm.org/doxygen/classllvm_1_1Linker.html#a72e11e8404db974fa400748b888ea49d&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;llvm::Linker::linkModules&lt;/code&gt;&lt;/a&gt; before the commit.&lt;/p&gt;
+
+&lt;h3 id=&quot;errorization&quot;&gt;Errorization&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/llvm-mirror/llvm/commit/a81793582b3c47869680d354a97d59c55779c349&quot;&gt;Errorization&lt;/a&gt; is another interesting thing that happened not only on this API entry point, but &lt;a href=&quot;https://github.com/llvm-mirror/llvm/commit/c6bf9be16da829a7292b1aa7307c4f162b4c6f72&quot;&gt;in a number of places&lt;/a&gt;. It incorporates the new &lt;a href=&quot;https://llvm.org/docs/ProgrammersManual.html#error-handling&quot;&gt;structured error handling&lt;/a&gt; techniques aiming to improve consistency when dealing with error cases.&lt;/p&gt;
+
+&lt;div class=&quot;language-diff highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ git diff release_40 release_50 -- ./include/llvm/ExecutionEngine/Orc/IRCompileLayer.h
+&lt;span class=&quot;gh&quot;&gt;diff --git a/include/llvm/ExecutionEngine/Orc/IRCompileLayer.h b/include/llvm/ExecutionEngine/Orc/IRCompileLayer.h
+index f16dd021ea5..fadd334bed0 100644
+&lt;/span&gt;&lt;span class=&quot;gd&quot;&gt;--- a/include/llvm/ExecutionEngine/Orc/IRCompileLayer.h
+&lt;/span&gt;&lt;span class=&quot;gi&quot;&gt;+++ b/include/llvm/ExecutionEngine/Orc/IRCompileLayer.h
+&lt;/span&gt;   ...
+&lt;span class=&quot;gd&quot;&gt;-  /// @brief Compile each module in the given module set, then add the resulting
+-  ///        set of objects to the base layer along with the memory manager and
+-  ///        symbol resolver.
+&lt;/span&gt;&lt;span class=&quot;gi&quot;&gt;+  /// @brief Compile the module, and add the resulting object to the base layer
++  ///        along with the given memory manager and symbol resolver.
+&lt;/span&gt;   ///
+&lt;span class=&quot;gd&quot;&gt;-  /// @return A handle for the added modules.
+-  template &amp;lt;typename ModuleSetT, typename MemoryManagerPtrT,
+-            typename SymbolResolverPtrT&amp;gt;
+-  ModuleSetHandleT addModuleSet(ModuleSetT Ms,
+-                                MemoryManagerPtrT MemMgr,
+-                                SymbolResolverPtrT Resolver) {
+&lt;/span&gt;   ...
+&lt;span class=&quot;gd&quot;&gt;-    ModuleSetHandleT H =
+-      BaseLayer.addObjectSet(std::move(Objects), std::move(MemMgr),
+-                             std::move(Resolver));
+-
+-    return H;
+&lt;/span&gt;&lt;span class=&quot;gi&quot;&gt;+  /// @return A handle for the added module.
++  Expected&amp;lt;ModuleHandleT&amp;gt;
++  addModule(std::shared_ptr&amp;lt;Module&amp;gt; M,
++            std::shared_ptr&amp;lt;JITSymbolResolver&amp;gt; Resolver) {
++    using CompileResult = decltype(Compile(*M));
++    auto Obj = std::make_shared&amp;lt;CompileResult&amp;gt;(Compile(*M));
++    return BaseLayer.addObject(std::move(Obj), std::move(Resolver));
+&lt;/span&gt;   }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;templates&quot;&gt;Templates&lt;/h3&gt;
+
+&lt;p&gt;The reduction of template code is another step towards simplification that I appreciate. As you can see in the new signature of the &lt;code class=&quot;highlighter-rouge&quot;&gt;addModule&lt;/code&gt; function above, the &lt;code class=&quot;highlighter-rouge&quot;&gt;SymbolResolverPtrT&lt;/code&gt; template parameter was replaced with a smart pointer to base class &lt;code class=&quot;highlighter-rouge&quot;&gt;JITSymbolResolver&lt;/code&gt;. As symbol resolvers are commonly shared between modules, it uses a shared pointer. The overhead of additional write operations to memory (update reference count) is acceptable all over the ORC API — well the whole JIT compilation process is pretty expensive anyway.&lt;/p&gt;
+
+&lt;p&gt;One more example for this is the &lt;code class=&quot;highlighter-rouge&quot;&gt;RTDyldObjectLinkingLayer&lt;/code&gt; (that btw. was renamed). It replaces template parameters for functors with &lt;code class=&quot;highlighter-rouge&quot;&gt;typedef&lt;/code&gt;s to &lt;code class=&quot;highlighter-rouge&quot;&gt;std::function&lt;/code&gt;. On the caller’s side it actually makes no difference. While the template parameter was auto deduced in &lt;code class=&quot;highlighter-rouge&quot;&gt;release_40&lt;/code&gt;, the same expression is now accepted as a regular typed function parameter:&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;template&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typename&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NotifyLoadedFtor&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DoNothingOnNotifyLoaded&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ObjectLinkingLayer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ObjectLinkingLayerBase&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;ObjectLinkingLayer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;NotifyLoadedFtor&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NotifyLoaded&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NotifyLoadedFtor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;NotifyFinalizedFtor&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NotifyFinalized&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NotifyFinalizedFtor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;This code turned into:&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;RTDyldObjectLinkingLayer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RTDyldObjectLinkingLayerBase&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;/// @brief Functor for receiving object-loaded notifications.
+&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;using&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NotifyLoadedFtor&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ObjHandleT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ObjectPtr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                                              &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LoadedObjectInfo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;RTDyldObjectLinkingLayer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;MemoryManagerGetter&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GetMemMgr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;NotifyLoadedFtor&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NotifyLoaded&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NotifyLoadedFtor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;NotifyFinalizedFtor&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NotifyFinalized&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NotifyFinalizedFtor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;component-dependencies&quot;&gt;Component Dependencies&lt;/h3&gt;
+
+&lt;p&gt;When building the JitFromScratch examples against &lt;code class=&quot;highlighter-rouge&quot;&gt;release_50&lt;/code&gt; I was a little surprised about linker errors reporting undefined symbols. I hadn’t really changed anything, so why was this happening? So far the only explaination for me is that some component dependencies were sorted out. In order to build &lt;code class=&quot;highlighter-rouge&quot;&gt;jit-basics&lt;/code&gt; we now need to specify &lt;code class=&quot;highlighter-rouge&quot;&gt;executionengine&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;object&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;runtimedyld&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;support&lt;/code&gt; explicitly. Previously their libraries were linked in automatically by using only &lt;code class=&quot;highlighter-rouge&quot;&gt;core&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;native&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;orcjit&lt;/code&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-diff highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gh&quot;&gt;diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5ab1a01..2fbca43 100644
+&lt;/span&gt;&lt;span class=&quot;gd&quot;&gt;--- a/CMakeLists.txt
+&lt;/span&gt;&lt;span class=&quot;gi&quot;&gt;+++ b/CMakeLists.txt
+&lt;/span&gt;...
+ # JitFromScratch dependencies
+ llvm_map_components_to_libnames(LLVM_LIBS
+     core
+&lt;span class=&quot;gi&quot;&gt;+    executionengine
++    native
++    object
+&lt;/span&gt;     orcjit
+&lt;span class=&quot;gd&quot;&gt;-    x86asmparser
+-    x86codegen
+&lt;/span&gt;&lt;span class=&quot;gi&quot;&gt;+    runtimedyld
++    support
+&lt;/span&gt; )
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Also using the ORC JIT API? Anything to add? Happy to hear your opinion or questions!&lt;/p&gt;</content><author><name>Stefan Gränitz</name></author><summary type="html">This week’s 5.0 release of the LLVM libraries is a good opportunity to see what changed on the ORC JIT API. This is a summary of the most important things I came across when porting the JitFromScratch examples.</summary></entry><entry><title type="html">The simplest way to compile C++ with Clang at runtime</title><link href="http://localhost:4000/blog/post/2017/07/25/compile-with-clang-at-runtime-simple.html" rel="alternate" type="text/html" title="The simplest way to compile C++ with Clang at runtime" /><published>2017-07-25T15:08:01+02:00</published><updated>2017-07-25T15:08:01+02:00</updated><id>http://localhost:4000/blog/post/2017/07/25/compile-with-clang-at-runtime-simple</id><content type="html" xml:base="http://localhost:4000/blog/post/2017/07/25/compile-with-clang-at-runtime-simple.html">&lt;p&gt;JIT compilation is often about custom code generation or simple DSLs. But what if we have actual source code for a general programming language and want to compile it at runtime? We need a frontend that compiles it to LLVM IR first before we feed it into the JIT. Clang is a proper frontend for C++, but what’s the simplest way to use it in this context?&lt;/p&gt;
+
+&lt;p&gt;It’s a direct consequence from the &lt;a href=&quot;/blog/post/2017/07/19/debugging-clang.html&quot;&gt;last post&lt;/a&gt;: The Clang driver forks itself for each translation unit with a pre-processed set of arguments that invoke the &lt;code class=&quot;highlighter-rouge&quot;&gt;cc1&lt;/code&gt; frontend tool, which does the actual compile job. We can do the same from our own project:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Save C++ source code to temporary file on disk&lt;/li&gt;
+  &lt;li&gt;Invoke cc1 to compile source file to bitcode file&lt;/li&gt;
+  &lt;li&gt;Stream back the bitcode file into a LLVM module&lt;/li&gt;
+  &lt;li&gt;Feed the module into the JIT&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;add-link-libraries-include-paths-and-definitions&quot;&gt;Add link libraries, include paths and definitions&lt;/h3&gt;
+
+&lt;p&gt;This is obviously necessary in order to integrate Clang into our project. Please find a sample &lt;a href=&quot;https://github.com/weliveindetail/JitFromScratch/blob/jit-from-source/cpp-clang/CMakeLists.txt&quot;&gt;CMakeLists.txt with the required additions here&lt;/a&gt;. If you’re on Linux consider using the LLD linker to speed up your builds! The sample has an &lt;a href=&quot;https://github.com/weliveindetail/JitFromScratch/blob/jit-from-source/cpp-clang/CMakeLists.txt#L55&quot;&gt;option to use LLD&lt;/a&gt; that works with Clang.&lt;/p&gt;
+
+&lt;h3 id=&quot;invoke-cc1-tool&quot;&gt;Invoke cc1 tool&lt;/h3&gt;
+
+&lt;p&gt;The simplest way is a hack: The entry point to &lt;code class=&quot;highlighter-rouge&quot;&gt;cc1&lt;/code&gt; is not the &lt;code class=&quot;highlighter-rouge&quot;&gt;main&lt;/code&gt; function but &lt;code class=&quot;highlighter-rouge&quot;&gt;cc1_main&lt;/code&gt; and it’s implemented in a &lt;a href=&quot;https://github.com/llvm-mirror/clang/blob/master/tools/driver/cc1_main.cpp&quot;&gt;separate translation unit&lt;/a&gt;. This means that we can simply include the cpp without a symbol conflict at link-time, as we do have our own &lt;code class=&quot;highlighter-rouge&quot;&gt;main&lt;/code&gt; but no &lt;code class=&quot;highlighter-rouge&quot;&gt;cc1_main&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;A rough sketch could look like this:&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// Hack: cc1 lives in &quot;tools&quot; next to &quot;include&quot;
+&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;#include &amp;lt;../tools/driver/cc1_main.cpp&amp;gt;
+&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Simplified argument set
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argsX&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;-emit-llvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;-emit-llvm-bc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;-std=c++14&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;-stdlib=libc++&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;-resource-dir&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;/path/to/llvm-clang-build/lib/clang/4.0.1/&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;-o&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;/tmp/bitcode.bc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;-x&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;c++&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;/tmp/source.cpp&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cc1_main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argsX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nullptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unique_ptr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;llvm&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Module&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;M&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;readModuleFromBitcodeFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;bitcode.bc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;jit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;submitModule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;move&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;M&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;actual-cc1-arguments&quot;&gt;Actual cc1 arguments&lt;/h3&gt;
+
+&lt;p&gt;We can figure out which arguments to pass to cc1 to do the job, by invoking &lt;code class=&quot;highlighter-rouge&quot;&gt;clang&lt;/code&gt; and prepending the command line with &lt;code class=&quot;highlighter-rouge&quot;&gt;-###&lt;/code&gt; to run only the driver and print transformed arguments:&lt;/p&gt;
+
+&lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;clang&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -### -g -c -emit-llvm -o /tmp/bitcode.bc /tmp/source.cpp
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Most of the arguments are defaults so you don’t actually need to set them. This said, for any reasonable C++ code you will at least need to set &lt;code class=&quot;highlighter-rouge&quot;&gt;-resource-dir&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;set--resource-dir&quot;&gt;Set -resource-dir&lt;/h3&gt;
+
+&lt;p&gt;Clang comes with a resource directory that contains vendor-specific include files like standard headers and intrinsics definitions. As the contents is also specific for each version of Clang, it needs to be shipped with the executable. In a developer environment, however, it can easily be inferred from the LLVM/Clang build while configuring CMake:&lt;/p&gt;
+
+&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;target_compile_definitions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;TargetName
+  PRIVATE
+    CUSTOM_CLANG_RESOURCE_DIR=
+        &lt;span class=&quot;si&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LLVM_BUILD_BINARY_DIR&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;/lib/clang/&lt;span class=&quot;si&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LLVM_PACKAGE_VERSION&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;With a little preprocessor magic it can be inserted to the &lt;code class=&quot;highlighter-rouge&quot;&gt;argsX&lt;/code&gt; vector like this:&lt;/p&gt;
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;#define STRINGIFY_DETAIL(X) #X
+#define STRINGIFY(X) STRINGIFY_DETAIL(X)
+&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argsX&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;s&quot;&gt;&quot;-emit-llvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;-emit-llvm-bc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;-std=c++14&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;-stdlib=libc++&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;s&quot;&gt;&quot;-resource-dir&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;STRINGIFY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CUSTOM_CLANG_RESOURCE_DIR&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+  &lt;span class=&quot;s&quot;&gt;&quot;-o&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;/tmp/bitcode.bc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;-x&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;c++&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;/tmp/source.cpp&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;That’s it! Add a little infrastructure around it and go compile with Clang at runtime. Please find a complete implementation in my &lt;a href=&quot;https://github.com/weliveindetail/JitFromScratch/tree/jit-from-source/cpp-clang&quot;&gt;JitFromScratch example project on GitHub&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Happy hacking!&lt;/p&gt;</content><author><name>Stefan Gränitz</name></author><summary type="html">JIT compilation is often about custom code generation or simple DSLs. But what if we have actual source code for a general programming language and want to compile it at runtime? We need a frontend that compiles it to LLVM IR first before we feed it into the JIT. Clang is a proper frontend for C++, but what’s the simplest way to use it in this context?</summary></entry><entry><title type="html">Debugging Clang</title><link href="http://localhost:4000/blog/post/2017/07/19/debugging-clang.html" rel="alternate" type="text/html" title="Debugging Clang" /><published>2017-07-19T18:30:01+02:00</published><updated>2017-07-19T18:30:01+02:00</updated><id>http://localhost:4000/blog/post/2017/07/19/debugging-clang</id><content type="html" xml:base="http://localhost:4000/blog/post/2017/07/19/debugging-clang.html">&lt;p&gt;There’s comprehensive high-level documentation for &lt;a href=&quot;http://llvm.org/docs/&quot;&gt;LLVM&lt;/a&gt; and &lt;a href=&quot;https://clang.llvm.org/docs/&quot;&gt;Clang&lt;/a&gt;. However, the further down you dig the more difficult things get. &lt;a href=&quot;http://clang.llvm.org/doxygen/&quot;&gt;Doxygen&lt;/a&gt; helps a lot to figure what is available through an API and which entry points exists, but it naturally lacks information on how to compose things to achieve your goal. Sooner or later you will need to find out yourself.&lt;/p&gt;
+
+&lt;p style=&quot;text-align: right;&quot;&gt;
+  TL;DR &amp;darr; &lt;a href=&quot;#so-how-can-we-debug-the-clang-frontend&quot;&gt;Debug the Clang frontend&lt;/a&gt;
+&lt;/p&gt;
+
+&lt;h3 id=&quot;see-how-clang-does-it&quot;&gt;See how Clang does it&lt;/h3&gt;
+
+&lt;p&gt;This is probably the top one answer in the mailing lists or stackoverflow for questions on IR code generation or library usage. It’s a simple and pragmatic solution considering the pace of change in the code base of LLVM and Clang. Any written low-level documentation will quickly be outdated anyway. People spend their time better by keeping the code of the reference implementation clean and readable.&lt;/p&gt;
+
+&lt;p&gt;So after you managed to &lt;a href=&quot;/blog/post/2017/07/17/notes-setup.html#use-enable_projects&quot;&gt;build Clang locally&lt;/a&gt;, you eventually find yourself crawling through tons of Clang sources to actually find out how Clang does it. Let’s say you want to know how Clang mangles C++ function names. On OSX you would set a breakpoint in &lt;a href=&quot;https://github.com/llvm-mirror/clang/blob/master/lib/AST/ItaniumMangle.cpp#L641&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;CXXNameMangler::mangle()&lt;/code&gt;&lt;/a&gt;. Then build Clang in debug mode and watch it compiling a C++ file like this:&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;extern&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;returnValue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;returnValue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;If you did that the first time, you may be surprised that your breakpoint never hits. Before you start searching for mistakes: You didn’t do anything wrong but &lt;strong&gt;just encountered a common pitfall&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;driver-vs-frontend&quot;&gt;Driver vs. Frontend&lt;/h3&gt;
+
+&lt;p&gt;In Clang driver (clang/clang-cl) and frontend (cc1) are separate entities. The driver mainly manages scheduling for compile jobs and transforms command line arguments from GCC- or MSVC-compatible ones to an independent internal representation. Then for each job it forks itself with the new set of arguments that invoke the frontend directly. AFAIK the reasons for this behavior are mostly historical. However, there are a few benefits with it:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;in each fork memory deallocation can be skipped as the system cleans it up with the process&lt;/li&gt;
+  &lt;li&gt;if the forked clang crashes, the parent process can generate a preprocessed source to serve as a test case&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The issue was discussed in more detail on the cfe-dev mailing list some time ago:&lt;br /&gt; &lt;a href=&quot;http://lists.llvm.org/pipermail/cfe-dev/2014-January/034870.html&quot;&gt;http://lists.llvm.org/pipermail/cfe-dev/2014-January/034870.html&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;so-how-can-we-debug-the-clang-frontend&quot;&gt;So how can we debug the Clang frontend?&lt;/h3&gt;
+
+&lt;p&gt;If you use flags to run the driver you need to translate them from driver to frontend representation first. The &lt;code class=&quot;highlighter-rouge&quot;&gt;-###&lt;/code&gt; flag is very useful here. Prepend it to your command line to run only the driver and print out transformed arguments:&lt;/p&gt;
+
+&lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;clang&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -### -c example.cpp
+&lt;/span&gt;clang version 3.8.0 (tags/RELEASE_380/final)
+Target: x86_64-apple-darwin16.6.0
+Thread model: posix
+InstalledDir: /usr/local/bin
+ &quot;/path/to/clang&quot; &quot;-cc1&quot; &quot;-triple&quot; &quot;x86_64-apple-macosx10.12.0&quot; &quot;-Wdeprecated-objc-isa-usage&quot; &quot;-Werror=deprecated-objc-isa-usage&quot; &quot;-emit-obj&quot; &quot;-mrelax-all&quot; &quot;-disable-free&quot; &quot;-disable-llvm-verifier&quot; &quot;-discard-value-names&quot; &quot;-main-file-name&quot; &quot;example.cpp&quot; [...] &quot;-o&quot; &quot;example.o&quot; &quot;-x&quot; &quot;c++&quot; &quot;example.cpp&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Take what you need for your use case and invoke the frontend directly as a single process with:&lt;/p&gt;
+&lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;clang&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -cc1 -emit-obj example.cpp
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;If you do this in your IDE your breakpoint will now hit. In LLDB it looks like this:&lt;/p&gt;
+
+&lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;
+&lt;code&gt;$ lldb -- clang
+(lldb) target create &quot;clang&quot;
+Current executable set to 'clang' (x86_64).
+(lldb) b CXXNameMangler::mangle
+Breakpoint 1: 2 locations.
+(lldb) &lt;b&gt;r -cc1 -emit-obj example.cpp&lt;/b&gt;
+Process 27909 launched: 'clang' (x86_64)
+Process 27909 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
+    frame #0: 0x000000010a69802b libclangAST.dylib`(anonymous namespace)::CXXNameMangler::mangle(this=0x00007fff5fbf5758, D=0x000000011484e3e8) at ItaniumMangle.cpp:641
+   638    // &amp;lt;mangled-name&amp;gt; ::= _Z &amp;lt;encoding&amp;gt;
+   639    //                ::= &amp;lt;data name&amp;gt;
+   640    //                ::= &amp;lt;special-name&amp;gt;
+-&amp;gt; 641    Out &amp;lt;&amp;lt; &quot;_Z&quot;;
+   642    if (const FunctionDecl *FD = dyn_cast&amp;lt;FunctionDecl&amp;gt;(D))
+   643      mangleFunctionEncoding(FD);
+   644    else if (const VarDecl *VD = dyn_cast&amp;lt;VarDecl&amp;gt;(D))
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Happy hacking!&lt;/p&gt;</content><author><name>Stefan Gränitz</name></author><summary type="html">There’s comprehensive high-level documentation for LLVM and Clang. However, the further down you dig the more difficult things get. Doxygen helps a lot to figure what is available through an API and which entry points exists, but it naturally lacks information on how to compose things to achieve your goal. Sooner or later you will need to find out yourself.</summary></entry><entry><title type="html">Building a JIT from scratch</title><link href="http://localhost:4000/blog/post/2017/07/18/building-a-jit-from-scratch.html" rel="alternate" type="text/html" title="Building a JIT from scratch" /><published>2017-07-18T12:13:01+02:00</published><updated>2017-07-18T12:13:01+02:00</updated><id>http://localhost:4000/blog/post/2017/07/18/building-a-jit-from-scratch</id><content type="html" xml:base="http://localhost:4000/blog/post/2017/07/18/building-a-jit-from-scratch.html">&lt;p&gt;Implementing a cross-platform native JIT has never been easier than today with LLVM. My GitHub project &lt;a href=&quot;https://github.com/weliveindetail/JitFromScratch&quot;&gt;JitFromScratch&lt;/a&gt; shows how to use the LLVM ORC libraries to compile the code for a simple function at runtime:&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;template&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sizeOfArray&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;integerDistances&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sizeOfArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;items&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;arrayElements&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;results&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;customIntAllocator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;items&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;items&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;abs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;You can find out how to do this by following the &lt;a href=&quot;https://github.com/weliveindetail/JitFromScratch/commits/jit-basics&quot;&gt;history of the jit-basics branch&lt;/a&gt;. This article guides you through the steps to build the project on different platforms. Please note that the initial build process takes at least 1 hour and requires at least 15GB disk space.&lt;/p&gt;
+
+&lt;h3 id=&quot;linux-mint-18&quot;&gt;Linux Mint 18&lt;/h3&gt;
+
+&lt;div id=&quot;linux-mint-18-content&quot; style=&quot;display: none;&quot;&gt;
+  &lt;p&gt;Mint comes with Clang 3.8 (full C++14) and the GNU ld system linker. Additionally we need the following packages:&lt;/p&gt;
+  &lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;sudo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; apt-get install git
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;sudo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; apt-get install cmake
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;sudo&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; apt-get install ninja-build
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;p&gt;Checkout the LLVM source code and build the &lt;code class=&quot;highlighter-rouge&quot;&gt;release_40&lt;/code&gt; branch in debug mode:&lt;/p&gt;
+  &lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; /path/to/llvm/home
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; clone https://github.com/llvm-mirror/llvm
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; llvm
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; checkout -b release_40
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; ..
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;mkdir&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; llvm40-debug
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; llvm40-debug
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;export&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; CC=clang-3.8
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;export&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; CXX=clang++-3.8
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DLLVM_TARGETS_TO_BUILD=host -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_DOCS=OFF ../llvm
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; --build .
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;p&gt;Please find more details on building LLVM &lt;a href=&quot;/blog/post/2017/07/17/notes-setup.html&quot;&gt;in the previous post&lt;/a&gt;. The build process will take time, but you can already prepare the next steps. Checkout the sources for the JitFromScratch project and get ready for generating build files:&lt;/p&gt;
+  &lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;mkdir&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; JitFromScratch
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; JitFromScratch
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; clone https://github.com/weliveindetail/JitFromScratch
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; JitFromScratch
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; checkout -b jit-basics
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; ..
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;mkdir&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; JitFromScratch-debug
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;p&gt;Once the LLVM build finished, you can configure cmake and build:&lt;/p&gt;
+  &lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; JitFromScratch-build
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -G Ninja -DCMAKE_BUILD_TYPE=Debug -DLLVM_DIR=/path/to/llvm/home/llvm40-debug/lib/cmake/llvm ../JitFromScratch
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; --build .
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;./JitFromScratch&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;Integer Distances: 3, 0, 3
+&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;p&gt;&lt;a href=&quot;https://download.qt.io/official_releases/qtcreator/&quot;&gt;QtCreator&lt;/a&gt; is great for codebase exploration. &lt;a href=&quot;https://blog.qt.io/blog/2016/11/15/cmake-support-in-qt-creator-and-elsewhere/&quot;&gt;Since version 4.3&lt;/a&gt; it works with CMake natively, so you can just click &lt;em&gt;Open Project&lt;/em&gt; and select &lt;code class=&quot;highlighter-rouge&quot;&gt;JitFromScratch/CMakeLists.txt&lt;/code&gt; and it should import the Ninja build.&lt;/p&gt;
+
+  &lt;p&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;mac-os-x-1012&quot;&gt;Mac OS X 10.12&lt;/h3&gt;
+
+&lt;div id=&quot;mac-os-x-1012-content&quot; style=&quot;display: none;&quot;&gt;
+  &lt;p&gt;On Mac OS X 10.12 install Xcode and the command line tools (I currently use version 8.3). You can download both from &lt;a href=&quot;https://developer.apple.com/download/more/&quot;&gt;https://developer.apple.com/download/more/&lt;/a&gt; after logging in with an Apple ID.&lt;/p&gt;
+
+  &lt;p&gt;Additionally you need:&lt;/p&gt;
+  &lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;brew&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; install git
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;brew&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; install cmake
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;p&gt;Checkout the LLVM source code and generate a Xcode project to build the &lt;code class=&quot;highlighter-rouge&quot;&gt;release_40&lt;/code&gt; branch like this:&lt;/p&gt;
+  &lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; /path/to/llvm/home
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; clone https://github.com/llvm-mirror/llvm
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; llvm
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; checkout -b release_40
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; ..
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;mkdir&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; llvm40-build
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; llvm40-build
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -G Xcode -DCMAKE_OSX_SYSROOT=macosx10.12 -DBUILD_SHARED_LIBS=ON -DLLVM_TARGETS_TO_BUILD=host -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_DOCS=OFF ../llvm
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; --build .
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;p&gt;Please find more details on building LLVM &lt;a href=&quot;/blog/post/2017/07/17/notes-setup.html&quot;&gt;in the previous post&lt;/a&gt;. The build process will take time, but you can already prepare the next steps. Checkout the sources for the JitFromScratch project and get ready for generating build files:&lt;/p&gt;
+  &lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; clone https://github.com/weliveindetail/JitFromScratch JitFromScratch
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; JitFromScratch
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; checkout -b jit-basics
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; ..
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;mkdir&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; JitFromScratch-build
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;p&gt;Once the LLVM build finished, you can configure cmake and build:&lt;/p&gt;
+  &lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; JitFromScratch-build
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -G Xcode -DCMAKE_OSX_SYSROOT=macosx10.12 -DLLVM_DIR=/path/to/llvm/home/llvm40-build/lib/cmake/llvm ../JitFromScratch
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; --build .
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; Debug
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;./JitFromScratch&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;Integer Distances: 3, 0, 3
+&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;p&gt;To explore the code and debug JitFromScratch, open the generated &lt;code class=&quot;highlighter-rouge&quot;&gt;~/Develop/JitFromScratch/JitFromScratch-build/JitFromScratch.xcodeproj&lt;/code&gt; with Xcode.&lt;/p&gt;
+
+  &lt;p&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;windows-10&quot;&gt;Windows 10&lt;/h3&gt;
+
+&lt;div id=&quot;windows-10-content&quot; style=&quot;display: none;&quot;&gt;
+  &lt;p&gt;On Windows download and install the following tools:&lt;/p&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Visual Studio 2017 (2015 should work too): Get the free community edition downloader from &lt;a href=&quot;https://www.visualstudio.com/Downloads&quot;&gt;https://www.visualstudio.com/Downloads&lt;/a&gt; and install the &lt;em&gt;Desktop development with C++&lt;/em&gt; package&lt;/li&gt;
+    &lt;li&gt;Git: Any Git Client should be fine, e.g. the GPLv2 licensed &lt;a href=&quot;https://github.com/git-for-windows/git/releases&quot;&gt;Git-for-Windows&lt;/a&gt; or the commercial/community dual-licensed &lt;a href=&quot;http://www.syntevo.com/smartgit/download&quot;&gt;SmartGit&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;CMake: Get the latest stable Windows installer from &lt;a href=&quot;https://cmake.org/download/#latest&quot;&gt;https://cmake.org/download/#latest&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;p&gt;Now open a &lt;strong&gt;new&lt;/strong&gt; command prompt that includes the Visual Studio command line utilities: click Start, type “x64 native tools command”, open the &lt;em&gt;x64 Native Tools Command Prompt&lt;/em&gt; and run these commands:&lt;/p&gt;
+  &lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; C:\path\to\llvm\home
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;mkdir&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; llvm40
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; llvm40
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; clone https://github.com/llvm-mirror/llvm
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; llvm
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; checkout -b release_40
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; ..
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;mkdir&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; llvm40-build
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; llvm40-build
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -G &quot;Visual Studio 15 2017 Win64&quot; -DBUILD_SHARED_LIBS=ON -DLLVM_TARGETS_TO_BUILD=host -DLLVM_ENABLE_WARNINGS=OFF -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_DOCS=OFF ../llvm
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; --build .
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;p&gt;Please find more details on building LLVM &lt;a href=&quot;/blog/post/2017/07/17/notes-setup.html&quot;&gt;in the previous post&lt;/a&gt;. The build process will take time, but you can already prepare the next steps. Checkout the sources for the JitFromScratch project and get ready for generating build files:&lt;/p&gt;
+  &lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; clone https://github.com/weliveindetail/JitFromScratch
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; JitFromScratch
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; checkout -b jit-basics
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; ..
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;mkdir&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; JitFromScratch-build
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;p&gt;Once the LLVM build finished, you can configure cmake and build:&lt;/p&gt;
+  &lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt; cd JitFromScratch-build
+&amp;gt; cmake -G &quot;Visual Studio 15 2017 Win64&quot; -DLLVM_DIR=&quot;C:/path/to/llvm/home/llvm40-build/lib/cmake/llvm&quot; ..\JitFromScratch
+&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; --build .
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; Debug
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;JitFromScratch&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt;
+&lt;/span&gt;Integer Distances: 3, 0, 3
+&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;p&gt;To explore the code and debug JitFromScratch open the generated &lt;code class=&quot;highlighter-rouge&quot;&gt;C:\Develop\JitFromScratch\JitFromScratch-build\JitFromScratch.sln&lt;/code&gt; with Visual Studio.&lt;/p&gt;
+
+  &lt;p&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;script language=&quot;JavaScript&quot;&gt;
+$(&quot;#linux-mint-18&quot;).click(function() { $(&quot;#linux-mint-18-content&quot;).toggle(); });
+$(&quot;#mac-os-x-1012&quot;).click(function() { $(&quot;#mac-os-x-1012-content&quot;).toggle(); });
+$(&quot;#windows-10&quot;   ).click(function() { $(&quot;#windows-10-content&quot;   ).toggle(); });
+
+$(function() {
+  return $(&quot;h3&quot;).each(function(i, el) {
+    var $el = $(el);
+    if ($el.attr('id')) {
+      return $el.prepend('&lt;i class=&quot;fa fa-chevron-down&quot; style=&quot;font-size: 0.8em; color: #333; padding: 5px;&quot;&gt;&lt;/i&gt;');
+    }
+  });
+});
+&lt;/script&gt;</content><author><name>Stefan Gränitz</name></author><summary type="html">Implementing a cross-platform native JIT has never been easier than today with LLVM. My GitHub project JitFromScratch shows how to use the LLVM ORC libraries to compile the code for a simple function at runtime:</summary></entry><entry><title type="html">Notes on setting up projects with LLVM</title><link href="http://localhost:4000/blog/post/2017/07/17/notes-setup.html" rel="alternate" type="text/html" title="Notes on setting up projects with LLVM" /><published>2017-07-17T22:13:01+02:00</published><updated>2017-07-17T22:13:01+02:00</updated><id>http://localhost:4000/blog/post/2017/07/17/notes-setup</id><content type="html" xml:base="http://localhost:4000/blog/post/2017/07/17/notes-setup.html">&lt;p&gt;A few notes on building LLVM and how to build against it. There’s different ways to do this and there’s pros and cons with all of them. This is what I got used to.&lt;/p&gt;
+
+&lt;h3 id=&quot;build-llvm-from-source&quot;&gt;Build LLVM from source&lt;/h3&gt;
+
+&lt;p&gt;Well, since the LLVM prebuilt binaries do not include headers anymore, you have to build LLVM from source yourself. Please find the &lt;a href=&quot;http://llvm.org/docs/CMake.html&quot;&gt;full documentation here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;If you only use LLVM and stay with release versions until the next comes out, you should probably build and install LLVM as shown in the documentation. If you, however, want to hack forward in the sources or build against different versions, here’s a few tweaks that make life easier.&lt;/p&gt;
+
+&lt;h3 id=&quot;use-version-specific-build-directories&quot;&gt;Use version-specific build directories&lt;/h3&gt;
+
+&lt;p&gt;The repository is large and rebuilding takes time. Switching between versions in the sources is likely to trigger long rebuilds. I usually have the sources checked out for each major version and build directories for each configuration or purpose. Use &lt;a href=&quot;#use-llvm_dir-to-specify-the-right-build&quot;&gt;LLVM_DIR as shown below&lt;/a&gt; to select against which one to build your project.&lt;/p&gt;
+
+&lt;pre style=&quot;line-height: 1.125em;&quot;&gt;
+~/Develop
+ ├── llvm40
+ │   ├── clang
+ │   ├── lldb
+ │   ├── llvm
+ │   ├── build-debug-clang-lldb
+ │   ├── build-release-clang-lldb
+ │   └── build-xcode-jitfromscratch
+ └── llvm50
+     ├── clang
+     ├── compiler-rt
+     ├── llvm
+     └── build-ninja-debug-shared-asan
+&lt;/pre&gt;
+
+&lt;h3 id=&quot;use-enable_projects&quot;&gt;Use ENABLE_PROJECTS&lt;/h3&gt;
+
+&lt;p&gt;Projects like LLDB and Clang are based on LLVM. By default they live ‘in-tree’ in the tools subdirectory and get built with LLVM automatically. However, this adds overhead e.g. with git versioning as you need submodules now for these projects. You can also check them out side-by-side and tell CMake which projects to include using the &lt;code class=&quot;highlighter-rouge&quot;&gt;LLVM_ENABLE_PROJECTS&lt;/code&gt; option like this:&lt;/p&gt;
+
+&lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;
+&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; clone https://github.com/llvm-mirror/llvm llvm
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; llvm
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; checkout -b release_40
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; ..
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; clone https://github.com/llvm-mirror/clang clang
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; clang
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; checkout -b release_40
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; ..
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;mkdir&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; build-debug-clang
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; build-debug-clang
+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -DCMAKE_BUILD_TYPE=Debug &lt;b&gt;-DLLVM_ENABLE_PROJECTS=clang&lt;/b&gt; ../llvm
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;safe-time-with-the-right-generator-and-additional-options&quot;&gt;Safe time with the right generator and additional options&lt;/h3&gt;
+
+&lt;p&gt;You can easily exclude examples, tests and documentation. If you don’t do cross-compilation you can use &lt;code class=&quot;highlighter-rouge&quot;&gt;LLVM_TARGETS_TO_BUILD&lt;/code&gt; to prevent LLVM from building all platform backends. In a debug configuration you can use &lt;code class=&quot;highlighter-rouge&quot;&gt;LLVM_OPTIMIZED_TABLEGEN&lt;/code&gt; to build the TableGen executable in release mode, resulting in a significant speedup for each subsequent source code change that triggers a rerun of TableGen. With the &lt;code class=&quot;highlighter-rouge&quot;&gt;BUILD_SHARED_LIBS&lt;/code&gt; option each component is built as a shared library instead of a static library, which is the default (&lt;code class=&quot;highlighter-rouge&quot;&gt;OFF&lt;/code&gt;). Very useful to reduce link times. Only use it in debug configurations.&lt;/p&gt;
+
+&lt;p&gt;Ninja is the recommended build system for LLVM, ideally in combination with ccache. You might end up with a command line like this:&lt;/p&gt;
+
+&lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DLLVM_OPTIMIZED_TABLEGEN=ON -DLLVM_TARGETS_TO_BUILD=host -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_DOCS=OFF ../llvm
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;For codebase exploration I need and IDE. On Linux I use QtCreator which can deal with CMake directly &lt;a href=&quot;https://blog.qt.io/blog/2016/11/15/cmake-support-in-qt-creator-and-elsewhere/&quot;&gt;since version 4.3&lt;/a&gt; and it finds my Ninja-ccache builds. I use &lt;code class=&quot;highlighter-rouge&quot;&gt;Xcode&lt;/code&gt; generator on OSX and &lt;code class=&quot;highlighter-rouge&quot;&gt;Visual Studio 15 2017 Win64&lt;/code&gt; on Windows.&lt;/p&gt;
+
+&lt;h3 id=&quot;use-llvm_dir-to-specify-the-right-build&quot;&gt;Use LLVM_DIR to specify the right build&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;find_package(LLVM)&lt;/code&gt; is obviously very useful, but in order to find the right &lt;strong&gt;not installed&lt;/strong&gt; LLVM it needs the &lt;code class=&quot;highlighter-rouge&quot;&gt;LLVM_DIR&lt;/code&gt; variable pointing to it’s &lt;code class=&quot;highlighter-rouge&quot;&gt;LLVMConfig.cmake&lt;/code&gt;. Ideally pass it in via the command line as recommended for the &lt;a href=&quot;https://github.com/weliveindetail/JitFromScratch&quot;&gt;JitFromScratch&lt;/a&gt; project:&lt;/p&gt;
+
+&lt;div class=&quot;language-terminal highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;cmake&lt;/span&gt;&lt;span class=&quot;kv&quot;&gt; -DCMAKE_BUILD_TYPE=Debug &amp;lt;b&amp;gt;-DLLVM_DIR=~/Develop/llvm40/build-debug-clang/lib/cmake/llvm&amp;lt;/b&amp;gt; ../JitFromScratch
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;define-the-expected-llvm-version&quot;&gt;Define the expected LLVM version&lt;/h3&gt;
+
+&lt;p&gt;Interfaces change a lot and also dealing with multiple versions it can get confusing. Safe yourself and your users by defining which exact version you expect:&lt;/p&gt;
+
+&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;find_package&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;LLVM 4.0 REQUIRED&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;takeover-llvm_definitions&quot;&gt;Takeover LLVM_DEFINITIONS&lt;/h3&gt;
+
+&lt;p&gt;It is important to build your own project with matching preprocessor definitions to prevent mysterious compiler errors when switching to another platform or build configuration. The LLVM package sets various useful variables like &lt;code class=&quot;highlighter-rouge&quot;&gt;LLVM_ENABLE_RTTI&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;LLVM_BUILD_MAIN_SRC_DIR&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;LLVM_BUILD_BINARY_DIR&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;LLVM_PACKAGE_VERSION&lt;/code&gt; and also &lt;b&gt;a space-separated list of &lt;code class=&quot;highlighter-rouge&quot;&gt;LLVM_DEFINITIONS&lt;/code&gt;&lt;/b&gt;. In the old days of CMake they were applied like this:&lt;/p&gt;
+
+&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;add_definitions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LLVM_DEFINITIONS&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;As CMake expansion rules changed, this doesn’t work anymore with “modern” target-centric CMake. The &lt;b&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;target_compile_definitions&lt;/code&gt; command expects a semicolon-separated list&lt;/b&gt; or otherwise surrounds the expanded value with quotation marks. It can be an extermely annoying detail. Fortunately after a little research, I found this special CMake helper command, which transforms a space-separated list into a semicolon-separated one:&lt;/p&gt;
+
+&lt;div class=&quot;language-cmake highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;separate_arguments&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;LLVM_DEFINITIONS&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;target_compile_definitions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;MyTarget PRIVATE &lt;span class=&quot;si&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LLVM_DEFINITIONS&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;</content><author><name>Stefan Gränitz</name></author><summary type="html">A few notes on building LLVM and how to build against it. There’s different ways to do this and there’s pros and cons with all of them. This is what I got used to.</summary></entry></feed>
