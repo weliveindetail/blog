@@ -18,7 +18,11 @@ layout: default
         • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">{{ page.author }}</span></span>
       {% endif %}
       {% if page.comments %}
-        • <a href="#comments" onclick="loadComments()">Comments</a>
+        {% if page.comments == true %}
+          • <a href="#comments" onclick="loadComments()">Comments</a>
+        {% else %}
+          • <a href="{{ page.comments }}" onclick="loadComments()">Comments</a>
+        {% endif %}
       {% endif %}
     </p>
   </header>
@@ -53,10 +57,34 @@ layout: default
       }
     }
   </script>
+  <style>
+    .comments-container {
+      text-align: right;
+    }
+    .svg-icon {
+      display: inline-flex;
+    }
+    .svg-icon svg {
+      height: 1em;
+      width: 1em;
+      margin: 0.25em;
+    }
+  </style>
 
   {% if page.comments %}
-    <div id="comments">
-      <a id="load_comments" href="#comments" onclick="loadComments()"></a>
-    </div>
+    {% if page.comments == true %}
+      <div id="comments">
+        <a id="load_comments" href="#comments" onclick="loadComments()"></a>
+      </div>
+    {% else %}
+      <div class="comments-container">
+        <a class="svg-icon" href="{{ page.comments }}">
+          <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10,0A10,10,0,0,0,1.64,15.51L.57,18.73c-.16.52.19.86.7.7l3.22-1.08A10,10,0,1,0,10,0ZM5.54,11.41A1.39,1.39,0,1,1,6.93,10,1.39,1.39,0,0,1,5.54,11.41Zm4.46,0A1.39,1.39,0,1,1,11.39,10,1.39,1.39,0,0,1,10,11.41Zm4.44,0A1.39,1.39,0,1,1,15.83,10,1.39,1.39,0,0,1,14.44,11.41Z"></path>
+          </svg>
+          Discuss on Reddit
+        </a>
+      </div>
+    {% endif %}
   {% endif %}
 </article>

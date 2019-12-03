@@ -4,6 +4,7 @@ author: Stefan Gränitz
 title:  "What's the matter with yaml-bench in the llvm-9-dev apt package?"
 date:   2019-12-02 16:07:01 +0200
 categories: post
+comments: https://www.reddit.com/user/weliveindetail/comments/e5fwo3/whats_the_matter_with_yamlbench_in_the_llvm9dev/
 ---
 
 The LLVM project publishes prebuilt [apt packages](http://apt.llvm.org/).
