@@ -7,7 +7,7 @@ categories: post
 comments: https://www.reddit.com/user/weliveindetail/comments/e5fwo3/whats_the_matter_with_yamlbench_in_the_llvm9dev/
 ---
 
-The LLVM project publishes prebuilt [apt packages](http://apt.llvm.org/). Client projects can easily install a release build of version X via `apt-get install llvm-X-dev` and call `find_package(LLVM)` from CMake. The mechanism worked well so far, but it broke with LLVM 9, released in Sepember 2019, where the CMake configuration [fails with an error message like this](https://travis-ci.org/weliveindetail/apt-llvm-9-dev-repro/builds/619590445#L204):
+The LLVM project publishes prebuilt [apt packages](http://apt.llvm.org/). Client projects can easily install a release build of version X via `apt-get install llvm-X-dev` and call `find_package(LLVM)` from CMake. The mechanism worked well so far, but it broke with LLVM 9, [released in Sepember 2019](http://lists.llvm.org/pipermail/llvm-dev/2019-September/135304.html), where the CMake configuration [fails with an error message like this](https://travis-ci.org/weliveindetail/apt-llvm-9-dev-repro/builds/619590445#L204):
 
 ```
 CMake Error at /usr/lib/llvm-9/lib/cmake/llvm/LLVMExports.cmake:1323 (message):
