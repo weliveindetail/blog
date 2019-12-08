@@ -52,6 +52,10 @@ In order to allow client projects to reference the package content from their bu
 * the build-tree only, if the [`LLVM_BUILD_UTILS`](https://github.com/llvm/llvm-project/blob/e99a087fff6c/llvm/CMakeLists.txt#L508) flag is set (default `ON`)
 * both, build-tree and install-tree, if the [`LLVM_INSTALL_UTILS`](https://github.com/llvm/llvm-project/blob/e99a087fff6c/llvm/CMakeLists.txt#L177) flag is set too (default `OFF`)
 
-Apparently, `LLVM_INSTALL_UTILS` is set explicitly in the build that ends up in the llvm-9-dev apt package. Thus, the package does export `yaml-bench` and other utility targets, even though it doesn't povide them. This is a problem, because CMake checks that the referenced files do actually exist, when it runs the `find_package(LLVM)` command.
+[`LLVM_INSTALL_UTILS` was set explicitly](https://salsa.debian.org/pkg-llvm-team/llvm-toolchain/blob/9/debian/rules#L363) in the build that ends up in the llvm-9-dev apt package. Thus, the package does export `yaml-bench` and other utility targets, even though it doesn't provide them. This is a problem, because CMake checks that the referenced files do actually exist, when it runs the `find_package(LLVM)` command.
 
-As I was involved with the change that made this issue visible, [I brought it up during the LLVM 9 release phase](https://llvm.org/PR43035) and explained the solution. Adding the dependency to llvm-9-tools was the workaround that was taken instead. Unfortunately, it didn't respect the special case for `yaml-bench`. I hope we can fix this for the 10.0 release in Q2 2020. It's up for [discussion on the mailing list](http://lists.llvm.org/pipermail/llvm-dev/2019-December/thread.html#137337) just now.
+As I was involved with the change that made this issue visible, [I brought it up during the LLVM 9 release phase](https://llvm.org/PR43035) and explained the solution. Adding the dependency to llvm-9-tools was the workaround that was taken instead. Unfortunately, it didn't respect the special case for `yaml-bench`.
+
+**Update 2019-12-08:** In [132a99b7](https://salsa.debian.org/pkg-llvm-team/llvm-toolchain/commit/132a99b7a0db3771f2ec0cd4d9598a98fc25750f) `yaml-bench` became part of the llvm-9-dev package.
+
+I hope we can do better in the 10.0 release in Q2 2020. It's up for [discussion on the mailing list](http://lists.llvm.org/pipermail/llvm-dev/2019-December/thread.html#137337) just now.
