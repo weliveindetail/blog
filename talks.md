@@ -5,6 +5,13 @@ permalink: /talks/
 ---
 <ul class="post-list">
   <li>
+    <span class="post-meta">LLVM Developers' Meeting, San Jose — October 2018</span>
+    <h2>
+      <a class="post-link" href="https://github.com/weliveindetail/talks/raw/master/ThinLtoSummariesInJitCompilation.pdf">
+      ThinLTO Summaries in JIT Compilation</a>
+    </h2>
+  </li>
+  <li>
     <span class="post-meta">C++ User Group Berlin — September 2017</span>
     <h2>
       <a class="post-link" href="https://github.com/weliveindetail/talks/raw/master/Expectify.pdf">
