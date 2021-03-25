@@ -4,17 +4,43 @@ title: About
 permalink: /about/
 ---
 
+<style>
+  ul, ol {
+    margin-left: 30px;
+    padding-left: 35px;
+    line-height: 2;
+  }
+
+  div.portrait {
+    overflow: auto;
+    margin-top: 30px;
+  }
+
+  div.portrait > img {
+    width: 25%;
+    padding-right: 10px;
+    padding-bottom: 10px;
+  }
+
+  hr.dashed {
+    margin: 40px 0px;
+    border: 1px dashed #ddd;
+  }
+</style>
+
 ### Looking for help with a project that uses LLVM?
 
-<img src="https://reviews.llvm.org/file/data/anjg4ozfsophjjhg6q2c/PHID-FILE-nlwmagbdwldcho3scmuz/profile" width="25%" align="left">
-<p>
-  The LLVM codebase is huge and it takes time to figure out the kinks!
-</p>
-<p>
-  <b>As a freelance developer</b> I help small and mid-size companies to get up to speed with LLVM. Here in Berlin and remote.
-</p>
+<div class="portrait">
+  <img src="https://reviews.llvm.org/file/data/anjg4ozfsophjjhg6q2c/PHID-FILE-nlwmagbdwldcho3scmuz/profile" align="left">
+  <p>
+    <b>As a freelance developer</b> I help small and mid-size companies to get up to speed with LLVM. Here in Berlin and remote.
+  </p>
+  <p>
+    <b>I have a track record of remote work</b> with various companies since 2016 and offer flexible conditions to match your demands. Feel free to reach out for questions or <b>arrange a video call <a href="click:the.address.will.be.decrypted.by.javascript" onclick='openMailer(this);'>via email</a> or <a href="https://www.linkedin.com/in/stefan-gr%C3%A4nitz-254298113/">LinkedIn</a></b>.
+  </p>
+</div>
 
-<b>I have a track record of remote work</b> with various companies since 2016 and offer flexible conditions to match your demands. Feel free to reach out and ask questions or <b>arrange a video call <a href="click:the.address.will.be.decrypted.by.javascript" onclick='openMailer(this);'>via email</a> or <a href="https://www.linkedin.com/in/stefan-gr%C3%A4nitz-254298113/">LinkedIn</a></b>.
+<hr class="dashed">
 
 #### Build a solid foundation for your project
 
@@ -31,7 +57,7 @@ permalink: /about/
 
 #### Upstream your changes to LLVM
 
-* Advice on [upstream guidelines](https://llvm.org/docs/SupportPolicy.html), risks and  chances.
+* Advice on [upstream guidelines](https://llvm.org/docs/SupportPolicy.html), risks and chances.
 * Bring up solid tests for your use cases.
 * Review your changes in [Phabricator](https://reviews.llvm.org/).
 * Deal with [build bots](http://lab.llvm.org:8011/#/console) and test failures.
@@ -41,7 +67,7 @@ permalink: /about/
 * LLVM upstream development best practices
 * C++, library-based design and error handling in LLVM
 
-### .ılılıll Grounding llılılı.,¸¸,ø¤°º°º¤ø♫♪
+<hr class="dashed">
 
 Compiler development is the royal discipline of computing. It always demanded the highest skills from its makers and always fascinated me the most as a developer. Compilers are well understood in academics since long, but mainstream implementations were often lacking behind today's standards -- being quirky, proprietary and hard to master.
 
