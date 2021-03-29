@@ -5,7 +5,7 @@ permalink: /about/
 ---
 
 <style>
-  ul, ol {
+  main ul, main ol {
     margin-left: 30px;
     padding-left: 35px;
     line-height: 2;
