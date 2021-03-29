@@ -38,12 +38,6 @@ permalink: /about/
   <p>
     <b>I have a track record of remote work</b> with various companies since 2016 and offer flexible conditions to match your demands. Feel free to reach out for questions <a href="click:the.address.will.be.decrypted.by.javascript" onclick='openMailer(this);'>via email</a> or <a href="https://calendly.com/stefan-graenitz/30min">schedule a video call</a> right away.
   </p>
-  <p style="text-align: center;">
-    <a href="https://github.com/weliveindetail">GitHub</a> --
-    <a href="https://reviews.llvm.org/p/sgraenitz/">LLVM Reviews</a> --
-    <a href="https://twitter.com/weliveindetail">Twitter</a> --
-    <a href="https://www.linkedin.com/in/stefan-gr%C3%A4nitz-254298113/">LinkedIn</a>
-  </p>
 </div>
 
 <hr class="dashed">
