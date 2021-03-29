@@ -6,6 +6,24 @@ date:   2021-03-29 13:57:01 +0200
 categories: post
 ---
 
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Remote native JIT compilation and debugging with LLVM"/>
+<meta property="og:description" content="JIT compile and run a minimal program on a remote target connected via TCP. Inspect and modify the program state from the host machine just like any static executable running locally."/>
+<meta property="og:url" content="https://weliveindetail.github.io/blog/post/2021/03/01/remote-compile-and-debug.html"/>
+<meta property="og:image" content="https://llvm.org/img/DragonMedium.png"/>
+<meta property="og:updated_time" content="2021-03-29T13:57:01+02:00" />
+<meta property="og:image:width" content="400" />
+<meta property="og:image:height" content="400" />
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@weliveindetail">
+<meta name="twitter:url" content="https://weliveindetail.github.io/blog/post/2021/03/01/remote-compile-and-debug.html"/>
+<meta name="twitter:title" content="Remote native JIT compilation and debugging with LLVM">
+<meta name="twitter:description" content="JIT compile and run a minimal program on a remote target connected via TCP. Inspect and modify the program state from the host machine just like any static executable running locally.">
+<meta name="twitter:image" content="https://llvm.org/img/DragonMedium.png">
+<meta name="twitter:image:width" content="400" />
+<meta name="twitter:image:height" content="400" />
+
 **Any toolchain is only as powerful as its diagnostics.** I learned that early on when I worked on DSLs in the audio industry. It's amazing to see how runtime generated code can optimize another few percent out of your DSP code, but one central question is easily overlooked: How would I debug that?
 
 ### Overview
