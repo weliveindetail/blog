@@ -18,7 +18,7 @@ permalink: /about/
 
   div.portrait > img {
     width: 25%;
-    padding-right: 10px;
+    padding-right: 15px;
     padding-bottom: 10px;
   }
 
@@ -36,7 +36,7 @@ permalink: /about/
     <b>As a freelance developer</b> I help small and mid-size companies to get up to speed with LLVM. Here in Berlin and remote.
   </p>
   <p>
-    <b>I have a track record of remote work</b> with various companies since 2016 and offer flexible conditions to match your demands. Feel free to reach out for questions <a href="click:the.address.will.be.decrypted.by.javascript" onclick='openMailer(this);'>via email</a> or <a href="https://calendly.com/stefan-graenitz/30min">schedule a video call</a> right away.
+    <b>I have a track record of remote work</b> with various companies since 2016 and offer flexible conditions to match your demands. Feel free to reach out for questions <a href="click:the.address.will.be.decrypted.by.javascript" onclick='openMailer(this);'>via email</a> or <a href="https://calendly.com/stefan-graenitz/30min" target=_blank>schedule a video call</a> right away.
   </p>
 </div>
 
