@@ -4,6 +4,7 @@ author: Stefan Gränitz
 title:  "Remote native JIT compilation and debugging with LLVM"
 date:   2021-03-29 13:57:01 +0200
 categories: post
+comments: https://www.reddit.com/r/LLVM/comments/mfoizc/remote_native_jit_compilation_and_debugging_with/
 ---
 
 <meta property="og:type" content="website"/>
