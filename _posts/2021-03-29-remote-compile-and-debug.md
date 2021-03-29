@@ -98,7 +98,7 @@ In addition to the executor itself, the Docker container runs an [lldb-server](h
 Listening at localhost:9000
 ```
 
-Next, we run LLDB in a third terminal on our host and connect it to the remote lldb-server:
+Next, we run LLDB in a third terminal on our host and connect it to the remote lldb-server. Note that we need [LLDB 12](https://github.com/llvm/llvm-project/releases/tag/llvmorg-12.0.0-rc3) or higher for JITed code debugging:
 ```terminal3
 > lldb
 (lldb) platform select remote-linux
