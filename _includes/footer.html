@@ -26,6 +26,15 @@
 
   </div>
 
+  {% if page.source %}
+    <div class="pr-me-ribbon">
+      <a href="{{ page.source }}" target="_blank">
+        <img src="https://weliveindetail.github.io/blog/res/ribbon-bottom-right.png"
+            title="Found a typo or suggest an improvement? PR me on Github!"
+            alt="PR me on Github">
+      </a>
+    </div>
+  {% endif %}
 </footer>
 
 <script language="JavaScript" type="text/javascript">
