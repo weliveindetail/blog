@@ -40,14 +40,14 @@ Over the last years LLVM grew [ORC](https://llvm.org/docs/ORCv2.html), a library
 
 ### Build the demo JIT
 
-The ORC and JITLink libraries are in active development. It's usually worth to check out the latest state of the [LLVM development branch](https://github.com/llvm/llvm-project/tree/main). For the purpose of this demo, however, I choose a commit that I know is sufficient and functional:
+The ORC and JITLink libraries are in active development. It's usually worth checking out the latest state of the [LLVM development branch](https://github.com/llvm/llvm-project/tree/main). For the purpose of this demo, however, I choose a commit that I know is sufficient and functional:
 ```terminal1
 > cd /path/to/demo
 > git clone https://github.com/llvm/llvm-project
 > git -C llvm-project checkout 7b9df09e2050b8b2
 ```
 
-Debug builds of LLVM are huge. If you only want to follow the demo then make a release build. Also, our target container runs on the host machine, so we only need a code generator for the host architecture. Enabling only one target backend can safe us a lot of build time. Last but not least, we tell the build system to include the LLVM example projects, because the demo uses the *LLJITWithRemoteDebugging* example:
+Debug builds of LLVM are huge. If you only want to follow the demo then make a release build. Also, our target container runs on the host machine, so we only need a code generator for the host architecture. Enabling only one target backend can save us a lot of build time. Last but not least, we tell the build system to include the LLVM example projects, because the demo uses the [LLJITWithRemoteDebugging example](https://github.com/llvm/llvm-project/blob/7b9df09e2050b8b2/llvm/examples/OrcV2Examples/LLJITWithRemoteDebugging/LLJITWithRemoteDebugging.cpp):
 ```terminal1
 > mkdir /path/to/demo/build
 > cd /path/to/demo/build
@@ -134,7 +134,7 @@ Process 65535 resuming
 
 ### Debug JITed code in the executor
 
-Now that both, executor and debugger are ready, we run the minimal example program again in the demo JIT:
+Now that both executor and debugger are ready, we run the minimal example program again in the demo JIT:
 ```terminal1
 > cd /path/to/demo/build
 > cp /path/to/demo/llvm-project/llvm/examples/OrcV2Examples/Inputs/argc_sub1_elf.ll .
