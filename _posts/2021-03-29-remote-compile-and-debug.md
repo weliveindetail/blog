@@ -14,9 +14,9 @@ comments: https://www.reddit.com/r/LLVM/comments/mfoizc/remote_native_jit_compil
 
 ### Overview
 
-This post gives a short introduction to LLVM's latest tools for generating, executing and debugging runtime-compiled code. In an example we will run native JITed code on a remote target. In order to make it simple to set up and reproducible for everyone, the remote target will be a Docker container based on [Alpine Linux](https://hub.docker.com/r/amd64/alpine/). All you need is an x86-64 host system running Linux or macOS with Docker and the regular dev tools installed (C++ toolchain, git, cmake, ninja).
+This post gives a short introduction to LLVM's latest tools for generating, executing and debugging runtime-compiled code. In an example we will run native JITed code on a remote target. In order to make it simple to set up and reproducible for everyone, the remote target will be a Docker container based on [Alpine Linux](https://hub.docker.com/r/amd64/alpine/){:target="_blank"}. All you need is an x86-64 host system running Linux or macOS with Docker and the regular dev tools installed (C++ toolchain, git, cmake, ninja).
 
-Over the last years LLVM grew [ORC](https://llvm.org/docs/ORCv2.html), a library for building JIT compilers that run bitcode. ORC makes it easy to model special-purpose compilers as a stacked collection of layers with attached utilities. With [JITLink](https://llvm.org/docs/JITLink.html) LLVM 9 introduced an ORC-specific extensible JIT linker implementation. One of the features it provides is a [target-process control class](https://github.com/llvm/llvm-project/blob/main/llvm/include/llvm/ExecutionEngine/Orc/TargetProcessControl.h) that allows us to run code on various targets without major changes on our JIT stack. We can run bitcode:
+Over the last years LLVM grew [ORC](https://llvm.org/docs/ORCv2.html){:target="_blank"}, a library for building JIT compilers that run bitcode. ORC makes it easy to model special-purpose compilers as a stacked collection of layers with attached utilities. With [JITLink](https://llvm.org/docs/JITLink.html){:target="_blank"} LLVM 9 introduced an ORC-specific extensible JIT linker implementation. One of the features it provides is a [target-process control class](https://github.com/llvm/llvm-project/blob/main/llvm/include/llvm/ExecutionEngine/Orc/TargetProcessControl.h){:target="_blank"} that allows us to run code on various targets without major changes on our JIT stack. We can run bitcode:
 
 * directly in the host process
 * in a child process connected via pipes
@@ -25,14 +25,14 @@ Over the last years LLVM grew [ORC](https://llvm.org/docs/ORCv2.html), a library
 
 ### Build the demo JIT
 
-The ORC and JITLink libraries are in active development. It's usually worth checking out the latest state of the [LLVM development branch](https://github.com/llvm/llvm-project/tree/main). For the purpose of this demo, however, I choose a commit that I know is sufficient and functional:
+The ORC and JITLink libraries are in active development. It's usually worth checking out the latest state of the [LLVM development branch](https://github.com/llvm/llvm-project/tree/main){:target="_blank"}. For the purpose of this demo, however, I choose a commit that I know is sufficient and functional:
 ```terminal1
 > cd /path/to/demo
 > git clone https://github.com/llvm/llvm-project
 > git -C llvm-project checkout 7b9df09e2050b8b2
 ```
 
-Debug builds of LLVM are huge. If you only want to follow the demo then make a release build. Also, our target container runs on the host machine, so we only need a code generator for the host architecture. Enabling only one target backend can save us a lot of build time. Last but not least, we tell the build system to include the LLVM example projects, because the demo uses the [LLJITWithRemoteDebugging example](https://github.com/llvm/llvm-project/blob/7b9df09e2050b8b2/llvm/examples/OrcV2Examples/LLJITWithRemoteDebugging/LLJITWithRemoteDebugging.cpp):
+Debug builds of LLVM are huge. If you only want to follow the demo then make a release build. Also, our target container runs on the host machine, so we only need a code generator for the host architecture. Enabling only one target backend can save us a lot of build time. Last but not least, we tell the build system to include the LLVM example projects, because the demo uses the [LLJITWithRemoteDebugging example](https://github.com/llvm/llvm-project/blob/7b9df09e2050b8b2/llvm/examples/OrcV2Examples/LLJITWithRemoteDebugging/LLJITWithRemoteDebugging.cpp){:target="_blank"}:
 ```terminal1
 > mkdir /path/to/demo/build
 > cd /path/to/demo/build
@@ -40,14 +40,14 @@ Debug builds of LLVM are huge. If you only want to follow the demo then make a r
 > ninja LLJITWithRemoteDebugging
 ```
 
-The build takes some time. When it's done we can run the [LLVM integrated tester](https://llvm.org/docs/CommandGuide/lit.html) to make sure it's working. That's optional and it requires a few more binaries to be present, but this should be fast:
+The build takes some time. When it's done we can run the [LLVM integrated tester](https://llvm.org/docs/CommandGuide/lit.html){:target="_blank"} to make sure it's working. That's optional and it requires a few more binaries to be present, but this should be fast:
 ```terminal1
 > cd build
 > ninja FileCheck llvm-jitlink-executor llvm-config count not
 > bin/llvm-lit -vv --filter=lljit-with-remote-debugging test
 ```
 
-It runs [this simple C program](https://github.com/llvm/llvm-project/blob/7b9df09e2050b8b2/llvm/test/Examples/OrcV2Examples/Inputs/argc_sub1.c) in a child process and validates its output:
+It runs [this simple C program](https://github.com/llvm/llvm-project/blob/7b9df09e2050b8b2/llvm/test/Examples/OrcV2Examples/Inputs/argc_sub1.c){:target="_blank"} in a child process and validates its output:
 ```c
 int sub1(int x) { return x - 1; }
 int main(int argc, char **argv) { return sub1(argc); }
@@ -55,7 +55,7 @@ int main(int argc, char **argv) { return sub1(argc); }
 
 ### Run the executor
 
-There is a [ready to use Docker container here](https://hub.docker.com/r/weliveindetail/llvm-jit-remote-debug) that comes with the tools we need for this demo. Docker will fetch it for us once we run this in a second terminal:
+There is a [ready to use Docker container here](https://hub.docker.com/r/weliveindetail/llvm-jit-remote-debug){:target="_blank"} that comes with the tools we need for this demo. Docker will fetch it for us once we run this in a second terminal:
 ```terminal2
 > docker run --rm -p 9000:9000 -it weliveindetail/llvm-jit-remote-debug
 ```
@@ -75,7 +75,7 @@ Exit code: 3
 
 ### Prepare the executor for debugging
 
-In addition to the executor itself, the Docker container runs an [lldb-server](https://lldb.llvm.org/man/lldb-server.html) that we can connect to from our host. Before we can start debugging inside the container, we have to restart it in privileged mode and with additional ports forwarded:
+In addition to the executor itself, the Docker container runs an [lldb-server](https://lldb.llvm.org/man/lldb-server.html){:target="_blank"} that we can connect to from our host. Before we can start debugging inside the container, we have to restart it in privileged mode and with additional ports forwarded:
 ```terminal2
 > docker run --rm --privileged --security-opt seccomp=unconfined --cap-add=SYS_PTRACE --security-opt apparmor=unconfined -p 9000-9002:9000-9002 -it weliveindetail/llvm-jit-remote-debug
 + /workspace/lldb-server platform --server --listen 0.0.0.0:9001 --gdbserver-port 9002
@@ -83,7 +83,7 @@ In addition to the executor itself, the Docker container runs an [lldb-server](h
 Listening at localhost:9000
 ```
 
-Next, we run LLDB in a third terminal on our host and connect it to the remote lldb-server. Note that we need [LLDB 12](https://github.com/llvm/llvm-project/releases/tag/llvmorg-12.0.0-rc3) or higher for JITed code debugging:
+Next, we run LLDB in a third terminal on our host and connect it to the remote lldb-server. Note that we need [LLDB 12](https://github.com/llvm/llvm-project/releases/tag/llvmorg-12.0.0-rc3){:target="_blank"} or higher for JITed code debugging:
 ```terminal3
 > lldb
 (lldb) platform select remote-linux
@@ -107,7 +107,7 @@ Process 65535 stopped
     0x7f3048abd35a: mov    eax, 0x2
 ```
 
-LLDB stopped the executor process and we can prepare it for debugging our [minimal example C program](https://github.com/llvm/llvm-project/blob/7b9df09e2050b8b2/llvm/test/Examples/OrcV2Examples/Inputs/argc_sub1.c). First we tell it where to find the source code on our host machine. Then we set a breakpoint on the `sub1` function and resume the process. The executor itself is still waiting for a connection at this point and it has no idea what code we are going to run. We expect the breakpoint not to resolve to an existing function and thus remain pending for now:
+LLDB stopped the executor process and we can prepare it for debugging our [minimal example C program](https://github.com/llvm/llvm-project/blob/7b9df09e2050b8b2/llvm/test/Examples/OrcV2Examples/Inputs/argc_sub1.c){:target="_blank"}. First we tell it where to find the source code on our host machine. Then we set a breakpoint on the `sub1` function and resume the process. The executor itself is still waiting for a connection at this point and it has no idea what code we are going to run. We expect the breakpoint not to resolve to an existing function and thus remain pending for now:
 ```terminal3
 (lldb) settings set target.source-map Inputs/ /path/to/demo/llvm-project/llvm/test/Examples/OrcV2Examples/Inputs/
 (lldb) b sub1

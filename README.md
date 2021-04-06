@@ -3,6 +3,7 @@
 Sporadic details on compilers, code and tooling from the world of LLVM<br>
 https://weliveindetail.github.io/blog/
 
+
 ## Looking for help with a project that uses LLVM?
 
 As a freelance developer I help small and mid-size companies to get up to speed with LLVM. Here in Berlin and remote.
