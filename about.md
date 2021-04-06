@@ -33,7 +33,10 @@ permalink: /about/
 <div class="portrait">
   <img src="https://reviews.llvm.org/file/data/anjg4ozfsophjjhg6q2c/PHID-FILE-nlwmagbdwldcho3scmuz/profile" align="left">
   <p>
-    <b>As a freelance developer</b> I help small and mid-size companies to get up to speed with LLVM. Here in Berlin and remote.
+    <b>As an independent contributor</b> I am actively <a href="https://github.com/llvm/llvm-project/commits?author=weliveindetail">working on LLVM</a>.
+  </p>
+  <p>
+    <b>As a freelance developer</b> I help small and mid-size companies to get up to speed with LLVM. <a href="https://www.openstreetmap.org/search?query=berlin%20runge%20str.%2020#map=16/52.5127/13.4201">Here in Berlin</a> and remote.
   </p>
   <p>
     <b>I have a track record of remote work</b> with various companies since 2016 and offer flexible conditions to match your demands. Feel free to reach out for questions <a href="click:the.address.will.be.decrypted.by.javascript" onclick='openMailer(this);'>via email</a> or <a href="https://calendly.com/stefan-graenitz/30min" target=_blank>schedule a video call</a> right away.
@@ -47,7 +50,7 @@ permalink: /about/
 * Evaluate feasibility and estimate efforts early on.
 * Set up build infrastructure for using LLVM, Clang or any other subject.
 * Bring up a test suite to use the [LLVM integrated tester](https://llvm.org/docs/CommandGuide/lit.html) for your own project.
-* Port your project to new platforms -- why not Windows?
+* Port your project to new platforms -- [why not Windows](https://www.reddit.com/r/cpp/comments/4l2mdd/juce_projucer_live_c_ide_has_been_coming_soon_for/d84gp1t/)?
 
 #### Manage your own changes on LLVM
 
