@@ -69,7 +69,7 @@ Parsed input IR code from: argc_sub1_elf.ll
 Found out-of-process executor: /path/to/demo/build/bin/llvm-jitlink-executor
 Established TargetProcessControl connection to the executor
 Initialized LLJIT for remote executor
-Running: argc_sub1_elf.ll 2nd 3rd 4th
+Running: main("2nd", "3rd", "4th")
 Exit code: 3
 ```
 
@@ -128,7 +128,7 @@ Parsed input IR code from: argc_sub1_elf.ll
 Found out-of-process executor: /path/to/demo/build/bin/llvm-jitlink-executor
 Established TargetProcessControl connection to the executor
 Initialized LLJIT for remote executor
-Running: argc_sub1_elf.ll
+Running: main()
 ```
 
 At this point the executor should hit the breakpoint on `sub1` that we set in LLDB earlier:
