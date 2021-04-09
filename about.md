@@ -8,7 +8,11 @@ permalink: /about/
   main ul, main ol {
     margin-left: 30px;
     padding-left: 35px;
-    line-height: 2;
+    line-height: 1.5;
+  }
+
+  main li {
+    margin-bottom: 10px;
   }
 
   div.portrait {
@@ -74,6 +78,6 @@ permalink: /about/
 
 Compiler development is the royal discipline of computing. It always demanded the highest skills from its makers and always fascinated me the most as a developer. Compilers are well understood in academics since long, but mainstream implementations were often lacking behind today's standards -- being quirky, proprietary and hard to master.
 
-With the advent of [LLVM](https://stackoverflow.com/questions/2354725/what-exactly-is-llvm){:target="_blank"}a lot of this changed and today we have state of the art modular compiler technology right at our fingertips -- with a [clean three-phase architecture](https://www.aosabook.org/en/llvm.html){:target="_blank"} [open-source](https://github.com/llvm/llvm-project/){:target="_blank"} and reusable.
+With the advent of [LLVM](https://stackoverflow.com/questions/2354725/what-exactly-is-llvm){:target="_blank"} a lot of this changed and today we have state of the art modular compiler technology right at our fingertips -- with a [clean three-phase architecture](https://www.aosabook.org/en/llvm.html){:target="_blank"} [open-source](https://github.com/llvm/llvm-project/){:target="_blank"} and reusable.
 
 In my spare time I am hacking on compilers and tools and I use this blog to share my experiences. If that meets your own interests please join our [LLVM Social Berlin](https://www.meetup.com/de-DE/LLVM-Social-Berlin/){:target="_blank"}, <a href="click:the.address.will.be.decrypted.by.javascript" onclick='openMailer(this);'>write an email</a> or catch me on <a href="https://twitter.com/weliveindetail" target="_blank">Twitter</a>.
