@@ -1,3 +1,30 @@
+<style>
+  nav {
+    padding-bottom: 30px;
+  }
+  nav div.wrapper a {
+    display: block;
+    flex: 1;
+  }
+  nav div.wrapper div {
+    flex: initial;
+  }
+</style>
+
+<nav>
+  <div class="wrapper" style="display: flex;">
+    {% if page.previous.url %}
+      <div>&laquo;&nbsp;</div>
+      <a href="{{site.baseurl}}{{page.previous.url}}">{{page.previous.title}}</a>
+    {% endif %}
+    <div>&nbsp;</div>
+    {% if page.next.url %}
+      <a style="text-align: right;" href="{{site.baseurl}}{{page.next.url}}">{{page.next.title}}</a>
+      <div>&nbsp;&raquo;</div>
+    {% endif %}
+  </div>
+</nav>
+
 <footer class="site-footer">
 
   <div class="wrapper">
@@ -6,7 +33,7 @@
       <div class="footer-col footer-col-1">
         <ul class="contact-list">
           <li>
-            {{ site.title | escape }}
+            Stefan Gränitz
           </li>
           <li style="line-height: 1.5;">
             <a href="click:the.address.will.be.decrypted.by.javascript" onclick='openMailer(this);'>E-Mail</a> |
