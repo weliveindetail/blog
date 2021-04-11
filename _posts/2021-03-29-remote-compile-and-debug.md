@@ -63,7 +63,7 @@ There is a [ready to use Docker container here](https://hub.docker.com/r/welivei
 The executor is now listening for a TCP connection at `localhost:9000`. Optionally, we can test it by running our demo JIT against it:
 ```terminal1
 > cd /path/to/demo/build
-> cp /path/to/demo/llvm-project/llvm/examples/OrcV2Examples/Inputs/argc_sub1_elf.ll .
+> cp /path/to/demo/llvm-project/llvm/test/Examples/OrcV2Examples/Inputs/argc_sub1_elf.ll .
 > bin/LLJITWithRemoteDebugging --connect=localhost:9000 argc_sub1_elf.ll --args 2nd 3rd 4th
 Parsed input IR code from: argc_sub1_elf.ll
 Found out-of-process executor: /path/to/demo/build/bin/llvm-jitlink-executor
@@ -122,7 +122,7 @@ Process 65535 resuming
 Now that both executor and debugger are ready, we run the minimal example program again in the demo JIT:
 ```terminal1
 > cd /path/to/demo/build
-> cp /path/to/demo/llvm-project/llvm/examples/OrcV2Examples/Inputs/argc_sub1_elf.ll .
+> cp /path/to/demo/llvm-project/llvm/test/Examples/OrcV2Examples/Inputs/argc_sub1_elf.ll .
 > bin/LLJITWithRemoteDebugging --connect=localhost:9000 argc_sub1_elf.ll
 Parsed input IR code from: argc_sub1_elf.ll
 Found out-of-process executor: /path/to/demo/build/bin/llvm-jitlink-executor
