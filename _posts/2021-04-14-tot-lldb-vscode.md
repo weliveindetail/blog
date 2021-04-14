@@ -4,9 +4,10 @@ categories: post
 author: Stefan Gränitz
 date: 2021-04-14 15:57:01 +0200
 image: https://github.com/vadimcn/vscode-lldb/raw/master/images/lldb.png
-title:  "Get tip of tree LLDB to work in vscode"
+title:  "Get tip-of-tree LLDB to work in vscode"
 description: "Build and integrate mainline LLDB in Visual Studio Code"
 source: https://github.com/weliveindetail/blog/blob/main/_posts/2021-04-14-tot-lldb-vscode.md
+comments: https://www.reddit.com/r/debugging/comments/mqrpvm/get_tipoftree_lldb_to_work_in_vscode/
 ---
 
 <style>
@@ -65,7 +66,7 @@ With only one day from release to production roll-out, Vadim Chugunov is an exem
 
 There is quite some [official documentation on how to build LLDB](https://lldb.llvm.org/resources/build.html){:target="_blank"}, but it suffers from bitrotting at times like all documentation does. Do we really need to [install `subversion`](https://github.com/llvm/llvm-project/blob/release/12.x/lldb/docs/resources/build.rst){:target="_blank"} for building Release 12? And which optional dependencies do we need for the Visual Studio Code integration?
 
-### Build tip of tree LLDB
+### Build tip-of-tree LLDB
 
 vscode-lldb uses [LLDB's Python interface](https://lldb.llvm.org/python_api.html){:target="_blank"}. Enabling it in LLDB requires [swig](http://www.swig.org/). As usual, we build with [CMake](https://llvm.org/docs/CMake.html){:target="_blank"} and [ninja](https://ninja-build.org/){:target="_blank"}:
 
@@ -92,9 +93,9 @@ Yes, the build will take a while:
 > ninja lldb
 ```
 
-### Integrate tip of tree LLDB in Visual Studio Code
+### Integrate tip-of-tree LLDB in Visual Studio Code
 
-First of all, we need the [vscode-lldb](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb){:target="_blank"} plugin. Then, we open a new workspace or folder and select `Use Alternate Backend...` from the [Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette){:target="_blank"}. We pass in the path to the just-built lldb executable (`/workspace/llvm-build/bin/lldb` in this example) and it will figure out the path to the `liblldb` dynamic library automatically. There should be a confirmation dialog popping up. And we got a new file entry in the [workspace configuration](https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#advanced){:target="_blank"}:
+First of all, we need the [vscode-lldb](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb){:target="_blank"} plugin. Then, we open a new workspace or folder and select `Use Alternate Backend...` from the [Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette){:target="_blank"}. We pass in the path to the just-built lldb executable (`/workspace/llvm-build/bin/lldb` in this example) and it will figure out the path to the `liblldb` dynamic library automatically. There should be a confirmation dialog popping up. And we get a new file entry in the [workspace configuration](https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#advanced){:target="_blank"}:
 
 ```vscode-settings-json
 {
