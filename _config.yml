@@ -9,4 +9,3 @@ markdown: kramdown
 theme: minima
 pulgins:
   - jekyll-feed
-  - jekyll-email-protect
