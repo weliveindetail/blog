@@ -157,7 +157,7 @@ The demo JIT now resumes and prints:
 Exit code: 41
 ```
 
-### Voila!
+### Voilà!
 
 We successfully ran a JIT that compiled a minimal program to native code, sent it via a TCP connection to a remote target and executed it there. From our host machine we were able to inspect and modify the program state just like any static executable running locally.
 

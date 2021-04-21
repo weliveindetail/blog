@@ -103,7 +103,7 @@ First of all, we need the [vscode-lldb](https://marketplace.visualstudio.com/ite
 }
 ```
 
-### Voila!
+### Voilà!
 
 Form now on the workspace will use the just-built LLDB for debugging. We can double-check with this [custom launch configuration](https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#custom-launch){:target="_blank"}:
 
