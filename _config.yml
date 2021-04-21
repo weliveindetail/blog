@@ -7,5 +7,5 @@ baseurl: "/blog"
 # Build settings
 markdown: kramdown
 theme: minima
-pulgins:
+plugins:
   - jekyll-feed
