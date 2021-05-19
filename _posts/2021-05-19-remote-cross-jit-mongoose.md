@@ -7,6 +7,7 @@ image: https://llvm.org/img/LLVMWyvernSmall.png
 title:  "Remote cross-JIT a Mongoose HTTP Server"
 description: "The combination of cross-compilation and JIT execution enables rapid edit-compile-test cycles while keeping resource intensive tasks on the local host. The remote host can be a low-resource device that only runs the self-contained executor on a minimal Linux."
 source: https://github.com/weliveindetail/blog/blob/main/_posts/2021-05-19-remote-cross-jit-mongoose.md
+comments: https://www.reddit.com/r/embeddedlinux/comments/ng4vks/remote_crossjit_a_mongoose_http_server/
 ---
 
 <style>
