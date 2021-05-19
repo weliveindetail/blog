@@ -74,6 +74,7 @@
 
 div.highlighter-rouge {
   position: relative;
+  margin-bottom: 25px;
 }
 
 div.highlighter-rouge:before {
@@ -109,6 +110,10 @@ div.language-terminal::before {
 
 div.language-diff::before {
   content: 'Git Diff';
+}
+
+div.language-docker::before {
+  content: 'Docker Image';
 }
 
 /* No languages, only labels (custom) */
