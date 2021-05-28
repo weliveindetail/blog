@@ -5,11 +5,10 @@ author: Stefan Gränitz
 date: 2021-05-28 12:30:00 +0200
 image: https://llvm.org/img/LLVMWyvernSmall.png
 title:  "Installing latest stable LLVM in a bare Linux container with apt"
-description: "This is a reminder to myself on installing LLVM in a fresh debian:buster-slim container"
+description: "This is a reminder to myself on installing LLVM quickly in a fresh debian:buster-slim container"
 source: https://github.com/weliveindetail/blog/blob/main/_posts/2021-05-28-debian-llvm-quick-install.md
+comments: https://www.reddit.com/r/LLVM/comments/nmuzq3/installing_latest_stable_llvm_in_a_bare_linux/
 ---
-
-### Installing latest stable LLVM in a bare Linux container with apt
 
 I got used to develop in [debian:buster-slim](https://hub.docker.com/_/debian) containers as they have a minimal memory footprint and still allow me to get the all the tools easily via [apt](https://wiki.debian.org/Apt).
 
