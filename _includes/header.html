@@ -1,9 +1,21 @@
 <header class="site-header" role="banner">
+  <style>
+    a.page-link {
+      font-family: "Montserrat", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      letter-spacing: -0.85px;
+      font-size: 1em;
+      line-height: 54px;
+      color: #111;
+    }
+    a.page-link:visited, a.page-link:hover {
+      color: #111;
+    }
+  </style>
 
   <div class="wrapper">
     {% assign default_paths = site.pages | map: "path" %}
     {% assign page_paths = site.header_pages | default: default_paths %}
-    <a class="site-title" href="{{ "/" | relative_url }}">{{ site.title | escape }}</a>
+    <a class="page-link" href="{{ "/" | relative_url }}">{{ site.title | escape }}</a>
 
     {% if page_paths %}
       <nav class="site-nav">
@@ -19,9 +31,9 @@
         </label>
 
         <div class="trigger">
-          <a class="page-link" href="/blog/">Details</a>
-          <a class="page-link" href="/blog/talks/">Talks</a>
-          <a class="page-link" href="/blog/about/">About</a>
+          <a class="page-link" href="/blog/">details</a>
+          <a class="page-link" href="/blog/talks/">talks</a>
+          <a class="page-link" href="/blog/about/">about</a>
         </div>
       </nav>
     {% endif %}
