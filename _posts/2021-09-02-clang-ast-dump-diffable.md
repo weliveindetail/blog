@@ -6,6 +6,8 @@ date: 2021-09-03 18:00:00 +0200
 image: https://weliveindetail.github.io/blog/res/clang-ast-dump-diffable.png
 title: "Diffing Clang AST dumps"
 description: "Searching for differences in two given dumps of the Clang AST is a little tricky. A short Python script helps."
+source: https://github.com/weliveindetail/blog/blob/main/_posts/2021-09-02-clang-ast-dump-diffable.md
+comments: https://www.reddit.com/r/Clang/comments/phckjx/diffing_clang_ast_dumps/
 ---
 
 !["Inspect lit.local.cfg in vscode"](https://weliveindetail.github.io/blog/res/clang-ast-dump-diffable.png)
