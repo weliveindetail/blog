@@ -3,18 +3,18 @@ layout: post
 categories: post
 author: Stefan Gränitz
 date: 2021-10-20 18:00:00 +0200
-image: https://weliveindetail.github.io/blog-sandbox/res/vscode-hide-warning-markers-on.png
+image: https://weliveindetail.github.io/blog/res/vscode-hide-warning-markers-on.png
 preview: summary_large_image
 title: "Stop warning markers from polluting vscode minimap"
 description: "More plugins means more warnings and not everything is configurable. Here's a quick way to remove warning markers from the minimap and make space, e.g. for search results."
 source: https://github.com/weliveindetail/blog/blob/main/_posts/2021-10-20-vscode-hide-warning-markers.md
 ---
 
-![vscode with clang-tidy warnings and minimap markers on](https://weliveindetail.github.io/blog-sandbox/res/vscode-hide-warning-markers-on.png){: #teaser-image}
+![vscode with clang-tidy warnings and minimap markers on](https://weliveindetail.github.io/blog/res/vscode-hide-warning-markers-on.png){: #teaser-image}
 
 <script>
   // Make it easier to spot the difference, by animating the teaser with markers on/off
-  var other = "https://weliveindetail.github.io/blog-sandbox/res/vscode-hide-warning-markers-off.png";
+  var other = "https://weliveindetail.github.io/blog/res/vscode-hide-warning-markers-off.png";
   window.setInterval(function() {
     var elem = document.getElementById('teaser-image');
     [elem.src, other] = [other, elem.src];
@@ -25,7 +25,7 @@ source: https://github.com/weliveindetail/blog/blob/main/_posts/2021-10-20-vscod
 
 Ideally we fixed the warnings altogether or we adjusted the project's clang-tidy settings so they won't show up anymore. However, we all know these situations where we don't have the time right now to deal with such things. So what else can we do? Disable warnings in clangd? Unfortunately that doesn't seem possible:
 
-![clangd plugin settings](https://weliveindetail.github.io/blog-sandbox/res/vscode-hide-warning-markers-clangd-settings.png)
+![clangd plugin settings](https://weliveindetail.github.io/blog/res/vscode-hide-warning-markers-clangd-settings.png)
 
 To the rescue, there is a way to [change highlight colors globally](https://code.visualstudio.com/api/references/theme-color){:target="_blank"} in vscode! So we can make warnings transparent in the minimap and in the overview-ruler:
 ```
@@ -41,4 +41,4 @@ To the rescue, there is a way to [change highlight colors globally](https://code
 
 We still see the warning squiggles in the editor, but they don't pollute the minimap anymore.
 
-![vscode with clang-tidy warnings and minimap markers off](https://weliveindetail.github.io/blog-sandbox/res/vscode-hide-warning-markers-off.png)
+![vscode with clang-tidy warnings and minimap markers off](https://weliveindetail.github.io/blog/res/vscode-hide-warning-markers-off.png)
