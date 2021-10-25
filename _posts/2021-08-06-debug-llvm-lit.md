@@ -10,7 +10,7 @@ source: https://github.com/weliveindetail/blog/blob/main/_posts/2021-08-06-debug
 comments: https://www.reddit.com/r/LLVM/comments/oz8q5w/debugging_llvmlit_in_vscode/
 ---
 
-!["Inspect lit.local.cfg in vscode"](https://weliveindetail.github.io/blog/res/debug-llvm-lit.png)
+![Inspect lit.local.cfg in vscode](https://weliveindetail.github.io/blog/res/debug-llvm-lit.png)
 
 The [LLVM Integrated Tester `llvm-lit`](https://llvm.org/docs/CommandGuide/lit.html){:target="_blank"} provides the test infrastructure for LLVM and its subprojects. It features automatic test exploration, fine-grained hierarchical configration and a flexible notation for `RUN` and `CHECK` lines (in combination with [FileCheck](https://llvm.org/docs/CommandGuide/FileCheck.html){:target="_blank"}). LIT also exists as a [standalone package](https://pypi.org/project/lit/){:target="_blank"}. If you are looking for a tool to run input/output tests, it's certainly worth considering LIT.
 

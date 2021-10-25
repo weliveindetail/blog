@@ -10,7 +10,7 @@ source: https://github.com/weliveindetail/blog/blob/main/_posts/2021-09-02-clang
 comments: https://www.reddit.com/r/Clang/comments/phckjx/diffing_clang_ast_dumps/
 ---
 
-!["Inspect lit.local.cfg in vscode"](https://weliveindetail.github.io/blog/res/clang-ast-dump-diffable.png)
+![Inspect lit.local.cfg in vscode](https://weliveindetail.github.io/blog/res/clang-ast-dump-diffable.png)
 
 Clang makes it easy to dump the AST, but searching for differences in two given AST dumps is a little tricky. [A short Python script](https://github.com/weliveindetail/astpp){:target="_blank"} can fix most of it. Let's have a look at an example.
 
