@@ -10,7 +10,16 @@ description: "More plugins means more warnings and not everything is configurabl
 source: https://github.com/weliveindetail/blog/blob/main/_posts/2021-10-20-vscode-hide-warning-markers.md
 ---
 
-![vscode with clang-tidy warnings and minimap markers on](https://weliveindetail.github.io/blog-sandbox/res/vscode-hide-warning-markers-on.png)
+![vscode with clang-tidy warnings and minimap markers on](https://weliveindetail.github.io/blog-sandbox/res/vscode-hide-warning-markers-on.png){: #teaser-image}
+
+<script>
+  // Make it easier to spot the difference, by animating the teaser with markers on/off
+  var other = "https://weliveindetail.github.io/blog-sandbox/res/vscode-hide-warning-markers-off.png";
+  window.setInterval(function() {
+    var elem = document.getElementById('teaser-image');
+    [elem.src, other] = [other, elem.src];
+  }, 1000);
+</script>
 
 [clangd](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd){:target="_blank"} and other plugins tremendously increase efficiency when working with C++ in Visual Studio Code (vscode), but more plugins means more warnings and not everything is configurable. The above screenshot shows how a load of [clang-tidy](https://clang.llvm.org/extra/clang-tidy/){:target="_blank"} warning highlights from clangd clashes with the highlights for our search results in the minimap. This is going to slow down search-intensive tasks.
 
