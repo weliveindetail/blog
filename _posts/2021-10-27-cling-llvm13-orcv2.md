@@ -2,12 +2,13 @@
 layout: post
 categories: post
 author: Stefan Gränitz
-date: 2021-10-27 11:00:00 +0200
-image: https://weliveindetail.github.io/blog-sandbox/res/cling-llvm13-orcv2-preview.png
+date: 2021-10-27 13:30:00 +0200
+image: https://weliveindetail.github.io/blog/res/cling-llvm13-orcv2-preview.png
 preview: summary_large_image
 title: "Porting Cling to LLVM 13 and ORCv2"
 description: "The upstream version of the C++ interpreter is based on LLVM 9 and uses the now deprecated ORCv1 JIT libraries. Here are my notes and learnings from rebasing it to the latest release."
 source: https://github.com/weliveindetail/blog/blob/main/_posts/2021-10-27-cling-llvm13-orcv2.md
+comments: https://news.ycombinator.com/item?id=29011792
 ---
 
 <style>
@@ -47,16 +48,16 @@ source: https://github.com/weliveindetail/blog/blob/main/_posts/2021-10-27-cling
   }
 </style>
 
-![cling demo on llvm13 branch](https://weliveindetail.github.io/blog-sandbox/res/cling-llvm13-orcv2-teaser.png){: #teaser-image}{: .center}
+![cling demo on llvm13 branch](https://weliveindetail.github.io/blog/res/cling-llvm13-orcv2-teaser.png){: #teaser-image}{: .center}
 
 [Cling](https://github.com/root-project/cling){:target="_blank"} is a Clang-based C++ interpreter developed by [CERN](https://root.cern/cling/){:target="_blank"} as part of the high-energy physics data analysis project [ROOT](https://root.cern/){:target="_blank"}. It built against LLVM 5 since 2015 and was [ported to LLVM 9](https://lists.llvm.org/pipermail/llvm-dev/2020-July/143257.html){:target="_blank"} last year. With this latest official version it still uses LLVM's [now deprecated ORCv1 JIT libraries](https://reviews.llvm.org/D64609){:target="_blank"}. [ORCv2](https://llvm.org/docs/ORCv2.html){:target="_blank"} evolved in parallel to its predecessor since LLVM 7 and introduced a complete redesign of the JIT API. It's one of the breaking changes in LLVM that cling hasn't caught up with yet.
 
-Updating an external dependency can be a major effort for any project. LLVM bears a high risk here, because the C++ APIs don't offer any guarantees for stability across release versions. Furthermore, cling maintains it's own set of downstream modifications on [LLVM's release/9.x](https://github.com/llvm/llvm-project/commits/release/9.x){:target="_blank"} branch. [Here](https://weliveindetail.github.io/blog-sandbox/res/cling-llvm09-baobab.html){:target="_blank"} is an interactive visualization:
+Updating an external dependency can be a major effort for any project. LLVM bears a high risk here, because the C++ APIs don't offer any guarantees for stability across release versions. Furthermore, cling maintains it's own set of downstream modifications on [LLVM's release/9.x](https://github.com/llvm/llvm-project/commits/release/9.x){:target="_blank"} branch. [Here](https://weliveindetail.github.io/blog/res/cling-llvm09-baobab.html){:target="_blank"} is an interactive visualization:
 
-<iframe src="https://weliveindetail.github.io/blog-sandbox/res/cling-llvm09-baobab.html" title="git-baobab: cling downstream changes LLVM 9" class="baobab">
-  <a href="https://weliveindetail.github.io/blog-sandbox/res/cling-llvm09-baobab.html"
+<iframe src="https://weliveindetail.github.io/blog/res/cling-llvm09-baobab.html" title="git-baobab: cling downstream changes LLVM 9" class="baobab">
+  <a href="https://weliveindetail.github.io/blog/res/cling-llvm09-baobab.html"
      target="_blank" class="baobab">
-    <img src="https://weliveindetail.github.io/blog-sandbox/res/cling-llvm09-baobab.png"
+    <img src="https://weliveindetail.github.io/blog/res/cling-llvm09-baobab.png"
          alt="git-baobab: cling downstream changes LLVM 9">
   </a>
 </iframe>
@@ -105,21 +106,21 @@ Once we tested the intermediate state and sorted out changes, we can start the n
 
 ### Skipping release/12.x
 
-Sometimes it's worth skipping a release. In case of Cling LLVM 12 is a good candidate, because it had [removed the ORCv1 JIT libraries](https://lists.llvm.org/pipermail/llvm-dev/2020-September/144885.html){:target="_blank"} (for good reasons) while the ORCv2 API was still quite unstable: [The public ORCv2 API](https://github.com/llvm/llvm-project/llvm/include/llvm/ExecutionEngine/Orc){:target="_blank"} (left/top) saw [4.7K insertions/deletions](https://weliveindetail.github.io/blog-sandbox/res/llvm13-orcv2-api.html?path=llvm-project/llvm/include/llvm/ExecutionEngine){:target="_blank"} during that time! For comparison, it had only [2K insertions/deletions](https://weliveindetail.github.io/blog-sandbox/res/llvm11-orcv2-api.html?path=llvm-project/llvm/include/llvm/ExecutionEngine){:target="_blank"} in the LLVM 11 cycle (right/bottom).
+Sometimes it's worth skipping a release. In case of Cling LLVM 12 is a good candidate, because it had [removed the ORCv1 JIT libraries](https://lists.llvm.org/pipermail/llvm-dev/2020-September/144885.html){:target="_blank"} (for good reasons) while the ORCv2 API was still quite unstable: [The public ORCv2 API](https://github.com/llvm/llvm-project/llvm/include/llvm/ExecutionEngine/Orc){:target="_blank"} (left/top) saw [4.7K insertions/deletions](https://weliveindetail.github.io/blog/res/llvm13-orcv2-api.html?path=llvm-project/llvm/include/llvm/ExecutionEngine){:target="_blank"} during that time! For comparison, it had only [2K insertions/deletions](https://weliveindetail.github.io/blog/res/llvm11-orcv2-api.html?path=llvm-project/llvm/include/llvm/ExecutionEngine){:target="_blank"} in the LLVM 11 cycle (right/bottom).
 
 <div class="flex-grid">
-<iframe src="https://weliveindetail.github.io/blog-sandbox/res/llvm13-orcv2-api.html?path=llvm-project/llvm/include/llvm/ExecutionEngine" title="git-baobab: ORCv2 API changes in LLVM 13" class="baobab">
-  <a href="https://weliveindetail.github.io/blog-sandbox/res/llvm13-orcv2-api.html?path=llvm-project/llvm/include/llvm/ExecutionEngine"
+<iframe src="https://weliveindetail.github.io/blog/res/llvm13-orcv2-api.html?path=llvm-project/llvm/include/llvm/ExecutionEngine" title="git-baobab: ORCv2 API changes in LLVM 13" class="baobab">
+  <a href="https://weliveindetail.github.io/blog/res/llvm13-orcv2-api.html?path=llvm-project/llvm/include/llvm/ExecutionEngine"
      target="_blank" class="baobab">
-    <img src="https://weliveindetail.github.io/blog-sandbox/res/llvm13-orcv2-api.html.png"
+    <img src="https://weliveindetail.github.io/blog/res/llvm13-orcv2-api.html.png"
          alt="git-baobab: ORCv2 API changes in LLVM 13">
   </a>
 </iframe>
 
-<iframe src="https://weliveindetail.github.io/blog-sandbox/res/llvm11-orcv2-api.html?path=llvm-project/llvm/include/llvm/ExecutionEngine" title="git-baobab: ORCv2 API changes in LLVM 11" class="baobab">
-  <a href="https://weliveindetail.github.io/blog-sandbox/res/llvm11-orcv2-api.html?path=llvm-project/llvm/include/llvm/ExecutionEngine"
+<iframe src="https://weliveindetail.github.io/blog/res/llvm11-orcv2-api.html?path=llvm-project/llvm/include/llvm/ExecutionEngine" title="git-baobab: ORCv2 API changes in LLVM 11" class="baobab">
+  <a href="https://weliveindetail.github.io/blog/res/llvm11-orcv2-api.html?path=llvm-project/llvm/include/llvm/ExecutionEngine"
      target="_blank" class="baobab">
-    <img src="https://weliveindetail.github.io/blog-sandbox/res/llvm11-orcv2-api.html.png"
+    <img src="https://weliveindetail.github.io/blog/res/llvm11-orcv2-api.html.png"
          alt="git-baobab: ORCv2 API changes in LLVM 11">
   </a>
 </iframe>
@@ -158,8 +159,16 @@ Thanks for reading! Here is how to build our new version of Cling in debug mode:
 ➜ git clone https://github.com/weliveindetail/llvm-project
 ➜ git -C llvm-project checkout cling-13
 ➜ git clone https://github.com/weliveindetail/cling llvm-project/llvm/tools/cling
+➜ git -C llvm-project/llvm/tools/cling checkout cling-13
 ➜ ln -s ../../clang llvm-project/llvm/tools/clang
 ➜ mkdir build
 ➜ cmake -S "llvm-project/llvm" -B "build" -GNinja -DBUILD_SHARED_LIBS=On -DLLVM_ENABLE_PROJECTS=clang -DLLVM_EXTERNAL_PROJECTS=cling -DLLVM_TARGETS_TO_BUILD="ARM;NVPTX;X86"
 ➜ ninja -C build cling
+➜ build/bin/cling --version
+1.0~dev
+LLVM (http://llvm.org/):
+  LLVM version 13.0.0
+  DEBUG build with assertions.
+  Default target: x86_64-apple-darwin20.6.0
+  Host CPU: skylake
 ```
