@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="https://weliveindetail.github.io/git-baobab/baobab-static.v0.4.css">
+  <title>git baobab -filter llvm/include/llvm/ExecutionEngine/Orc e26a78e70857273c</title>
+</head>
+<body>
+<svg id="baobab"></svg>
+<p>git baobab -filter llvm/include/llvm/ExecutionEngine/Orc e26a78e70857273c</p>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script>
+const baobab_hash_since = "e26a78e70857273c83aaacd4aa0edb36effe70e3";
+const baobab_hash_head = "1fdec59bffc11ae37eb51a1b9869f0696bfd5312";
+const baobab_data = {n: "llvm-project", m: 2033, t: 12216, children: [
+  {n: "llvm", m: 2033, t: 12216, children: [
+    {n: "include", m: 2033, t: 12216, children: [
+      {n: "llvm", m: 2033, t: 12216, children: [
+        {n: "ExecutionEngine", m: 2033, t: 12216, children: [
+          {n: "Orc", m: 2033, t: 12157, children: [
+            {n: "CompileOnDemandLayer.h", m: 92, t: 769},
+            {n: "CompileUtils.h", m: 19, t: 103},
+            {n: "Core.h", m: 418, t: 1404},
+            {n: "DebugUtils.h", m: 72, t: 130},
+            {n: "ExecutionUtils.h", m: 72, t: 401},
+            {n: "IRCompileLayer.h", m: 29, t: 164},
+            {n: "IRTransformLayer.h", m: 7, t: 129},
+            {n: "IndirectionUtils.h", m: 136, t: 567},
+            {n: "JITTargetMachineBuilder.h", m: 11, t: 161},
+            {n: "LLJIT.h", m: 174, t: 455},
+            {n: "Layer.h", m: 100, t: 176},
+            {n: "LazyEmittingLayer.h", m: 2, t: 267},
+            {n: "LazyReexports.h", m: 96, t: 179},
+            {n: "Legacy.h", m: 12, t: 211},
+            {n: "MachOPlatform.h", m: 161, t: 161},
+            {n: "Mangling.h", m: 66, t: 66},
+            {n: "ObjectLinkingLayer.h", m: 15, t: 197},
+            {n: "OrcABISupport.h", m: 355, t: 337},
+            {n: "OrcError.h", m: 4, t: 74},
+            {n: "OrcRemoteTargetRPCAPI.h", m: 3, t: 374},
+            {n: "OrcRemoteTargetServer.h", m: 44, t: 449},
+            {n: "RPC", m: 92, t: 2573, children: [
+              {n: "RPCSerialization.h", m: 17, t: 702},
+              {n: "RPCUtils.h", m: 43, t: 1687},
+              {n: "RawByteChannel.h", m: 32, t: 184}
+            ]},
+            {n: "RTDyldObjectLinkingLayer.h", m: 30, t: 504},
+            {n: "Speculation.h", m: 9, t: 213},
+            {n: "SymbolStringPool.h", m: 7, t: 202},
+            {n: "ThreadSafeModule.h", m: 7, t: 172}
+          ]}
+        ]}
+      ]}
+    ]}
+  ]}
+]};
+</script>
+<script src="https://weliveindetail.github.io/git-baobab/baobab-static.v0.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
+<script>
+  // Link leaves to actual diffs on GitHub
+  function showOnGithub(d) {
+    const url = "https://github.com/weliveindetail/llvm-project/compare/e26a78e70857273c83aaacd4aa0edb36effe70e3..1fdec59bffc11ae37eb51a1b9869f0696bfd5312#diff-";
+    const relPath = concatPath(d).slice(12 + 1); // account for slash
+    window.open(url + sha256(relPath), '_blank');
+  }
+  baobab.arcShapes
+    .filter(d => !d.children)
+    .style("cursor", "pointer")
+    .on("click", d => showOnGithub(d));
+
+  // Highlight all arcs on hover
+  function setOpacity(d, percent) {
+    d.style("fill-opacity", percent);
+  }
+  baobab.arcShapes
+    .on("mouseover", function() { setOpacity(d3.select(this), 0.75); })
+    .on("mouseout", function() { setOpacity(d3.select(this), 1); });
+</script>
+
+<script>
+(function() {
+  var regex = /[?&]([^=#]+)=([^&#]*)/g,
+      url = window.location.href,
+      params = {},
+      match;
+  while(match = regex.exec(url)) {
+    params[match[1]] = match[2];
+  }
+
+  if (params["path"]) {
+    var path = params["path"].split("/");
+    var select = baobab.root;
+    for (var i = 1; i < path.length; i++) {
+      const child = select.children.find(node => node.data["n"] == path[i]);
+      if (child && child["children"])
+        select = child
+      else
+        break;
+    }
+    selectAsNewRoot(select);
+  }
+})();
+</script>
+</body>

@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="https://weliveindetail.github.io/git-baobab/baobab-static.v0.4.css">
+  <title>git baobab -filter llvm/include/llvm/ExecutionEngine/Orc 8e464dd76befbc4a</title>
+</head>
+<body>
+<body>
+<svg id="baobab"></svg>
+<p>git baobab -filter llvm/include/llvm/ExecutionEngine/Orc 8e464dd76befbc4a</p>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script>
+const baobab_hash_since = "8e464dd76befbc4a39a1d21968a3d5f543e29312";
+const baobab_hash_head = "fd1d8c2f04dde23bee0fb3a7d069a9b1046da979";
+const baobab_data = {n: "llvm-project", m: 4673, t: 14149, children: [
+  {n: "llvm", m: 4673, t: 14149, children: [
+    {n: "include", m: 4673, t: 14149, children: [
+      {n: "llvm", m: 4673, t: 14149, children: [
+        {n: "ExecutionEngine", m: 4673, t: 14149, children: [
+          {n: "Orc", m: 4673, t: 14090, children: [
+            {n: "CompileOnDemandLayer.h", m: 1, t: 139},
+            {n: "Core.h", m: 251, t: 1864},
+            {n: "DebugObjectManagerPlugin.h", m: 85, t: 85},
+            {n: "EPCDebugObjectRegistrar.h", m: 61, t: 61},
+            {n: "EPCDynamicLibrarySearchGenerator.h", m: 68, t: 68},
+            {n: "EPCEHFrameRegistrar.h", m: 55, t: 55},
+            {n: "EPCIndirectionUtils.h", m: 222, t: 222},
+            {n: "ExecutionUtils.h", m: 1, t: 300},
+            {n: "ExecutorProcessControl.h", m: 303, t: 303},
+            {n: "IRCompileLayer.h", m: 5, t: 73},
+            {n: "IRTransformLayer.h", m: 1, t: 56},
+            {n: "JITTargetMachineBuilder.h", m: 32, t: 181},
+            {n: "LLJIT.h", m: 41, t: 465},
+            {n: "LLVMSPSSerializers.h", m: 69, t: 69},
+            {n: "Layer.h", m: 6, t: 186},
+            {n: "MachOPlatform.h", m: 328, t: 341},
+            {n: "ObjectLinkingLayer.h", m: 55, t: 239},
+            {n: "ObjectTransformLayer.h", m: 6, t: 51},
+            {n: "OrcABISupport.h", m: 1, t: 336},
+            {n: "OrcRPCExecutorProcessControl.h", m: 436, t: 436},
+            {n: "RTDyldObjectLinkingLayer.h", m: 7, t: 160},
+            {n: "Shared", m: 1457, t: 4150, children: [
+              {n: "ExecutorAddress.h", m: 203, t: 203},
+              {n: "OrcError.h", m: 10, t: 74},
+              {n: "RPCUtils.h", m: 30, t: 1659},
+              {n: "Serialization.h", m: 2, t: 769},
+              {n: "SimplePackedSerialization.h", m: 557, t: 557},
+              {n: "TargetProcessControlTypes.h", m: 97, t: 68},
+              {n: "WrapperFunctionUtils.h", m: 558, t: 558}
+            ]},
+            {n: "SpeculateAnalyses.h", m: 2, t: 84},
+            {n: "SymbolStringPool.h", m: 12, t: 208},
+            {n: "TargetProcess", m: 187, t: 762, children: [
+              {n: "JITLoaderGDB.h", m: 22, t: 22},
+              {n: "OrcRPCTPCServer.h", m: 152, t: 660},
+              {n: "RegisterEHFrames.h", m: 13, t: 42}
+            ]},
+            {n: "ThreadSafeModule.h", m: 6, t: 172},
+            {n: "OrcRPCTargetProcessControl.h", m: 415, t: 0},
+            {n: "TPCDynamicLibrarySearchGenerator.h", m: 66, t: 0},
+            {n: "TPCEHFrameRegistrar.h", m: 54, t: 0},
+            {n: "TPCIndirectionUtils.h", m: 222, t: 0},
+            {n: "TargetProcessControl.h", m: 218, t: 0}
+          ]}
+        ]}
+      ]}
+    ]}
+  ]}
+]};
+</script>
+<script src="https://weliveindetail.github.io/git-baobab/baobab-static.v0.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
+<script>
+  // Link leaves to actual diffs on GitHub
+  function showOnGithub(d) {
+    const url = "https://github.com/weliveindetail/llvm-project/compare/8e464dd76befbc4a39a1d21968a3d5f543e29312..fd1d8c2f04dde23bee0fb3a7d069a9b1046da979#diff-";
+    const relPath = concatPath(d).slice(12 + 1); // account for slash
+    window.open(url + sha256(relPath), '_blank');
+  }
+  baobab.arcShapes
+    .filter(d => !d.children)
+    .style("cursor", "pointer")
+    .on("click", d => showOnGithub(d));
+
+  // Highlight all arcs on hover
+  function setOpacity(d, percent) {
+    d.style("fill-opacity", percent);
+  }
+  baobab.arcShapes
+    .on("mouseover", function() { setOpacity(d3.select(this), 0.75); })
+    .on("mouseout", function() { setOpacity(d3.select(this), 1); });
+</script>
+
+<script>
+(function() {
+  var regex = /[?&]([^=#]+)=([^&#]*)/g,
+      url = window.location.href,
+      params = {},
+      match;
+  while(match = regex.exec(url)) {
+    params[match[1]] = match[2];
+  }
+
+  if (params["path"]) {
+    var path = params["path"].split("/");
+    var select = baobab.root;
+    for (var i = 1; i < path.length; i++) {
+      const child = select.children.find(node => node.data["n"] == path[i]);
+      if (child && child["children"])
+        select = child
+      else
+        break;
+    }
+    selectAsNewRoot(select);
+  }
+})();
+</script>
+</body>
