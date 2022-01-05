@@ -59,10 +59,11 @@ Today we will cross-compile a simple HTTP server based on [Mongoose](https://git
 
 ### Build and run locally
 
-[Mongoose](https://github.com/cesanta/mongoose){:target="_blank"} is an established embedded web server and networking library. Let's check out the sources and run the [http-server example](https://github.com/cesanta/mongoose/blob/master/examples/http-server/main.c){:target="_blank"} locally for illustration. In the end we won't need the local build anymore so you could as well skip this step:
+[Mongoose](https://github.com/cesanta/mongoose){:target="_blank"} is an established embedded web server and networking library. Let's check out the sources and run the [http-server example](https://github.com/cesanta/mongoose/blob/master/examples/http-server/main.c){:target="_blank"} locally for illustration. In the end we won't need the local build anymore so you could as well skip the `make` step:
 ```terminal
 > cd /path/to/demo
 > git clone https://github.com/cesanta/mongoose
+> git -C mongoose checkout 912dd518bf986e04
 > cd mongoose/examples/http-server
 > apt-get install libmbedtls-dev
 > make
@@ -233,6 +234,7 @@ Connection established. Running OrcRPCTPCServer...
 2021-05-19 10:01:49  I main.c:67:main            Starting Mongoose v7.3, serving [.]
 ```
 
+<div id="voila"></div>
 Let's open a browser and [view the HTML page](http://localhost:8000/usr){:target="_blank"} provided from our cross-JITed Mongoose server:
 
 <p class="center-image">
