@@ -19,9 +19,9 @@ layout: default
       {% endif %}
       {% if page.comments %}
         {% if page.comments == true %}
-          • <a href="#comments" onclick="loadComments()">Comments</a>
+          • <a href="#comments" onclick="loadComments()" target="_blank">Comments</a>
         {% else %}
-          • <a href="{{ page.comments }}" onclick="loadComments()">Comments</a>
+          • <a href="{{ page.comments }}" onclick="loadComments()" target="_blank">Comments</a>
         {% endif %}
       {% endif %}
     </p>
