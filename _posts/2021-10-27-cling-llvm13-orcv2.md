@@ -8,7 +8,7 @@ preview: summary_large_image
 title: "Porting Cling to LLVM 13 and ORCv2"
 description: "The upstream version of the C++ interpreter is based on LLVM 9 and uses the now deprecated ORCv1 JIT libraries. Here are my notes and learnings from rebasing it to the latest release."
 source: https://github.com/weliveindetail/blog/blob/main/_posts/2021-10-27-cling-llvm13-orcv2.md
-comments: https://news.ycombinator.com/item?id=29011792
+ycombinator: https://news.ycombinator.com/item?id=29011792
 ---
 
 <style>

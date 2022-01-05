@@ -87,4 +87,25 @@ layout: default
       </div>
     {% endif %}
   {% endif %}
+
+  {% if page.reddit %}
+    <div class="comments-container">
+      <a class="svg-icon" href="{{ page.reddit }}" target="_blank">
+        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10,0A10,10,0,0,0,1.64,15.51L.57,18.73c-.16.52.19.86.7.7l3.22-1.08A10,10,0,1,0,10,0ZM5.54,11.41A1.39,1.39,0,1,1,6.93,10,1.39,1.39,0,0,1,5.54,11.41Zm4.46,0A1.39,1.39,0,1,1,11.39,10,1.39,1.39,0,0,1,10,11.41Zm4.44,0A1.39,1.39,0,1,1,15.83,10,1.39,1.39,0,0,1,14.44,11.41Z"></path>
+        </svg>
+        Discuss on Reddit
+      </a>
+    </div>
+  {% endif %}
+  {% if page.ycombinator %}
+    <div class="comments-container">
+      <a class="svg-icon" href="{{ page.ycombinator }}" target="_blank">
+        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10,0A10,10,0,0,0,1.64,15.51L.57,18.73c-.16.52.19.86.7.7l3.22-1.08A10,10,0,1,0,10,0ZM5.54,11.41A1.39,1.39,0,1,1,6.93,10,1.39,1.39,0,0,1,5.54,11.41Zm4.46,0A1.39,1.39,0,1,1,11.39,10,1.39,1.39,0,0,1,10,11.41Zm4.44,0A1.39,1.39,0,1,1,15.83,10,1.39,1.39,0,0,1,14.44,11.41Z"></path>
+        </svg>
+        Discuss on Hacker News
+      </a>
+    </div>
+  {% endif %}
 </article>
