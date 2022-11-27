@@ -5,6 +5,20 @@ permalink: /talks/
 ---
 <ul class="post-list">
   <li>
+    <span class="post-meta">LLVM Meetup Berlin — May 2022</span>
+    <h2>
+      <a class="post-link" href="https://www.slideshare.net/StefanGrnitz/berlinmeetup22tablegenpdf" target="_blank">
+      LLVM Essentials - A practical introduction to TableGen</a>
+    </h2>
+  </li>
+  <li>
+    <span class="post-meta">EuroLLVM Developers' Meeting, London — May 2022</span>
+    <h2>
+      <a class="post-link" href="https://www.slideshare.net/StefanGrnitz/ezclang-c-repl-for-baremetal-embedded-devices" target="_blank">
+      ez-clang C++ REPL for bare-metal embedded devices</a>
+    </h2>
+  </li>
+  <li>
     <span class="post-meta">LLVM Developers' Meeting, San Jose — October 2018</span>
     <h2>
       <a class="post-link" href="https://github.com/weliveindetail/talks/raw/master/ThinLtoSummariesInJitCompilation.pdf" target="_blank">
