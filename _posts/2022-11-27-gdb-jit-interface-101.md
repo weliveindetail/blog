@@ -201,17 +201,17 @@ lli-15`main:
         Summary: libLLVM-15.so.1`__jit_debug_register_code
 ```
 
-Moreover shared libraries contain "undefined" `U` records for external symbols and this triggered a [bug in LLDB's JITLoaderGDB](https://github.com/llvm/llvm-project/issues/56085){:target="_blank"}. If we linked against such a shared library and LLDB encountered it before the one with the actual definition, LLDB failed to resolve `__jit_debug_register_code`. The issue [should be fixed](https://reviews.llvm.org/D138750){:target="_blank"} in the upcoming LLDB release 16. We can stop in `main()` and lookup the symbol manually to check for this case:
+Moreover shared libraries contain "undefined" `U` records for external symbols and this triggered a [bug in LLDB's JITLoaderGDB](https://github.com/llvm/llvm-project/issues/56085){:target="_blank"}. If we linked against such a shared library and LLDB encountered it before the one with the actual definition, LLDB failed to resolve `__jit_debug_register_code`. The issue [should be fixed](https://reviews.llvm.org/D138750){:target="_blank"} in the upcoming LLDB release 16. We can stop in `main()` and lookup the symbol manually to check for this case, e.g. in a `BUILD_SHARED_LIBS` build of mainline LLVM:
 ```
-> lldb-15 -- lli-15
+> lldb-15 -- /path/to/llvm-project/build/bin/lli
 (lldb) b main
 (lldb) run --version
 (lldb) image lookup -s __jit_debug_register_code
-1 symbols match '__jit_debug_register_code' in /home/ez/Develop/llvm-project/build_github56085/lib/libLLVMExecutionEngine.so.16git:
+1 symbols match '__jit_debug_register_code' in /path/to/llvm-project/build/lib/libLLVMExecutionEngine.so.16git:
         Name: __jit_debug_register_code
         Value: 0x0000000000000000
 
-1 symbols match '__jit_debug_register_code' in /home/ez/Develop/llvm-project/build_github56085/lib/libLLVMOrcTargetProcess.so.16git:
+1 symbols match '__jit_debug_register_code' in /path/to/llvm-project/build/lib/libLLVMOrcTargetProcess.so.16git:
         Address: libLLVMOrcTargetProcess.so.16git[0x000000000000fa5a] (libLLVMOrcTargetProcess.so.16git.PT_LOAD[1]..text + 20058)
         Summary: libLLVMOrcTargetProcess.so.16git`__jit_debug_register_code
 ```
