@@ -3,11 +3,12 @@ layout: post
 categories: post
 author: Stefan Gränitz
 date: 2022-11-27 12:00:00 +0200
-image: https://weliveindetail.github.io/blog-sandbox/res/gdb-jit-register-sequence-diagram.png
+image: https://weliveindetail.github.io/blog/res/gdb-jit-register-sequence-diagram.png
 preview: summary_large_image
 title: "GDB JIT Interface 101"
 description: "There is a surprising amount of things that can go wrong when debugging JITed code. Let's see how debug info registration works at runtime and what to check when things go south."
 source: https://github.com/weliveindetail/blog/blob/main/_posts/2022-11-27-gdb-jit-interface-101.md
+comments: https://news.ycombinator.com/item?id=33762551
 ---
 
 <style>
@@ -20,13 +21,13 @@ source: https://github.com/weliveindetail/blog/blob/main/_posts/2022-11-27-gdb-j
   }
 </style>
 
-![EuroLLVM 2022 Logo](https://weliveindetail.github.io/blog-sandbox/res/gdb-jit-register-sequence-diagram.png){: #large-image}{: .center}
+![EuroLLVM 2022 Logo](https://weliveindetail.github.io/blog/res/gdb-jit-register-sequence-diagram.png){: #large-image}{: .center}
 
 LLVM's JIT libraries allow to link and load static build artifacts at runtime. We can play with object files in a JIT session without having to link them into a static executable. That's great &mdash; as long as everything works as expected.
 
 If something goes wrong, we face a little extra effort to inspect our code with a debugger. Mainstream debuggers scan executable and shared library files on disk to collect their symbols and debug info. And they know how to intercept shared library events like `dlopen()` and `dlclose()`. When we compile and link code in-memory, however, and load it on the fly, there is not much they can do. In order to debug such code we have to collaborate.
 
-There is a surprising amount of things that can go wrong when debugging JITed code. This article explains debug info registration at runtime and tries to give assistence on what to check when things go south.
+There is a surprising amount of things that can go wrong when debugging JITed code. This article explains debug info registration at runtime and tries to give assistance on what to check when things go south.
 
 ### GDB JIT Interface
 
@@ -49,7 +50,7 @@ LLDB fully supports the GDB JIT interface for ELF object files [again since rele
 
 ### LLVM JIT support
 
-At the time of writing, LLVM comes with two different JIT-linker implementations: RuntimeDyLD and JITLink. RuntimeDyLD was designed as a dynamic loader for LLVM's monolithic MCJIT implementation. As it grew into a fully flegded cross-platform JIT-linker, it surpassed the limits of its architecture and became increasingly harder to maintain and extend (for different code models, EH registration, TLS support, etc.). With the rise of LLVM's composable ORC JIT libraries, JITLink came up as a replacement for RuntimeDyLD and today it is set to become the default JIT-linker for most LLVM target platforms.
+At the time of writing, LLVM comes with two different JIT-linker implementations: RuntimeDyLD and JITLink. RuntimeDyLD was designed as a dynamic loader for LLVM's monolithic MCJIT implementation. As it grew into a fully fledged cross-platform JIT-linker, it surpassed the limits of its architecture and became increasingly harder to maintain and extend (for different code models, EH registration, TLS support, etc.). With the rise of LLVM's composable ORC JIT libraries, JITLink came up as a replacement for RuntimeDyLD and today it is set to become the default JIT-linker for most LLVM target platforms.
 
 RuntimeDyLD provides a `JITEventListener` interface for clients to run actions when new code is loaded or unloaded. Debug object registration is implemented in the [GDBRegistrationListener](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/lib/ExecutionEngine/GDBRegistrationListener.cpp){:target="_blank"}. JITLink provides a much more comprehensive [plugin interface](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/include/llvm/ExecutionEngine/Orc/ObjectLinkingLayer.h#L60-L95){:target="_blank"}, which allows to hook into the linking process at various stages. In early 2021, I implemented a simple [DebugObjectManagerPlugin for JITLink](https://reviews.llvm.org/rGef2389235c5dec03be93f8c9585cd9416767ef4c){:target="_blank"} that works for ELF objects in both cases, in-process and [out-of-process JITing](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/examples/OrcV2Examples/LLJITWithRemoteDebugging/LLJITWithRemoteDebugging.cpp){:target="_blank"}. Later that year the [GDBJITDebugInfoRegistrationPlugin](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/include/llvm/ExecutionEngine/Orc/DebuggerSupportPlugin.h){:target="_blank"} for MachO support landed upstream.
 
@@ -250,6 +251,6 @@ We can break on both, functions and source locations if we have debug info. Othe
 
 #### 7. Does LLVM OrcJIT support debugging for your platform?
 
-As of 2022 the [DebugObjectManagerPlugin](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/include/llvm/ExecutionEngine/Orc/DebugObjectManagerPlugin.h){:target="_blank"} covers ELF on all matching platforms &mdsh; I never tested it outside 64-bit x86 systems but it might actually work! There are upstream tests in [LLVM](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/test/ExecutionEngine/OrcLazy/debug-objects-elf-minimal.ll){:target="_blank"} and [LLDB](https://github.com/llvm/llvm-project/blob/release/15.x/lldb/test/Shell/Breakpoint/jit-loader_jitlink_elf.test){:target="_blank"} and the plugin is wired up in both tools, [lli](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/tools/lli/lli.cpp#L948-949){:target="_blank"} and [llvm-jitlink](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/tools/llvm-jitlink/llvm-jitlink.cpp#L1026-1027){:target="_blank"}.
+As of 2022 the [DebugObjectManagerPlugin](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/include/llvm/ExecutionEngine/Orc/DebugObjectManagerPlugin.h){:target="_blank"} covers ELF on all matching platforms. (I never tested it outside of 64-bit x86 systems but it might actually work!) There are upstream tests in [LLVM](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/test/ExecutionEngine/OrcLazy/debug-objects-elf-minimal.ll){:target="_blank"} and [LLDB](https://github.com/llvm/llvm-project/blob/release/15.x/lldb/test/Shell/Breakpoint/jit-loader_jitlink_elf.test){:target="_blank"} and the plugin is wired up in both tools, [lli](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/tools/lli/lli.cpp#L948-949){:target="_blank"} and [llvm-jitlink](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/tools/llvm-jitlink/llvm-jitlink.cpp#L1026-1027){:target="_blank"}. There is an example for debugging [out-of-process](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/examples/OrcV2Examples/LLJITWithRemoteDebugging/LLJITWithRemoteDebugging.cpp){:target="_blank"} and a [test for it](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/test/Examples/OrcV2Examples/lljit-with-remote-debugging.test){:target="_blank"} upstream.
 
 The [GDBJITDebugInfoRegistrationPlugin](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/include/llvm/ExecutionEngine/Orc/DebuggerSupportPlugin.h){:target="_blank"} implements debug support for MachO on Apple systems. Right now it doesn't appear to get tested and it's only wired up in [llvm-jitlink](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/tools/llvm-jitlink/llvm-jitlink.cpp#L986-987){:target="_blank"}.
