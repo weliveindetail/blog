@@ -13,7 +13,7 @@ ycombinator: https://news.ycombinator.com/item?id=29011792
 
 <style>
   #teaser-image {
-    max-width: 500px;
+    max-width: min(100%, 500px);
   }
   .center {
     display: block;
