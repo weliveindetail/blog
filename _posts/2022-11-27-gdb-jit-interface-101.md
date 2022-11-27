@@ -31,7 +31,7 @@ There is a surprising amount of things that can go wrong when debugging JITed co
 
 ### GDB JIT Interface
 
-In 2009 [GDB introduced an ingenious way](https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=4efc6507960ac76505ebb1be9886f207ceb46c3a){:target="_blank"} for executables to register new code at runtime. It's kind of a loose standard with a single version so far. Other debuggers like LLDB picked it up later on. The interface relies on two symbols:
+In 2009 [GDB introduced an ingenious way](https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=4efc6507960ac76505ebb1be9886f207ceb46c3a){:target="_blank"} for executables to register new code at runtime: [JIT Compilation Interface docs](http://sourceware.org/gdb/onlinedocs/gdb/JIT-Interface.html){:target="_blank"}. It's kind of a loose standard with a single version so far. Other debuggers like LLDB picked it up later on. The interface relies on two symbols:
 
 * [`__jit_debug_descriptor`](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/lib/ExecutionEngine/Orc/TargetProcess/JITLoaderGDB.cpp#L24-L53){:target="_blank"} has type `jit_descriptor` and implements a linked list of `jit_code_entry` items. Our program adds items here for any new code that the debugger should know about.
 * [`__jit_debug_register_code`](https://github.com/llvm/llvm-project/blob/release/15.x/llvm/lib/ExecutionEngine/Orc/TargetProcess/JITLoaderGDB.cpp#L55-L63){:target="_blank"} is an empty function that our program calls in order to signal the debugger to process new list items.
