@@ -133,6 +133,15 @@ We have to pre-compile the Mongoose C sources to LLVM bitcode in order to feed i
      304
 ```
 
+Note: At the time of writing this post, the above approach was super useful, but apparently it was (considered) a bug in docker. It doesn't work anymore in version 20.10.8:
+```
+> docker --version
+Docker version 20.10.8, build 3967b7d
+> docker run -v x86_64-alpine-linux-musl/usr:/usr -t alpine apk add --no-cache musl-dev mbedtls-dev
+docker: Error response from daemon: create x86_64-alpine-linux-musl/usr: "x86_64-alpine-linux-musl/usr" includes invalid characters for a local volume name, only "[a-zA-Z0-9][a-zA-Z0-9_.-]" are allowed. If you intended to pass a host directory, use absolute path.
+See 'docker run --help'.
+```
+
 There is one detail we have to adjust in the [http-server example](https://github.com/cesanta/mongoose/blob/1b8624f135edfe5d3a2024156c00971f98b5e356/examples/http-server/main.c#L9){:target="_blank"} before we pre-compile it to bitcode. Because it's meant as a quick demo, it's hardcoded to be reachable only from the local network namespace. Once we run it in a Docker container and want it to be reachable from the host, it must listen for external connections as well. Thus, we have to change the network address from `localhost` to `0.0.0.0` in the source code:
 ```diff
 --- a/path/to/demo/mongoose/examples/http-server/main.c
