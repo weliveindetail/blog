@@ -47,15 +47,15 @@ def accept(info: Any) -> Any
 ```
 `connect()` establishes the raw connection to the device and returns a serializer for it. The serializer has a [standard implementation](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/.share/ez/repl/serialize.py){:target="_blank"}, that can typically be reused ([example for TeensyLC](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/teensylc/serial.py#L122){:target="_blank"}).
 ```
-def connect(info: Any, host: ez_clang_api.Host, device: ez_clang_api.Device) -> ez.repl.Serializer
+def connect(info: Any, ez_clang_api.Host, ez_clang_api.Device) -> ez.repl.Serializer
 ```
 
 `setup()` configures the `ez_clang_api.Device` and adds it to the `ez_clang_api.Host`. This is the core function for device configuration. We read the setup message from the device, initialize endpoints, set CPU, target triple and code buffer (memory range available for JITed code) as well as header search paths and compiler flags. Examples: [TeensyLC](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/teensylc/serial.py#L134){:target="_blank"}, [Arduino Due](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/due/serial.py#L84){:target="_blank"}, [Raspberry Pi (Socket)](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/raspi32/socket.py#L111){:target="_blank"}, [LM3S811 (QEMU)](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/lm3s811/qemu.py#L95){:target="_blank"}.
 ```
-def setup(stream: ez.repl.Serializer, host: ez_clang_api.Host, device: ez_clang_api.Device) -> bool
+def setup(stream: ez.repl.Serializer, ez_clang_api.Host, ez_clang_api.Device) -> bool
 ```
 
-`call()` allows to invoke the RPC function `endpoint` on the device with the parameters in `data`. As in the last release, [builtin endpoints](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/.share/ez/repl/__init__.py#L223-L228){:target="_blank"} are `lookup`, `commit`, `execute` and `memory.read.cstr` (see [binary interface docs](https://github.com/echtzeit-dev/ez-clang/blob/v0.0.5/release/0.0.5/docs/rpc.md){:target="_blank"}).
+`call()` allows invoking the RPC function `endpoint` on the device with the parameters in `data`. As in the last release, [built-in endpoints](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/.share/ez/repl/__init__.py#L223-L228){:target="_blank"} are `lookup`, `commit`, `execute` and `memory.read.cstr` (see [binary interface docs](https://github.com/echtzeit-dev/ez-clang/blob/v0.0.5/release/0.0.5/docs/rpc.md){:target="_blank"}).
 ```
 def call(endpoint: str, data: dict) -> dict
 ```
@@ -67,7 +67,7 @@ def disconnect() -> bool
 
 ### Host and Device interfaces
 
-These interfaces describe specific properties for the host and the device respectively. They are both implemented in C++ inside ez-clang and not formally documented yet. For testing, however, we [mock these types](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/main/.share/ez_clang_api/__init__.py){:target="_blank"} and they can be used as an informal documentation for now.
+These interfaces describe specific properties for the host and the device respectively. They are both implemented in C++ inside ez-clang and not formally documented yet. For testing, however, we [mock these types](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/main/.share/ez_clang_api/__init__.py){:target="_blank"} and the mocks can be used as an informal documentation for now.
 
 ### Install
 
@@ -111,7 +111,7 @@ Testing Time: 88.65s
 SUCCESS
 ```
 
-The inidividual tests are self-contained and can be executed as standalone Python scripts:
+The individual tests are self-contained and can be executed as standalone Python scripts. The output shows the serialized RPC traffic:
 ```
 > python3 due/test/00-basics/01-connect.py
 Found compatible device at /dev/ttyACM2
@@ -156,7 +156,7 @@ if ez_clang_api.Host.debugPython(__debug__):
     debugpy.breakpoint()
 ```
 
-They get enabled by passing the `--rpc-debug-python` flag to ez-clang. Additionally we have to forward the debug port to the host with the `-p` parameter for docker:
+They get enabled by passing the `--rpc-debug-python` flag to ez-clang. Additionally we have to forward the debug port from the docker container to the host with the `-p` parameter:
 ```
 > docker run --rm -p 5678:5678 -it echtzeit/ez-clang:0.0.6 --connect=raspi32@192.168.1.105:10819 --rpc-debug-python
 Welcome to ez-clang, your friendly remote C++ REPL. Type `.q` to exit.
