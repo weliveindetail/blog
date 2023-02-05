@@ -42,26 +42,26 @@ ez-clang --connect=lm3s811@qemu
 The [`scan()`](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/.share/ez/scan.py#L7){:target="_blank"} function will parse this string and load the respective device script. The [`Script` class](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/.share/ez/util/script.py#L27){:target="_blank"} implements the interface between ez-clang and Python. Compatible device scripts define the following freestanding functions.
 
 `accept()` checks whether the provided info matches the device. The first candidate script that returns a non-Null value here will be choosen. The type of the `info` parameter depends on the selected transport type. For serial transport we get a `serial.tools.list_ports_linux.SysFS` object and will probably check the `hwid` field ([example for TeensyLC](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/teensylc/serial.py#L115){:target="_blank"}).
-```
+```py
 def accept(info: Any) -> Any
 ```
 `connect()` establishes the raw connection to the device and returns a serializer for it. The serializer has a [standard implementation](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/.share/ez/repl/serialize.py){:target="_blank"}, that can typically be reused ([example for TeensyLC](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/teensylc/serial.py#L122){:target="_blank"}).
-```
+```py
 def connect(info: Any, ez_clang_api.Host, ez_clang_api.Device) -> ez.repl.Serializer
 ```
 
 `setup()` configures the `ez_clang_api.Device` and adds it to the `ez_clang_api.Host`. This is the core function for device configuration. We read the setup message from the device, initialize endpoints, set CPU, target triple and code buffer (memory range available for JITed code) as well as header search paths and compiler flags. Examples: [TeensyLC](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/teensylc/serial.py#L134){:target="_blank"}, [Arduino Due](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/due/serial.py#L84){:target="_blank"}, [Raspberry Pi (Socket)](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/raspi32/socket.py#L111){:target="_blank"}, [LM3S811 (QEMU)](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/lm3s811/qemu.py#L95){:target="_blank"}.
-```
+```py
 def setup(stream: ez.repl.Serializer, ez_clang_api.Host, ez_clang_api.Device) -> bool
 ```
 
 `call()` allows invoking the RPC function `endpoint` on the device with the parameters in `data`. As in the last release, [built-in endpoints](https://github.com/echtzeit-dev/ez-clang-pycfg/blob/v0.0.6/.share/ez/repl/__init__.py#L223-L228){:target="_blank"} are `lookup`, `commit`, `execute` and `memory.read.cstr` (see [binary interface docs](https://github.com/echtzeit-dev/ez-clang/blob/v0.0.5/release/0.0.5/docs/rpc.md){:target="_blank"}).
-```
+```py
 def call(endpoint: str, data: dict) -> dict
 ```
 
 `disconnect()` shuts down the session and closes the device connection.
-```
+```py
 def disconnect() -> bool
 ```
 
@@ -164,7 +164,7 @@ Python API waiting for debugger. Attach to 0.0.0.0:5678 to proceed.
 ```
 
 Now any appropriate debugger should be able to attach, e.g. vscode with a launch configuration like this:
-```
+```json
 {
   "name": "Python: Remote Attach",
   "type": "python",
