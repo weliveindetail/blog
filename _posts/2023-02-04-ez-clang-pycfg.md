@@ -166,7 +166,7 @@ Python API waiting for debugger. Attach to 0.0.0.0:5678 to proceed.
 Now any appropriate debugger should be able to attach, e.g. vscode with a launch configuration like this:
 ```json
 {
-  "name": "Python: Remote Attach",
+  "name": "ez-clang-pycfg attach",
   "type": "python",
   "request": "attach",
   "connect": { "host": "localhost", "port": 5678 },
@@ -174,7 +174,7 @@ Now any appropriate debugger should be able to attach, e.g. vscode with a launch
     "localRoot": "${workspaceFolder}/ez-clang-pycfg",
     "remoteRoot": "/usr/lib/ez-clang/0.0.6/pycfg"
   }],
-},
+}
 ```
 
 ### Voilà!
