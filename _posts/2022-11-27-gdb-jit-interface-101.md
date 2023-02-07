@@ -8,7 +8,7 @@ preview: summary_large_image
 title: "GDB JIT Interface 101"
 description: "There is a surprising amount of things that can go wrong when debugging JITed code. Let's see how debug info registration works at runtime and what to check when things go south."
 source: https://github.com/weliveindetail/blog/blob/main/_posts/2022-11-27-gdb-jit-interface-101.md
-comments: https://news.ycombinator.com/item?id=33762551
+ycombinator: https://news.ycombinator.com/item?id=33762551
 ---
 
 <style>

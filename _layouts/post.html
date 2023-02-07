@@ -21,7 +21,11 @@ layout: default
         {% if page.comments == true %}
           • <a href="#comments" onclick="loadComments()" target="_blank">Comments</a>
         {% else %}
-          • <a href="{{ page.comments }}" onclick="loadComments()" target="_blank">Comments</a>
+          • <a href="{{ page.comments }}" target="_blank">Comments</a>
+        {% endif %}
+      {% else %}
+        {% if page.ycombinator %}
+          • <a href="{{ page.ycombinator }}" target="_blank">Comments</a>
         {% endif %}
       {% endif %}
     </p>

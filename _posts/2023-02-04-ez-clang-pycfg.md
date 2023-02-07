@@ -8,7 +8,7 @@ preview: summary_large_image
 title: "ez-clang Python Device Configuration Layer"
 description: "In release 0.0.6 ez-clang gained a Python Device Configuration Layer that allows users to connect their own devices."
 source: https://github.com/weliveindetail/blog/blob/main/_posts/2023-02-04-ez-clang-pycfg.md
-comments: https://news.ycombinator.com/item?id=34649661
+ycombinator: https://news.ycombinator.com/item?id=34649661
 ---
 
 <style>
