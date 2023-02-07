@@ -8,6 +8,7 @@ preview: summary_large_image
 title: "Remote C++ live coding on Raspberry Pi with ez-clang-linux"
 description: "ez-clang 0.0.6 can target Raspberry Pi Models 2 and 3 through TCP sockets. It has never been easier to play and experiment with the remote C++ REPL."
 source: https://github.com/weliveindetail/blog/blob/main/_posts/2023-02-06-ez-clang-linux.md
+ycombinator: https://news.ycombinator.com/item?id=34689861
 ---
 
 <style>
