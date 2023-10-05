@@ -5,6 +5,13 @@ permalink: /talks/
 ---
 <ul class="post-list">
   <li>
+    <span class="post-meta">European LLVM Developers' Meeting, Glasgow — May 2023</span>
+    <h2>
+      <a class="post-link" href="https://www.youtube.com/watch?v=9jFXNRzDSf0" target="_blank">
+      Extending the LLVM AArch32 JITLink backend</a>
+    </h2>
+  </li>
+  <li>
     <span class="post-meta">LLVM Meetup Berlin — May 2022</span>
     <h2>
       <a class="post-link" href="https://www.slideshare.net/StefanGrnitz/berlinmeetup22tablegenpdf" target="_blank">
