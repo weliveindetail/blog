@@ -109,7 +109,11 @@ div.language-terminal::before {
 }
 
 div.language-diff::before {
-  content: 'Git Diff';
+  content: 'Diff';
+}
+
+div.language-py::before {
+  content: 'Python';
 }
 
 div.language-docker::before {
