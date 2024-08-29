@@ -49,7 +49,7 @@ permalink: /about/
     <b>As a freelance developer</b> I help small and mid-size companies to get up to speed with LLVM. <a href="https://www.openstreetmap.org/search?query=berlin%20runge%20str.%2020#map=16/52.5127/13.4201">Here in Berlin</a> and remote.
   </p>
   <p>
-    <b>I have a track record of remote work</b> with various companies since 2016 and offer flexible conditions to match your demands. Feel free to reach out for questions <a href="click:the.address.will.be.decrypted.by.javascript" onclick='openMailer(this);'>via email</a> or <a href="https://calendly.com/stefan-graenitz/30min" target="_blank">schedule a video call</a> right away.
+    <b>I have a track record of remote work</b> with various companies since 2016 and offer flexible conditions to match your demands. For questions, feel free to reach out <a href="click:the.address.will.be.decrypted.by.javascript" onclick='openMailer(this);'>via email</a> or book a <a href="https://calendar.app.google/M5miedFkVfJ63wrW6" target="_blank">slot during office hours</a>.
   </p>
 </div>
 
