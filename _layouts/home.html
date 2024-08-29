@@ -2,6 +2,16 @@
 layout: default
 ---
 
+<style>
+  ul.post-list h2 {
+    margin-bottom: 3px;
+  }
+  ul.post-list p {
+    color: #111;
+    padding-bottom: 15px;
+  }
+</style>
+
 <div class="home">
 
   {{ content }}
@@ -18,7 +28,11 @@ layout: default
           <h2>
             <a class="post-link" href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
           </h2>
-
+          {% if post.description %}
+          <p>
+            {{ post.description }}
+          </p>
+          {% endif %}
         </li>
       {% endif %}
     {% endfor %}
