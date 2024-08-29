@@ -7,7 +7,7 @@ image: https://weliveindetail.github.io/blog/res/2024-omvll-clang-repl.png
 preview: summary_large_image
 title: "Native binary obfuscation in clang-repl"
 description: "Proof-of-concept for an obfuscation playground at the C++ prompt"
-source: https://github.com/weliveindetail/blog/main/_posts/2023-07-05-omvll-clang-repl.md
+source: https://github.com/weliveindetail/blog/main/_posts/2023-08-29-omvll-clang-repl.md
 ---
 
 <style>

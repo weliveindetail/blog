@@ -5,6 +5,20 @@ permalink: /talks/
 ---
 <ul class="post-list">
   <li>
+    <span class="post-meta">LLVM Meetup Berlin — April 2024</span>
+    <h2>
+      <a class="post-link" href="https://github.com/weliveindetail/talks/raw/master/berlin-meetup/2024-clang-repl/slides.pdf" target="_blank">
+      Hacking Sema for clang-repl</a>
+    </h2>
+  </li>
+  <li>
+    <span class="post-meta">LLVM Meetup Berlin — December 2023</span>
+    <h2>
+      <a class="post-link" href="https://github.com/weliveindetail/talks/blob/master/berlin-meetup/2023-zero-to-rust-jit/slides.md" target="_blank">
+      From Zero to Rust-JIT</a>
+    </h2>
+  </li>
+  <li>
     <span class="post-meta">European LLVM Developers' Meeting, Glasgow — May 2023</span>
     <h2>
       <a class="post-link" href="https://www.youtube.com/watch?v=9jFXNRzDSf0" target="_blank">
