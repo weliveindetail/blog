@@ -5,6 +5,13 @@ permalink: /talks/
 ---
 <ul class="post-list">
   <li>
+    <span class="post-meta">European LLVM Developers' Meeting, Berlin — May 2025</span>
+    <h2>
+      <a class="post-link" href="https://www.youtube.com/watch?v=pHfYFGVFczs" target="_blank">
+      Pass Plugins: Past, Present and Future</a>
+    </h2>
+  </li>
+  <li>
     <span class="post-meta">LLVM Meetup Berlin — April 2024</span>
     <h2>
       <a class="post-link" href="https://github.com/weliveindetail/talks/raw/master/berlin-meetup/2024-clang-repl/slides.pdf" target="_blank">
