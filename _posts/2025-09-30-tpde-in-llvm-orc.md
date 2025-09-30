@@ -8,6 +8,7 @@ preview: summary
 title: "Using the TPDE Codegen Backend in LLVM ORC"
 description: "TPDE is the perfect fit for a baseline JIT compiler, let's see how to wire it up in ORC JIT!"
 source: https://github.com/weliveindetail/blog/main/_posts/2025-09-23-tpde-in-llvm-orc.md
+ycombinator: https://news.ycombinator.com/item?id=45423994
 ---
 
 <style>
