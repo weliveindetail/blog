@@ -117,22 +117,22 @@ Executing custom_entry()
 Program returned: 123
 ```
 
-We can already see a 4x speedup with TPDE compared to built-in LLVM codegen for 100 repetitions with a large self-contained module that was generated with [csmith](https://github.com/csmith-project/csmith){:target="_blank"}:
+We can see an impressive 20x speedup with TPDE compared to built-in LLVM codegen for 100 repetitions with a large self-contained module that was generated with [csmith](https://github.com/csmith-project/csmith){:target="_blank"}:
 ```
 > ./build/tpde-orc --par 1 tpde-orc/03-csmith-tpde.ll
 ...
-Compile-time was: 2200 ms
+Compile-time was: 329 ms
 
 > ./build/tpde-orc --par 1 tpde-orc/03-csmith-tpde.ll --llvm
 ...
-Compile-time was: 8820 ms
+Compile-time was: 6796 ms
 ```
 
 ### LLJITBuilder has a Catch
 
 While `LLJITBuilder` is convenient, it comes with a minor trade-off. The interface incorporates standard LLVM components [including `TargetRegistry`](https://github.com/llvm/llvm-project/blob/release/20.x/llvm/lib/ExecutionEngine/Orc/JITTargetMachineBuilder.cpp#L42){:target="_blank"}, which is perfectly reasonable for most use cases. However, this creates a dependency we might not want: the built-in LLVM target backend must be initialized first via `InitializeNativeTarget()`. This means we still need to ship the LLVM backend, even though TPDE could theoretically replace it entirely.
 
-If you want to avoid this dependency, you'll need to set up your ORC JIT manually. For inspiration on this approach, check out [how the `tpde-lli` tool implements it](https://github.com/tpde2/tpde/blob/master/tpde-llvm/tools/tpde-lli.cpp){:target="_blank"}. Before diving into that rabbit hole though, let's explore another important aspect!
+If you want to avoid this dependency, you'll need to set up your ORC JIT manually. For inspiration on this approach, check out [how the `tpde-lli` tool implements it](https://github.com/tpde2/tpde/blob/c2bf98b592a8/tpde-llvm/tools/tpde-lli.cpp#L134-L160){:target="_blank"}. Before diving into that rabbit hole though, let's explore another important aspect!
 
 ### Implementing a LLVM Fallback
 
