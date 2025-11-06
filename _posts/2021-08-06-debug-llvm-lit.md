@@ -41,7 +41,7 @@ Next, open vscode, create a `launch.json` and add a `Python` debug configuration
   "pathMappings": [
     {
       "localRoot": "${workspaceFolder}",
-      "remoteRoot": "."
+      "remoteRoot": "${workspaceFolder}"
     }
   ]
 }
@@ -56,3 +56,12 @@ debugpy.breakpoint()
 ```
 
 Execution will be interrupted at the subsequent line during test exploration and voila, you can properly debug your configuration script.
+
+Recent versions of LIT started forking child processes, but AFAIK no Python debugger supports a [follow-fork feature like GDB or LLDB](https://www.moritz.systems/blog/lldb-support-for-fork-and-vfork/){:target="_blank"}. Since it won't forward our `--listen` and `--wait-for-client` parameters to the child processes, our breakpoints won't hit there. We cannot change that without touching the implementation of LIT, but we can still debug these cases. Just add the debugpy remote debug configuration in the location of our first breakpoint:
+```py
+import debugpy
+if not debugpy.is_client_connected():
+    debugpy.listen(("localhost", 5678))
+    debugpy.wait_for_client()
+debugpy.breakpoint()
+```
